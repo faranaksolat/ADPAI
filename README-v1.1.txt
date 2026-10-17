@@ -1,4 +1,4 @@
-ALLER AI v1.1.0 — STABLE FAST MULTILINGUAL
+ADPAI v1.1.0 — STABLE FAST MULTILINGUAL
 
 This version deliberately returns to the proven v1 browser OCR path.
 

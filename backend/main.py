@@ -55,7 +55,7 @@ ENGINE_CONFIG = {
 PRIMARY_ENGINES = ["korean", "latin"]
 FALLBACK_ENGINES = ["arabic", "cyrillic", "devanagari", "japanese", "chinese", "thai", "greek", "tamil", "telugu"]
 
-app = FastAPI(title="ALLER AI Multilingual OCR API", version="1.3.0")
+app = FastAPI(title="ADPAI Multilingual OCR API", version="1.3.0")
 app.mount("/src", StaticFiles(directory=ROOT / "src"), name="frontend-modules")
 
 app.add_middleware(

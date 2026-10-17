@@ -1,4 +1,4 @@
-ALLER AI v2.2.0 — CACHE + CALORIE SAFETY GUARD
+ADPAI v2.2.0 — CACHE + CALORIE SAFETY GUARD
 
 This version addresses two issues observed in the live test:
 
@@ -9,7 +9,7 @@ This version addresses two issues observed in the live test:
 - Module URLs include ?v=2.2.0 to force GitHub Pages/browser cache refresh.
 
 Expected live header:
-  ALLER AI v2.2.0
+  ADPAI v2.2.0
 
 Expected safety denominator:
   /7

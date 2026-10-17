@@ -239,4 +239,4 @@ function fullStatus() {
   assert.equal(c.package_kcal, 1227);
 }
 
-console.log("ALLER AI deterministic safety regressions: PASS");
+console.log("ADPAI deterministic safety regressions: PASS");

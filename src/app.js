@@ -41,7 +41,7 @@ const I = {
   en: {
     tag: "Understand the label before you eat.",
     hero: "Fast safety-first multilingual label checking.",
-    sub: "ALLER AI routes explicit PP-OCRv5 language-family models on-device. Language hints are prioritized, direct conflicts stop early, and a negative result is still blocked until the safety coverage gate passes.",
+    sub: "ADPAI routes explicit PP-OCRv5 language-family models on-device. Language hints are prioritized, direct conflicts stop early, and a negative result is still blocked until the safety coverage gate passes.",
     profile: "What should we watch for?",
     profileSub: "Choose one or more allergens or ingredients you avoid.",
     milk: "Milk", egg: "Egg", peanut: "Peanut", treeNuts: "Tree nuts",
@@ -59,11 +59,11 @@ const I = {
     tip3: "The first thorough scan downloads OCR models. Later scans can reuse browser cache.",
     autoLang: "PaddleOCR PP-OCRv5 on-device · fast language-family router · automatic rotation",
     analyze: "Run thorough safety scan",
-    note: "Photos are processed in your browser. ALLER AI does not upload them to a Render analysis server.",
+    note: "Photos are processed in your browser. ADPAI does not upload them to a Render analysis server.",
     checking: "Running safety scan…",
     checkingSub: "Starting the multilingual OCR pipeline…",
     privacy: "Photos and profile stay on this device during analysis. Learning corrections are stored only in this browser.",
-    footer: "ALLER AI is a safety-first decision-support prototype, not a medical guarantee. For severe allergies, verify the original label and manufacturer guidance.",
+    footer: "ADPAI may make mistakes. Please verify ingredients, allergens, and calorie estimates against the original package label. For severe allergies, check with the manufacturer; these results do not guarantee safety.",
     noProfile: "Select at least one item to check.",
     addPhoto: "Add at least one product photo.",
     conflict: "Conflict detected",
@@ -80,7 +80,7 @@ const I = {
     noCalories: "Full-package calories could not be calculated from the visible labels.",
     photoAdded: "Photo added",
     engineTitle: "On-device PaddleOCR could not start",
-    engineBody: "One or more OCR models could not be loaded. ALLER AI will not issue a negative result when coverage is incomplete.",
+    engineBody: "One or more OCR models could not be loaded. ADPAI will not issue a negative result when coverage is incomplete.",
     directMatches: "Direct matches",
     cautionMatches: "Precautionary matches",
     mentionMatches: "Unverified mentions",
@@ -96,7 +96,7 @@ const I = {
   ko: {
     tag: "먹기 전에 라벨을 이해하세요.",
     hero: "안전 우선 다국어 라벨 확인.",
-    sub: "ALLER AI는 여러 OCR 언어 계열을 기기 내에서 정밀하게 확인합니다. 다국어 커버리지 게이트를 통과한 경우에만 음성 결과를 표시합니다.",
+    sub: "ADPAI는 여러 OCR 언어 계열을 기기 내에서 정밀하게 확인합니다. 다국어 커버리지 게이트를 통과한 경우에만 음성 결과를 표시합니다.",
     profile: "무엇을 확인할까요?",
     profileSub: "피하고 싶은 알레르기 유발물질 또는 성분을 선택하세요.",
     milk: "우유", egg: "달걀", peanut: "땅콩", treeNuts: "견과류",
@@ -118,7 +118,7 @@ const I = {
     checking: "안전 스캔 중…",
     checkingSub: "다국어 OCR 파이프라인을 시작하는 중…",
     privacy: "사진과 프로필은 분석 중 이 기기에서 처리됩니다. 학습 교정도 이 브라우저에만 저장됩니다.",
-    footer: "ALLER AI는 안전 우선 의사결정 보조 프로토타입이며 의학적 안전을 보장하지 않습니다. 중증 알레르기의 경우 원본 라벨과 제조사 안내를 확인하세요.",
+    footer: "ADPAI는 오류가 발생할 수 있습니다. 원재료, 알레르기 유발물질 및 예상 열량을 제품의 원본 라벨과 직접 대조해 주세요. 중증 알레르기가 있는 경우 제조사에도 확인하세요. 이 결과는 안전을 보장하지 않습니다.",
     noProfile: "확인할 항목을 하나 이상 선택하세요.",
     addPhoto: "제품 사진을 하나 이상 추가하세요.",
     conflict: "주의 성분 확인",
@@ -135,7 +135,7 @@ const I = {
     noCalories: "보이는 라벨만으로 전체 포장 열량을 계산할 수 없습니다.",
     photoAdded: "사진 추가됨",
     engineTitle: "기기 내 PaddleOCR을 시작할 수 없습니다",
-    engineBody: "일부 OCR 모델을 불러오지 못했습니다. 커버리지가 불완전한 경우 ALLER AI는 음성 결과를 표시하지 않습니다.",
+    engineBody: "일부 OCR 모델을 불러오지 못했습니다. 커버리지가 불완전한 경우 ADPAI는 음성 결과를 표시하지 않습니다.",
     directMatches: "직접 확인된 항목",
     cautionMatches: "주의 표시 항목",
     mentionMatches: "확인되지 않은 언급",
@@ -399,7 +399,7 @@ function messageFor(p) {
 
   if (p.status === "conflict") return `Selected ingredient conflict detected: ${direct.join(", ")}.`;
   if (p.status === "caution") return `Precautionary cross-contact warning detected: ${caution.join(", ")}.`;
-  if (p.status === "unverified") return "ALLER AI could not verify the label strongly enough. Do not interpret this as a negative result.";
+  if (p.status === "unverified") return "ADPAI could not verify the label strongly enough. Do not interpret this as a negative result.";
   return "No selected conflict was found after the thorough multilingual coverage gate completed.";
 }
 

@@ -14,7 +14,7 @@ The current implementation is documented in README.md. The historical design bel
 
 ## Historical PaddleOCR design
 
-# ALLER AI v2.0 Safety Architecture
+# ADPAI v2.0 Safety Architecture
 
 ## Safety invariant
 

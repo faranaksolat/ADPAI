@@ -1,4 +1,4 @@
-ALLER AI v2.1 — FAST SAFETY ROUTER
+ADPAI v2.1 — FAST SAFETY ROUTER
 
 WHY THIS VERSION
 ================
@@ -58,5 +58,5 @@ DEPLOY
 ======
 Replace the repository files with this package and:
   git add .
-  git commit -m "Optimize ALLER AI safety OCR routing v2.1"
+  git commit -m "Optimize ADPAI safety OCR routing v2.1"
   git push origin main

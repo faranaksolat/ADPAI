@@ -1,4 +1,4 @@
-ALLER AI v2.0 — SAFETY-FIRST PADDLEOCR
+ADPAI v2.0 — SAFETY-FIRST PADDLEOCR
 
 WHAT CHANGED
 ============
@@ -57,7 +57,7 @@ Replace/copy these items into the repository root:
 
 Then:
   git add index.html src
-  git commit -m "Upgrade ALLER AI to safety-first PaddleOCR"
+  git commit -m "Upgrade ADPAI to safety-first PaddleOCR"
   git push origin main
 
 Do NOT upload node_modules.
@@ -75,7 +75,7 @@ IMPORTANT FIRST-RUN BEHAVIOR
 ============================
 The first thorough scan downloads the PaddleOCR.js SDK and OCR model assets.
 It can therefore take noticeably longer than later scans. Inference itself happens
-on the user's device. ALLER AI does not send product photos to Render.
+on the user's device. ADPAI does not send product photos to Render.
 
 SAFETY STATUS
 =============

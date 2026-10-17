@@ -1,4 +1,4 @@
-# ALLER AI
+# ADPAI
 
 Food-package label prototype. The current GitHub Pages entry point is `index.html`, which loads `src/browser.js` and runs Tesseract.js in the browser. Images stay in the browser. Both the page and the experimental PaddleOCR browser adapter use `src/engine.js` and `src/nutrition.js`.
 
@@ -51,3 +51,7 @@ Edit `backend/ontology.json` and `shared/non-dairy.json`, then run `npm run gene
 ## Accuracy validation still required
 
 The regression suite uses annotated text and controlled OCR. It does not establish accuracy, allergen recall, or latency on real packages. See `benchmarks/README.md` for the required dataset and evaluation protocol. Do not enable reassuring negative results based only on these passing tests.
+
+## Product name and public URL
+
+The product name is **ADPAI**. The intended Pages address is `https://faranaksadatsolat.github.io/ADPAI/`. GitHub derives this project-site path from the repository name; a source-code edit cannot rename that URL. The repository must be renamed to `ADPAI` in GitHub Settings, and the Pages deployment must complete before the new address is treated as live. Browser profile/learning storage keys remain compatible with earlier versions.

@@ -4,8 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b1220">
-<!-- ALLER AI v1.3.0: explicit tested-language scope + targeted language safety probe -->
-<title>ALLER AI — Multi-product ingredient checker</title>
+<meta name="application-name" content="ADPAI">
+<meta name="description" content="ADPAI helps you read food-package ingredients, check selected allergens, and estimate calories. Always verify results against the original label.">
+<!-- ADPAI v1.3.0: explicit tested-language scope + targeted language safety probe -->
+<title>ADPAI — Multi-product ingredient checker</title>
 <style>
 :root{--ink:#0b1220;--muted:#667085;--bg:#f7f8fb;--card:#fff;--line:#e7eaf0;--brand:#4169e1;--brand-soft:#eef2ff;--danger:#b42318;--danger-bg:#fff2f0;--warn:#995400;--warn-bg:#fff8e8;--ok:#146c43;--ok-bg:#edf9f2;--shadow:0 16px 50px rgba(16,24,40,.08);--r:26px}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 12% -10%,rgba(65,105,225,.12),transparent 32%),var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI","Noto Sans KR",sans-serif}button,input,select{font:inherit}
@@ -31,7 +33,7 @@
 </head>
 <body>
 <main class="app">
-<header><div class="brand"><div class="mark">알러</div><div><div class="name">ALLER AI <span style="font-size:10px;color:#667085;font-weight:800;vertical-align:middle">v1.3.0</span></div><div class="tag" data-i18n="tag">Understand the label before you eat.</div></div></div><select id="lang"><option value="en">EN</option><option value="ko">한국어</option></select></header>
+<header><div class="brand"><div class="mark" aria-label="ADPAI">A</div><div><div class="name">ADPAI <span style="font-size:10px;color:#667085;font-weight:800;vertical-align:middle">v1.3.0</span></div><div class="tag" data-i18n="tag">Understand the label before you eat.</div></div></div><select id="lang"><option value="en">EN</option><option value="ko">한국어</option></select></header>
 <section class="hero"><h1 data-i18n="hero">Check one product or a whole basket.</h1><p data-i18n="sub">Add several photos of the same product, or create separate product groups. Package language is detected automatically across major writing systems; no language selection is required.</p></section>
 <section class="langscope">
   <strong>🌐 <span data-i18n="langCoverage">Language coverage</span></strong>
@@ -58,8 +60,8 @@
 <div class="privacy">🔒 <span data-i18n="privacy">Your selected profile is stored only in this browser.</span></div>
 </section>
 </div>
-<div class="footer" data-i18n="footer">ALLER AI is a decision-support prototype, not a medical guarantee. For severe allergies, verify the original label and manufacturer guidance.</div>
+<footer class="footer" data-i18n="footer">ADPAI may make mistakes. Please verify ingredients, allergens, and calorie estimates against the original package label. For severe allergies, check with the manufacturer; these results do not guarantee safety.</footer>
 </main>
-<script type="module" src="./src/browser.js?v=1.3.0"></script>
+<script type="module" src="./src/browser.js?v=1.3.0-adpai"></script>
 </body>
 </html>
