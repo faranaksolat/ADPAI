@@ -2,6 +2,12 @@
 
 Food-allergen label-checking prototype for shopping. The current GitHub Pages entry point is `index.html`, which loads `src/browser.js` and runs Tesseract.js in the browser. Images stay in the browser. Both the page and the experimental PaddleOCR browser adapter use the shared allergen rules in `src/engine.js`.
 
+Version 1.6.0 adds local photo cropping, retained ingredient-panel readings,
+one bounded primary OCR enhancement retry for unresolved products, and a
+partial ingredient list with plain English/Korean explanations for common
+terms. Original names and raw OCR remain visible. Unknown/uncertain terms are
+not guessed. See [scope and limitations](docs/ingredient-explanations.md).
+
 `backend/main.py` is a separate FastAPI/PaddleOCR API (`POST /api/analyze`). It also serves the current frontend and its modules, but the frontend does **not** automatically upload to or call this API. `src/app.js` / `src/ocr.js` are an experimental browser PaddleOCR path, not the Pages entry point.
 
 ## Safety policy

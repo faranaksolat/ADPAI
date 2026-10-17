@@ -90,24 +90,57 @@ try {
     input.dispatchEvent(new Event('change',{bubbles:true}));
     const milk=document.querySelector('#chips input[value=milk]');milk.checked=true;milk.dispatchEvent(new Event('change',{bubbles:true}));
   })()`);
-  const cases=[['INGREDIENTS: milk, sugar','Conflict detected'],['INGREDIENTS: sugar and cocoa','Unable to verify'],['Nutrition facts: per 100 g 500 kcal','Unable to verify']];
+  const cases=[['INGREDIENTS: milk, sugar, citric acid (E330)','Conflict detected'],['INGREDIENTS: sugar and cocoa','Unable to verify'],['Nutrition facts: per 100 g 500 kcal','Unable to verify']];
   for(const [text,expected] of realOcr ? cases.slice(0,1) : cases) {
-    const result=await evaluate(`(async()=>{globalThis.testOcrText=${JSON.stringify(text)};document.querySelector('#analyze').click();const end=Date.now()+${realOcr?180000:20000};while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw new Error('analysis timeout');await new Promise(r=>setTimeout(r,25));}return {title:document.querySelector('#rtitle').textContent,icon:document.querySelector('#ricon').textContent,badge:document.querySelector('.presult .badge').textContent,body:document.body.textContent,hasCalorieElements:!!document.querySelector('#calTotal,.kcal')};})()`);
+    const result=await evaluate(`(async()=>{globalThis.testOcrText=${JSON.stringify(text)};document.querySelector('#analyze').click();const end=Date.now()+${realOcr?180000:20000};while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw new Error('analysis timeout');await new Promise(r=>setTimeout(r,25));}const visible=document.body.cloneNode(true);visible.querySelectorAll('.rawOcr').forEach(el=>el.remove());return {title:document.querySelector('#rtitle').textContent,icon:document.querySelector('#ricon').textContent,badge:document.querySelector('.presult .badge').textContent,body:visible.textContent,hasCalorieElements:!!document.querySelector('#calTotal,.kcal')};})()`);
     assert.equal(result.title,expected);
     assert.equal(result.badge,expected);
     assert.equal(result.icon,'!');
     assert.equal(result.hasCalorieElements,false);
     assert.ok(!/calorie|kcal|열량|칼로리/iu.test(result.body));
+    if(text.includes('citric')&&!realOcr) {
+      assert.ok(result.body.includes('Adjusts tartness and acidity.'));
+      assert.ok(await evaluate(`document.querySelector('.rawOcr pre').textContent.includes('citric acid')`));
+      await evaluate(`document.querySelector('#lang').value='ko';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
+      assert.ok((await evaluate(`document.querySelector('.ingredientSection').textContent`)).includes('신맛과 산도를 조절'));
+      await evaluate(`document.querySelector('#lang').value='en';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
+      if(process.env.BROWSER_SCREENSHOT) {
+        const {data}=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});
+        await fs.writeFile(process.env.BROWSER_SCREENSHOT,Buffer.from(data,'base64'));
+      }
+    }
   }
   await evaluate(`document.querySelector('#lang').value='ko';document.querySelector('#lang').dispatchEvent(new Event('change'));`);
   assert.equal(await evaluate(`document.querySelector('#rtitle').textContent`),realOcr?'주의 성분 확인':'확인 불가');
-  assert.ok(!/calorie|kcal|열량|칼로리/iu.test(await evaluate(`document.body.textContent`)));
-  if(process.env.BROWSER_SCREENSHOT) {
+  assert.ok(!/calorie|kcal|열량|칼로리/iu.test(await evaluate(`(()=>{const body=document.body.cloneNode(true);body.querySelectorAll('.rawOcr').forEach(el=>el.remove());return body.textContent})()`)));
+  if(process.env.BROWSER_SCREENSHOT && realOcr) {
     const {data}=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});
     await fs.writeFile(process.env.BROWSER_SCREENSHOT,Buffer.from(data,'base64'));
   }
   if(mobileWeb)assert.equal(await evaluate(`document.querySelector('#installPanel').hidden`),true);
   if(!realOcr) {
+    // Explicit crop works on touch-sized UI; cancellation preserves a result,
+    // applying/restoring invalidates it and restores the original pixels.
+    await evaluate(`document.querySelector('.cropPhoto').click()`);
+    await evaluate(`(async()=>{while(!document.querySelector('.cropDialog'))await new Promise(r=>setTimeout(r,10))})()`);
+    assert.equal(await evaluate(`document.querySelector('#analyze').disabled`),true);
+    await evaluate(`document.querySelector('[data-crop-action=cancel]').click()`);
+    await evaluate(`(async()=>{while(document.querySelector('.cropDialog'))await new Promise(r=>setTimeout(r,10))})()`);
+    assert.equal(await evaluate(`document.querySelector('#result').classList.contains('show')`),true);
+    await evaluate(`document.querySelector('.cropPhoto').click()`);
+    await evaluate(`(async()=>{while(!document.querySelector('.cropDialog'))await new Promise(r=>setTimeout(r,10))})()`);
+    const rect=await evaluate(`(()=>{const r=document.querySelector('.cropDialog canvas').getBoundingClientRect();return {x:r.left,y:r.top,w:r.width,h:r.height}})()`);
+    await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:rect.x+rect.w*.1,y:rect.y+rect.h*.1}]});
+    await send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:rect.x+rect.w*.9,y:rect.y+rect.h*.8}]});
+    await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    await evaluate(`document.querySelector('[data-crop-action=apply]').click()`);
+    await evaluate(`(async()=>{while(document.querySelector('.cropDialog'))await new Promise(r=>setTimeout(r,10))})()`);
+    assert.equal(await evaluate(`document.querySelector('#result').classList.contains('show')`),false);
+    const cropped=await evaluate(`(async()=>{const image=document.querySelector('.photo img');await image.decode();return {w:image.naturalWidth,h:image.naturalHeight}})()`);
+    assert.ok(Math.abs(cropped.w-1120)<=2 && Math.abs(cropped.h-280)<=2);
+    await evaluate(`document.querySelector('.restorePhoto').click()`);
+    assert.equal(await evaluate(`(async()=>{const image=document.querySelector('.photo img');await image.decode();return image.naturalWidth})()`),1400);
+    assert.equal(await evaluate(`document.documentElement.scrollWidth<=window.innerWidth`),true);
     // Users cannot change the product/profile during inference and accidentally
     // associate old OCR with a new photograph or selection.
     await evaluate(`globalThis.testOcrDelay=30;document.querySelector('#analyze').click()`);
@@ -133,7 +166,7 @@ try {
     await evaluate(`(async()=>{await navigator.serviceWorker.ready;const end=Date.now()+15000;while(!navigator.serviceWorker.controller){if(Date.now()>end)throw new Error('service worker did not claim page');await new Promise(r=>setTimeout(r,25))}})()`);
     const cache=await evaluate(`(async()=>({scope:(await navigator.serviceWorker.ready).scope,urls:(await Promise.all((await caches.keys()).map(async key=>(await (await caches.open(key)).keys()).map(r=>r.url)))).flat()}))()`);
     assert.ok(cache.scope.endsWith(prefix));
-    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.5.0')));
+    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.6.0')));
     assert.ok(cache.urls.every(url=>url.startsWith(cache.scope) && !/blob:|api\/|label\.png|profile/iu.test(url)));
     await send('Fetch.disable');
     await send('Network.enable');
@@ -147,7 +180,7 @@ try {
     assert.equal(await evaluate(`document.querySelector('#analyze').disabled`),true);
     assert.equal(await evaluate(`(async()=>(await fetch('./privacy.html')).ok)()`),true);
     // An offline shell is usable even when the CDN runtime is unavailable.
-    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.5.0');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
+    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.6.0');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
     assert.equal(offlineStatus,'unverified');
   }
   assert.deepEqual(errors,[]);

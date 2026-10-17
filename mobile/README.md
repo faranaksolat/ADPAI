@@ -99,6 +99,13 @@ uploads to Google Play, TestFlight or the App Store. Native transitive
 dependencies and the runner's Xcode/SDK still need a successful native build;
 the presence of this workflow alone is not a passing build result.
 
+The hosted runner generates a fresh debug signing key on each run. A later
+test APK can therefore fail to update an earlier installation with
+`INSTALL_FAILED_UPDATE_INCOMPATIBLE`. Do not silently uninstall: uninstalling
+removes the saved local allergy profile. For ongoing testing, arrange a
+stable private test signing key, or explicitly choose a clean reinstall and
+re-enter the profile. Never commit signing keys or passwords to the repository.
+
 ## Before public release
 
 - Complete the real-package benchmark in `benchmarks/README.md`, including
