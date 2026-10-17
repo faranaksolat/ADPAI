@@ -3,6 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/engine.test.mjs"
+    "test": "node scripts/generate-ontology.mjs --check && node --test tests/*.test.mjs",
+    "generate:ontology": "node scripts/generate-ontology.mjs",
+    "test:python": "python -m unittest discover -s tests -p 'test_*.py'",
+    "test:browser": "node tests/browser-smoke.mjs"
   }
 }

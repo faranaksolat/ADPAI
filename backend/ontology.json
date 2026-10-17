@@ -229,7 +229,8 @@
           "egg white",
           "egg yolk",
           "albumen",
-          "ovalbumin"
+          "ovalbumin",
+          "eggs"
         ],
         "ko": [
           "계란",
@@ -353,7 +354,9 @@
           "groundnut",
           "peanut flour",
           "peanut powder",
-          "peanut butter"
+          "peanut butter",
+          "peanuts",
+          "groundnuts"
         ],
         "ko": [
           "땅콩",
@@ -447,7 +450,16 @@
           "pecan",
           "macadamia",
           "brazil nut",
-          "pine nut"
+          "pine nut",
+          "almonds",
+          "walnuts",
+          "cashews",
+          "pistachios",
+          "hazelnuts",
+          "pecans",
+          "macadamias",
+          "brazil nuts",
+          "pine nuts"
         ],
         "ko": [
           "아몬드",
@@ -648,11 +660,11 @@
           "soybean",
           "soy lecithin",
           "soy protein",
-          "soy flour"
+          "soy flour",
+          "soybeans"
         ],
         "ko": [
           "대두",
-          "콩",
           "대두레시틴",
           "대두단백",
           "대두분"
@@ -883,7 +895,8 @@
           "sesame",
           "sesame seed",
           "sesame oil",
-          "tahini"
+          "tahini",
+          "sesame seeds"
         ],
         "ko": [
           "참깨",
@@ -1003,7 +1016,9 @@
           "salmon",
           "cod",
           "sardine",
-          "mackerel"
+          "mackerel",
+          "anchovies",
+          "sardines"
         ],
         "ko": [
           "어류",
@@ -1170,7 +1185,25 @@
           "shrimp",
           "prawn",
           "crab",
-          "lobster"
+          "lobster",
+          "shrimps",
+          "prawns",
+          "crabs",
+          "lobsters",
+          "mollusc",
+          "molluscs",
+          "mollusk",
+          "mollusks",
+          "clam",
+          "clams",
+          "mussel",
+          "mussels",
+          "oyster",
+          "oysters",
+          "scallop",
+          "scallops",
+          "squid",
+          "octopus"
         ],
         "ko": [
           "갑각류",

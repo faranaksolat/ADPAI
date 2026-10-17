@@ -1,0 +1,870 @@
+{
+  "allergens": [
+    {
+      "name": "plural peanuts",
+      "profile": {
+        "allergens": [
+          "peanut"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: roasted peanuts, sugar",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "conflict",
+      "direct": [
+        "peanut"
+      ],
+      "caution": []
+    },
+    {
+      "name": "plural nuts",
+      "profile": {
+        "allergens": [
+          "tree_nuts"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: almonds, cashews and walnuts",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "conflict",
+      "direct": [
+        "tree_nuts"
+      ],
+      "caution": []
+    },
+    {
+      "name": "plural eggs",
+      "profile": {
+        "allergens": [
+          "egg"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: eggs and flour",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "conflict",
+      "direct": [
+        "egg"
+      ],
+      "caution": []
+    },
+    {
+      "name": "mollusks included in shellfish",
+      "profile": {
+        "allergens": [
+          "shellfish"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: mussels and oysters",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "conflict",
+      "direct": [
+        "shellfish"
+      ],
+      "caution": []
+    },
+    {
+      "name": "cocoa butter is not milk",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: cocoa butter, sugar",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "split cocoa butter",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: COCOA",
+              "score": 0.9
+            },
+            {
+              "text": "BUTTER and sugar",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "plant milk is not dairy",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: almond milk, cocoa",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "real milk after non dairy",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: cocoa butter, milk powder",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "conflict",
+      "direct": [
+        "milk"
+      ],
+      "caution": []
+    },
+    {
+      "name": "persian cocoa butter",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "ترکیبات: شکر، کره کاکائو",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "persian dairy with cocoa butter",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "ترکیبات: کره کاکائو، شیر خشک",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "conflict",
+      "direct": [
+        "milk"
+      ],
+      "caution": []
+    },
+    {
+      "name": "french milk",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGRÉDIENTS: sucre, poudre de lait",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "conflict",
+      "direct": [
+        "milk"
+      ],
+      "caution": []
+    },
+    {
+      "name": "korean caution suffix",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "원재료명 밀가루, 설탕",
+              "score": 0.9
+            },
+            {
+              "text": "우유, 계란, 새우 혼입가능",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "caution",
+      "direct": [],
+      "caution": [
+        "milk"
+      ]
+    },
+    {
+      "name": "direct is not downgraded",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: milk, sugar. May contain nuts.",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "conflict",
+      "direct": [
+        "milk"
+      ],
+      "caution": []
+    },
+    {
+      "name": "separate warning scope",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: sugar. May contain milk.",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "caution",
+      "direct": [],
+      "caution": [
+        "milk"
+      ]
+    },
+    {
+      "name": "no evidence is not absence",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: sugar and cocoa",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "declaration alone cannot clear",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "CONTAINS: SOY. This is only a partial declaration.",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "heading only",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS:",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "marketing after sentence",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: sugar. Milk chocolate sold separately.",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "negative claim unresolved",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: milk-free oat drink, sugar",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "a separate positive beats free claim",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "Milk-free claim. INGREDIENTS: milk powder",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "conflict",
+      "direct": [
+        "milk"
+      ],
+      "caution": []
+    },
+    {
+      "name": "weak positive is unresolved",
+      "profile": {
+        "allergens": [
+          "peanut"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: peanut",
+              "score": 0.5
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "missing confidence is unresolved",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: milk",
+              "score": 0
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "nutrition cannot clear",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "Nutrition facts: 500 kcal per 100 g",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "beans substring not soy",
+      "profile": {
+        "allergens": [
+          "soy"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "원재료명 땅콩",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "custom terms do not suppress each other",
+      "profile": {
+        "allergens": [],
+        "custom_avoid": [
+          "gelatin",
+          "mustard"
+        ]
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: gelatin. May contain mustard.",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "conflict",
+      "direct": [
+        "custom"
+      ],
+      "caution": [
+        "custom"
+      ]
+    },
+    {
+      "name": "arabic milk",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "المكونات: حليب، سكر",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "conflict",
+      "direct": [
+        "milk"
+      ],
+      "caution": []
+    },
+    {
+      "name": "weak term with strong heading",
+      "profile": {
+        "allergens": [
+          "peanut"
+        ]
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: sugar, cocoa and vanilla",
+              "score": 0.99
+            },
+            {
+              "text": "peanut",
+              "score": 0.5
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "same family is not independent agreement",
+      "profile": {
+        "allergens": [
+          "peanut"
+        ]
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: peanut",
+              "score": 0.5
+            }
+          ]
+        },
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: peanut",
+              "score": 0.5
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "two families agree on weak positive",
+      "profile": {
+        "allergens": [
+          "peanut"
+        ]
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS: peanut",
+              "score": 0.5
+            }
+          ]
+        },
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "INGREDIENTS: peanut",
+              "score": 0.5
+            }
+          ]
+        }
+      ],
+      "status": "conflict",
+      "direct": [
+        "peanut"
+      ],
+      "caution": []
+    },
+    {
+      "name": "perilla is not sesame",
+      "profile": {
+        "allergens": [
+          "sesame"
+        ]
+      },
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "원재료명 들깨, 우유",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "milk transliteration is not wheat",
+      "profile": {
+        "allergens": [
+          "wheat"
+        ]
+      },
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "원재료명 밀크, 설탕",
+              "score": 0.9
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    }
+  ],
+  "nutrition": [
+    {
+      "name": "Korean reference",
+      "text": "영양정보 총 내용량 253 g(5.8 g x 44봉지) 100 g당 485 kcal",
+      "expected": 1227
+    },
+    {
+      "name": "recover supported OCR weight",
+      "text": "영양정보 총 내용량 8253 g (5.8 g x 44봉지) 100 g당 485 kcal",
+      "expected": 1227
+    },
+    {
+      "name": "reject unsupported OCR weight",
+      "text": "영양정보 총 내용량 8253 g 100 g당 485 kcal",
+      "expected": null
+    },
+    {
+      "name": "decimal comma",
+      "text": "Net weight 250 g. Energy per 100 g 48,5 kcal",
+      "expected": 121
+    },
+    {
+      "name": "serving weight is not package weight",
+      "text": "Nutrition facts: serving size 30 g. Per 100 g 500 kcal",
+      "expected": null
+    },
+    {
+      "name": "total calories per serving ambiguous",
+      "text": "Net weight 100 g. Total calories 120 kcal per serving. 4 servings per package.",
+      "expected": null
+    },
+    {
+      "name": "explicit package energy",
+      "text": "Energy per pack 450 kcal",
+      "expected": 450
+    },
+    {
+      "name": "conflicting package weights",
+      "text": "Net weight 100 g. Net weight 200 g. Per 100 g 500 kcal",
+      "expected": null
+    },
+    {
+      "name": "conflicting energy bases",
+      "text": "Net weight 100 g. Per 100 g 300 kcal. Per 100 g 500 kcal",
+      "expected": null
+    },
+    {
+      "name": "conflicting explicit and computed",
+      "text": "Net weight 100 g. Per 100 g 300 kcal. Energy per pack 500 kcal",
+      "expected": null
+    },
+    {
+      "name": "incompatible multipack",
+      "text": "Net weight 500 g. 5.8 g x 44 packs. Per 100 g 485 kcal",
+      "expected": null
+    },
+    {
+      "name": "unsupported ml conversion",
+      "text": "Net weight 250 ml. Per 100 g 50 kcal",
+      "expected": null
+    },
+    {
+      "name": "kj is not kcal",
+      "text": "Net weight 250 g. Per 100 g 500 kJ",
+      "expected": null
+    },
+    {
+      "name": "unscoped total",
+      "text": "Total calories 100 kcal",
+      "expected": null
+    },
+    {
+      "name": "missing basis",
+      "text": "Net weight 250 g. Energy 500 kcal",
+      "expected": null
+    },
+    {
+      "name": "normal explicit weight",
+      "text": "Net weight 250 g. 485 kcal per 100 g",
+      "expected": 1213
+    },
+    {
+      "name": "multipack only",
+      "text": "5.8 g x 44 packs. 100 g당 485 kcal",
+      "expected": 1238
+    },
+    {
+      "name": "impossible density",
+      "text": "Net weight 100 g. Per 1 g 500 kcal",
+      "expected": null
+    },
+    {
+      "name": "mixed number locale unresolved",
+      "text": "Net weight 250 g. Per 100 g 1.234,5 kcal",
+      "expected": null
+    }
+  ]
+}

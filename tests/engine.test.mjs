@@ -141,7 +141,7 @@ function fullStatus() {
     familyStatus: fullStatus(),
     requiredFamilies: REQUIRED_BASE_FAMILIES,
   });
-  assert.equal(x.status, "no_listed_conflict");
+  assert.equal(x.status, "unverified"); // OCR cannot certify complete panel coverage.
 }
 
 // 10) Persian cocoa butter is NOT dairy milk.
@@ -154,7 +154,7 @@ function fullStatus() {
     familyStatus: fullStatus(),
     requiredFamilies: REQUIRED_BASE_FAMILIES,
   });
-  assert.equal(x.status, "no_listed_conflict");
+  assert.equal(x.status, "unverified");
 }
 
 // 11) Persian milk powder remains a direct dairy conflict even if cocoa butter is present.
@@ -180,7 +180,7 @@ function fullStatus() {
     familyStatus: fullStatus(),
     requiredFamilies: REQUIRED_BASE_FAMILIES,
   });
-  assert.equal(x.status, "no_listed_conflict");
+  assert.equal(x.status, "unverified");
 }
 
 
@@ -195,7 +195,7 @@ function fullStatus() {
     familyStatus: fullStatus(),
     requiredFamilies: REQUIRED_BASE_FAMILIES,
   });
-  assert.equal(x.status, "no_listed_conflict");
+  assert.equal(x.status, "unverified");
 }
 
 // 14) Real Persian milk remains conflict even when cocoa butter is split nearby.
@@ -239,4 +239,4 @@ function fullStatus() {
   assert.equal(c.package_kcal, 1227);
 }
 
-console.log("ALLER AI v2.2 deterministic safety tests: PASS");
+console.log("ALLER AI deterministic safety regressions: PASS");

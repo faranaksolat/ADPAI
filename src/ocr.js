@@ -1,5 +1,5 @@
 
-import { customRequiredFamilies } from "./engine.js?v=2.2.0";
+import { customRequiredFamilies } from "./engine.js?v=1.3.0";
 
 const DET_MODEL = "PP-OCRv5_mobile_det";
 
@@ -242,6 +242,7 @@ export async function deepScan(products, profile, evaluatePartial, onProgress = 
   const byId = new Map(defs.map((d) => [d.id, d]));
   const familyStatus = Object.fromEntries(defs.map((d) => [d.id, { ok: false, attempted: false }]));
   const productSources = new Map(products.map((p) => [p.id, []]));
+  const productFamilyStatus = new Map(products.map(p => [p.id, {}]));
   const terminal = new Set();
 
   const queue = [];
@@ -283,6 +284,7 @@ export async function deepScan(products, profile, evaluatePartial, onProgress = 
       for (let pi = 0; pi < products.length; pi++) {
         const product = products[pi];
         if (terminal.has(product.id)) continue;
+        let photoSuccess = true;
 
         onProgress({
           phase: "scan",
@@ -308,10 +310,12 @@ export async function deepScan(products, profile, evaluatePartial, onProgress = 
               detectedBoxes: best.summary.detectedBoxes,
             });
           } catch (e) {
+            photoSuccess = false;
             console.warn("Photo OCR failed", def.id, ph, e);
           }
         }
 
+        productFamilyStatus.get(product.id)[id] = {ok: photoSuccess, attempted: true};
         // Latin OCR can cheaply expose multilingual panel tags.
         if (id === "latin") {
           const hints = routingHints(textOfSources(productSources.get(product.id)));
@@ -332,6 +336,9 @@ export async function deepScan(products, profile, evaluatePartial, onProgress = 
 
       familyStatus[id] = { ok: true, attempted: true };
     } catch (e) {
+      for (const product of products) {
+        if (!terminal.has(product.id)) productFamilyStatus.get(product.id)[id] = {ok:false, attempted:true};
+      }
       console.error("OCR family failed", def.id, e);
       familyStatus[id] = {
         ok: false,
@@ -351,5 +358,5 @@ export async function deepScan(products, profile, evaluatePartial, onProgress = 
     if (terminal.size === products.length) break;
   }
 
-  return { defs, familyStatus, productSources, terminal };
+  return { defs, familyStatus, productFamilyStatus, productSources, terminal };
 }

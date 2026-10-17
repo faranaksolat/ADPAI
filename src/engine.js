@@ -1,5 +1,6 @@
 
-import { ONTOLOGY } from "./ontology.js?v=2.2.0";
+import { ONTOLOGY, NON_DAIRY_PHRASES } from "./ontology.js?v=1.3.0";
+export { extractCaloriesFromText, extractProductCalories, normalizeCalorieOCR } from "./nutrition.js?v=1.3.0";
 
 export const ALLERGENS = ONTOLOGY.allergens;
 export const MARKERS = ONTOLOGY.label_markers;
@@ -141,214 +142,81 @@ function allAliases(id) {
   return out;
 }
 
-function headingPosition(lines) {
-  for (let i = 0; i < lines.length; i++) {
-    if (containsAny(lines[i].text || "", MARKERS.ingredient_headings)) return i;
-  }
-  return -1;
+// Match each occurrence in its own declaration/ingredient scope. Keep offsets so
+// confidence belongs to the line containing the term, never an adjacent line.
+export function matchSpans(text, term) {
+  const q = fold(term);
+  if (!q) return [];
+  const pattern = esc(q).replace(/ /g, "\\s+");
+  const boundary = isWordScript(q) || ['밀','깨','게'].map(fold).includes(q);
+  const re = new RegExp(boundary ? "(?<![\\p{L}\\p{N}_])" + pattern + "(?![\\p{L}\\p{N}_])" : pattern, "gu");
+  return [...text.matchAll(re)].map(m => ({start: m.index, end: m.index + m[0].length}));
 }
 
-function contextFor(lines, idx, radius = 2) {
-  return lines
-    .slice(Math.max(0, idx - radius), Math.min(lines.length, idx + radius + 1))
-    .map((x) => x.text || "")
-    .join(" ");
+const STOP_HEADINGS = [...MARKERS.nutrition_headings, "storage", "best before", "customer service", "barcode", "보관방법", "고객상담실", "保存方法", "保管方法"];
+const SUFFIX_CAUTION = new RegExp(["혼입가능", "혼입 가능", "함유가능", "함유 가능", "같은 제조시설", "동일 제조시설", "含む可能性", "同一工場", "可能含有"].map(fold).map(esc).join('|'), 'u');
+const SUFFIX_DIRECT = new RegExp(["함유", "含有", "含む"].map(fold).map(esc).join('|'), 'u');
+
+function contextEvents(text) {
+  const groups = [["direct", MARKERS.ingredient_headings], ["direct", MARKERS.direct_markers], ["caution", MARKERS.caution_markers], ["mention", STOP_HEADINGS]];
+  const events = groups.flatMap(([kind, terms]) => terms.flatMap(term => matchSpans(text, term).map(span => ({...span, kind}))));
+  // "contains" inside "may contain" and overlapping multilingual markers must
+  // not turn a precautionary declaration into a direct declaration.
+  return events.filter(e => !events.some(other => other !== e && other.start <= e.start && other.end >= e.end && (other.end - other.start > e.end - e.start || other.kind === "caution" && e.kind !== "caution")))
+    .sort((a,b) => a.start-b.start);
 }
 
+function occurrenceKind(text, span, events) {
+  const lineStart = text.lastIndexOf("\n", span.start) + 1;
+  const nextLine = text.indexOf("\n", span.end);
+  const lineEnd = nextLine < 0 ? text.length : nextLine;
+  const line = text.slice(lineStart, lineEnd);
+  // A negative claim is unresolved evidence, never a positive ingredient or a
+  // certificate of absence. Separate later positive occurrences still count.
+  if (/\b(?:no|without|free from|sans|sin)\s+[^,;:.]*$/u.test(text.slice(lineStart, span.start)) || /^(?:[- ]free|[- ]frei|\s+free)\b/u.test(text.slice(span.end))) return "mention";
+  const before = events.filter(e => e.start <= span.start);
+  const current = before.at(-1);
+  let kind = current && !/[.;!?。；]/u.test(text.slice(current.end, span.start)) ? current.kind : "mention";
+  const lineHasDirect = events.some(e => e.kind === "direct" && e.start >= lineStart && e.start <= span.start);
+  // Korean/Japanese declarations often put the marker after an allergen list.
+  if (!lineHasDirect && SUFFIX_CAUTION.test(line)) kind = "caution";
+  else if (kind === "mention" && SUFFIX_DIRECT.test(line) && !SUFFIX_CAUTION.test(line)) kind = "direct";
+  return kind;
+}
 
-// Generic dairy words need non-dairy phrase protection.
-// Example: "cocoa butter" must NOT trigger Milk merely because "butter" is an alias.
-// The protection removes only the known non-dairy phrase before alias matching;
-// if a separate dairy term remains on the same line, it is still detected.
-const MILK_NON_DAIRY_PHRASES = [
-  // English
-  "cocoa butter","cacao butter","peanut butter","almond butter","cashew butter",
-  "hazelnut butter","sunflower seed butter","coconut butter",
-  "coconut milk","almond milk","soy milk","soya milk","oat milk","rice milk",
-  "coconut cream","cream of tartar",
-  // French
-  "beurre de cacao","beurre de cacahuète","beurre de cacahuete","beurre d'arachide",
-  "beurre d’amande","beurre d'amande","lait de coco","lait d’amande","lait d'amande",
-  "lait de soja","lait d’avoine","lait d'avoine","crème de coco","creme de coco",
-  "crème de tartre","creme de tartre",
-  // Spanish
-  "manteca de cacao","mantequilla de cacao","mantequilla de cacahuete",
-  "mantequilla de cacahuete","mantequilla de maní","mantequilla de mani",
-  "leche de coco","leche de almendra","leche de soja","leche de avena",
-  "crema de coco","cremor tártaro","cremor tartaro",
-  // German
-  "kakaobutter","erdnussbutter","mandelbutter","kokosmilch","mandelmilch",
-  "sojamilch","hafermilch","kokoscreme",
-  // Italian
-  "burro di cacao","burro di arachidi","latte di cocco","latte di mandorla",
-  "latte di soia","latte di avena","crema di cocco",
-  // Portuguese
-  "manteiga de cacau","manteiga de amendoim","leite de coco","leite de amêndoa",
-  "leite de amendoa","leite de soja","leite de aveia","creme de coco",
-  // Dutch
-  "cacaoboter","amandelboter","kokosmelk","amandelmelk","sojamelk","havermelk","kokosroom",
-  // Russian
-  "масло какао","кокосовое молоко","миндальное молоко","соевое молоко",
-  "овсяное молоко","кокосовые сливки",
-  // Arabic
-  "زبدة الكاكاو","زبدة الفول السوداني","حليب جوز الهند","حليب اللوز",
-  "حليب الصويا","حليب الشوفان","كريمة جوز الهند",
-  // Persian
-  "کره کاکائو","کره بادام زمینی","کره بادام","شیر نارگیل","شیر بادام",
-  "شیر سویا","شیر جو دوسر","خامه نارگیل",
-  // Hindi
-  "कोकोआ बटर","मूंगफली का मक्खन","नारियल का दूध","बादाम दूध",
-  "सोया दूध","ओट दूध","नारियल क्रीम",
-  // Japanese
-  "ココアバター","ピーナッツバター","ココナッツミルク","アーモンドミルク",
-  "オーツミルク","ココナッツクリーム",
-  // Thai
-  "เนยโกโก้","เนยถั่ว","นมอัลมอนด์","นมถั่วเหลือง","นมข้าวโอ๊ต","ครีมมะพร้าว",
-  // Turkish
-  "hindistan cevizi sütü","badem sütü","soya sütü","yulaf sütü",
-  // Indonesian
-  "mentega kakao","susu kelapa","susu almond","susu kedelai","susu oat","krim kelapa"
-];
-
-function stripKnownNonDairyMilkPhrases(text) {
-  let out = String(text || "");
-  for (const phrase of MILK_NON_DAIRY_PHRASES) {
-    const p = fold(phrase);
-    const f = fold(out);
-    if (!p || !f.includes(p)) continue;
-
-    // Use the normalized representation for reliable multilingual removal.
-    const parts = f.split(p);
-    out = parts.join(" ");
+function maskNonDairy(text) {
+  let out = text;
+  for (const phrase of NON_DAIRY_PHRASES) {
+    for (const span of matchSpans(out, phrase)) out = out.slice(0, span.start) + " ".repeat(span.end-span.start) + out.slice(span.end);
   }
   return out;
 }
 
-function aliasTextForMatch(allergenId, alias, text) {
-  if (allergenId !== "milk") return text;
-  const generic = new Set([
-    "milk","butter","cream","lait","beurre","crème","creme","leche",
-    "mantequilla","milch","butter","latte","burro","leite","manteiga",
-    "melk","boter","молоко","сливки","حليب","زبدة","شیر","کره","خامه",
-    "दूध","मक्खन","牛乳","バター","นม","เนย","süt","susu","mentega"
-  ].map(fold));
-  return generic.has(fold(alias)) ? stripKnownNonDairyMilkPhrases(text) : text;
-}
-
-function classifyLineContext(lines, idx, alias, learned = false, allergenId = "") {
-  const line = lines[idx] || {};
-
-  // Generic dairy aliases such as butter/cream/milk need adjacent OCR lines.
-  // This prevents split layouts such as "COCOA" + "BUTTER" from becoming Milk.
-  const raw = allergenId === "milk" ? contextFor(lines, idx, 1) : (line.text || "");
-  const matchText = aliasTextForMatch(allergenId, alias, raw);
-  if (!containsTerm(matchText, alias)) return null;
-  if (learned) return "direct";
-
-  const ctx = contextFor(lines, idx, 2);
-  if (containsAny(ctx, MARKERS.caution_markers)) return "caution";
-  if (containsAny(ctx, MARKERS.direct_markers)) return "direct";
-
-  const hp = headingPosition(lines);
-  if (hp >= 0 && idx >= hp && idx <= hp + 16) return "direct";
-  return "mention";
-}
-
-function dedupeEvidence(items) {
-  const best = new Map();
-  for (const x of items) {
-    const k = `${x.kind}|${x.allergen_id}|${fold(x.term)}`;
-    const prev = best.get(k);
-    if (!prev || (x.score || 0) > (prev.score || 0)) best.set(k, x);
-  }
-  return [...best.values()];
-}
-
 function aggregateEvidence(sources, profile, learnedTexts = []) {
   const hits = [];
-
-  for (const source of sources || []) {
+  const inputs = [...sources, ...learnedTexts.map(text => ({familyId: "learned-correction", learned: true, items: [{text, score: 1}]}))];
+  for (const source of inputs) {
     const lines = source.items || [];
-    for (const id of profile.allergens || []) {
-      const item = ALLERGENS[id];
-      if (!item) continue;
-      for (const [language, alias] of allAliases(id)) {
-        for (let i = 0; i < lines.length; i++) {
-          const kind = classifyLineContext(lines, i, alias, false, id);
-          if (!kind) continue;
-          hits.push({
-            kind,
-            allergen_id: id,
-            allergen: item.label,
-            term: alias,
-            language,
-            score: lineScore(lines[i]),
-            family: source.familyId,
-            learned: false,
-          });
-        }
-      }
-    }
-
-    for (const raw of profile.custom_avoid || []) {
-      const term = String(raw || "").trim();
-      if (!term) continue;
-      for (let i = 0; i < lines.length; i++) {
-        const kind = classifyLineContext(lines, i, term, false, "custom");
-        if (!kind) continue;
-        hits.push({
-          kind,
-          allergen_id: "custom",
-          allergen: "Custom avoid",
-          term,
-          language: "user",
-          score: lineScore(lines[i]),
-          family: source.familyId,
-          learned: false,
-        });
+    const normalized = lines.map(line => fold(line.text));
+    const text = normalized.map((line,index) => (index ? lines[index].lineId != null && lines[index].lineId === lines[index-1].lineId ? ' ' : '\n' : '') + line).join('');
+    const events = contextEvents(text);
+    const milkText = maskNonDairy(text);
+    const terms = (profile.allergens || []).flatMap(id => allAliases(id).map(([language, alias]) => ({id, language, alias, label: ALLERGENS[id].label})))
+      .concat((profile.custom_avoid || []).filter(x => String(x).trim()).map(alias => ({id: "custom", language: "user", alias, label: "Custom avoid"})));
+    for (const {id, language, alias, label} of terms) {
+      const search = id === "milk" ? milkText : text;
+      for (const span of matchSpans(search, alias)) {
+        let offset = 0, index = 0;
+        while (index < normalized.length-1 && offset + normalized[index].length < span.start) offset += normalized[index++].length + 1;
+        let kind = occurrenceKind(text, span, events);
+        if (source.learned && kind === "mention") kind = "direct";
+        hits.push({kind, allergen_id: id, allergen: label, term: alias, language,
+          score: lineScore(lines[index]), family: source.familyId, photoIndex: source.photoIndex,
+          text: lines[index]?.text || "", learned: !!source.learned});
       }
     }
   }
-
-  // Learned corrections are positive-only. They can raise risk but never certify a negative.
-  for (const text of learnedTexts || []) {
-    const lines = [{ text, score: 1 }];
-    for (const id of profile.allergens || []) {
-      const item = ALLERGENS[id];
-      if (!item) continue;
-      for (const [language, alias] of allAliases(id)) {
-        if (containsTerm(aliasTextForMatch(id, alias, text), alias)) {
-          hits.push({
-            kind: containsAny(text, MARKERS.caution_markers) ? "caution" : "direct",
-            allergen_id: id,
-            allergen: item.label,
-            term: alias,
-            language,
-            score: 1,
-            family: "learned-correction",
-            learned: true,
-          });
-        }
-      }
-    }
-    for (const raw of profile.custom_avoid || []) {
-      const term = String(raw || "").trim();
-      if (term && containsTerm(text, term)) {
-        hits.push({
-          kind: containsAny(text, MARKERS.caution_markers) ? "caution" : "direct",
-          allergen_id: "custom",
-          allergen: "Custom avoid",
-          term,
-          language: "user",
-          score: 1,
-          family: "learned-correction",
-          learned: true,
-        });
-      }
-    }
-  }
-
-  return dedupeEvidence(hits);
+  return hits;
 }
 
 function strongEvidence(hits, kind) {
@@ -356,7 +224,7 @@ function strongEvidence(hits, kind) {
   const byAllergen = new Map();
 
   for (const h of relevant) {
-    const key = h.allergen_id;
+    const key = h.allergen_id === "custom" ? `custom:${fold(h.term)}` : h.allergen_id;
     if (!byAllergen.has(key)) byAllergen.set(key, []);
     byAllergen.get(key).push(h);
   }
@@ -387,8 +255,8 @@ function panelHints(text) {
   if (/\bARB\b/.test(text) || /\bARABIC\b/i.test(text)) hints.add("arabic");
   if (/\bRU\b/.test(text) || /\bRUSSIAN\b/i.test(text)) hints.add("cyrillic");
   if (/\bKOR\b/.test(text) || /\bKOREAN\b/i.test(text)) hints.add("hangul");
-  if (/\bJPN\b/.test(text) || /\bJAPANESE\b/i.test(text)) hints.add("japanese");
-  if (/\bCHN\b/.test(text) || /\bCHINESE\b/i.test(text)) hints.add("han");
+  if (/\bJPN\b/.test(text) || /\bJAPANESE\b/i.test(text)) hints.add("cjk");
+  if (/\bCHN\b/.test(text) || /\bCHINESE\b/i.test(text)) hints.add("cjk");
   return hints;
 }
 
@@ -439,14 +307,12 @@ function coverageGate(sources, familyStatus, requiredFamilies) {
     ({ ev }) => ev.declaration && ev.meanScore >= 0.62 && ev.chars >= 16
   );
 
-  const complete =
-    failures.length === 0 &&
-    unverifiedGroups.length === 0 &&
-    (anyVerifiedIngredient || anyVerifiedDeclaration);
+  const complete = false; // No current OCR adapter can establish complete panel coverage.
 
   return {
     complete,
     failures,
+    panel_completeness_verified: false,
     significantGroups: [...significantGroups],
     verifiedGroups: [...verifiedGroups],
     unverifiedGroups,
@@ -457,7 +323,7 @@ function coverageGate(sources, familyStatus, requiredFamilies) {
 
 export function evaluateProduct({
   sources = [],
-  profile,
+  profile = {},
   familyStatus = {},
   requiredFamilies = REQUIRED_BASE_FAMILIES,
   learnedTexts = [],
@@ -466,11 +332,14 @@ export function evaluateProduct({
 
   const direct = strongEvidence(hits, "direct");
   const caution = strongEvidence(hits, "caution").filter(
-    (x) => !direct.some((d) => d.allergen_id === x.allergen_id)
+    (x) => !direct.some((d) => d.allergen_id === x.allergen_id &&
+      (x.allergen_id !== "custom" || fold(d.term) === fold(x.term)))
   );
 
-  // A low-context allergen mention is never treated as a negative.
-  const mentions = hits.filter((x) => x.kind === "mention" && x.score >= 0.48);
+  // Weak direct/caution hits must survive as unresolved evidence as well.
+  const mentions = hits.filter(x => x.kind === "mention" ||
+    ![...direct, ...caution].some(h => h.allergen_id === x.allergen_id &&
+      (h.allergen_id !== "custom" || fold(h.term) === fold(x.term))));
 
   const coverage = coverageGate(sources, familyStatus, requiredFamilies);
 
@@ -514,317 +383,13 @@ export function evaluateProduct({
       caution_matches: [],
       mention_matches: [],
       coverage,
-      reason: "The multilingual safety coverage gate was not satisfied.",
+      reason: "Complete ingredient-panel coverage is not verified. Do not interpret this as absence of allergens.",
     };
   }
 
-  return {
-    status: "no_listed_conflict",
-    direct_matches: [],
-    caution_matches: [],
-    mention_matches: [],
-    coverage,
-    reason: "All required OCR families completed and the visible ingredient/declaration text passed the coverage gate.",
-  };
-}
-
-// ----------------------------- Calories -----------------------------
-export function normalizeCalorieOCR(s) {
-  let x = normalizeArabicPersian(String(s || "").normalize("NFKC").toLowerCase())
-    .replace(/[’`]/g, "'")
-    .replace(/×/g, "x");
-
-  x = x
-    .replace(/\bk\s*c\s*a\s*[l1i|!]\b/gi, "kcal")
-    .replace(/\bk\s*c\s*a\s*l\b/gi, "kcal");
-
-  // Conservative numeric OCR repairs in nutrition contexts only.
-  x = x.replace(/\b100\s*[09qos]\s*당\b/gi, "100 g당");
-  x = x.replace(/\b100\s*g\s*[s5]\b/gi, "100 g");
-  x = x.replace(/\b100\s*[09qo]\s*(?=\d+\s*kcal|\s*kcal)/gi, "100 g ");
-  x = x.replace(/(\d+(?:[.,]\d+)?)\s*[09qo]\s*(?=\()/gi, "$1 g ");
-  x = x.replace(/(\d+(?:[.,]\d+)?)\s*[09qo]\s*x\s*(\d+)/gi, "$1 g x $2");
-  x = x.replace(/(\d)\s*[gq]\s*당/gi, "$1 g당").replace(/100\s*[gq]\b/gi, "100 g");
-  x = x.replace(/종\s*내\s*용\s*[량양랑]/g, "총 내용량");
-
-  return x.replace(/\s+/g, " ").trim();
-}
-
-function numberOf(s) {
-  return Number(String(s).replace(/,/g, ""));
-}
-
-const ENERGY = "(?:kcal|킬로칼로리|千卡(?:路里)?|キロカロリー)";
-
-const WEIGHT_PATTERNS = [
-  /[총종]\s*내\s*용\s*[량양랑]\s*[:：]?\s*([\d,.]+)\s*g\b/i,
-  /[총종]내용[량양랑]\s*[:：]?\s*([\d,.]+)\s*g\b/i,
-  /(?:net\s*(?:wt|weight)|total\s*(?:content|weight))\s*[:：]?\s*([\d,.]+)\s*g\b/i,
-  /(?:poids\s*net|peso\s*neto|nettogewicht|peso\s*liquido|peso\s*líquido)\s*[:：]?\s*([\d,.]+)\s*g\b/i,
-  /(?:масса\s*нетто|вес\s*нетто)\s*[:：]?\s*([\d,.]+)\s*g\b/i,
-  /(?:الوزن\s*الصافي|الوزن\s*الصافى)\s*[:：]?\s*([\d,.]+)\s*g\b/i,
-  /(?:وزن\s*خالص)\s*[:：]?\s*([\d,.]+)\s*g\b/i,
-  /(?:内容量|正味量)\s*[:：]?\s*([\d,.]+)\s*g\b/i,
-  /(?:净含量|淨含量)\s*[:：]?\s*([\d,.]+)\s*g\b/i,
-  /(?:शुद्ध\s*वजन)\s*[:：]?\s*([\d,.]+)\s*g\b/i,
-  /(?:น้ำหนักสุทธิ)\s*[:：]?\s*([\d,.]+)\s*g\b/i,
-  /(?:net\s*ağırlık|net\s*agirlik)\s*[:：]?\s*([\d,.]+)\s*g\b/i,
-  /(?:berat\s*bersih)\s*[:：]?\s*([\d,.]+)\s*g\b/i,
-];
-
-function findMultipackWeight(n, c) {
-  for (const r of [
-    /([\d,.]+)\s*g\s*x\s*(\d+)\s*(?:봉지|개|팩|packs?|pcs?|pieces?|sachets?|bars?|sticks?)/i,
-    /([\d,.]+)gx(\d+)(?:봉지|개|팩|packs?|pcs?|pieces?|sachets?|bars?|sticks?)/i,
-  ]) {
-    const m = n.match(r) || c.match(r);
-    if (m) {
-      const unit = numberOf(m[1]);
-      const count = Number(m[2]);
-      const v = unit * count;
-      if (unit > 0 && count >= 2 && count <= 1000 && v >= 0.5 && v <= 50000) {
-        return [v, "multipack_weight", unit, count];
-      }
-    }
-  }
-  return [null, null, null, null];
-}
-
-function recoverExplicitWeight(raw, multiG) {
-  const rawText = String(raw || "").replace(/,/g, "");
-  const v = Number(rawText);
-  if (!(v >= 0.5 && v <= 50000)) return null;
-
-  if (multiG == null) return v;
-
-  const tolerance = Math.max(15, multiG * 0.12);
-  if (Math.abs(v - multiG) <= tolerance) return v;
-
-  // OCR sometimes prepends a stray digit to a perfectly visible package weight:
-  // printed "253 g" -> OCR "8253 g".
-  // When a multipack equation independently gives ~255 g, try numeric suffixes
-  // and accept only a suffix that agrees with that independent evidence.
-  const digits = rawText.replace(/[^\d.]/g, "");
-  for (let cut = 1; cut <= Math.min(3, Math.max(0, digits.length - 2)); cut++) {
-    const suffix = Number(digits.slice(cut));
-    if (
-      Number.isFinite(suffix) &&
-      suffix >= 0.5 &&
-      suffix <= 50000 &&
-      Math.abs(suffix - multiG) <= tolerance
-    ) {
-      return suffix;
-    }
-  }
-
-  // Explicit weight conflicts strongly with independent multipack evidence.
-  // Do not trust it.
-  return null;
-}
-
-function findWeight(n) {
-  const c = n.replace(/\s+/g, "");
-  const [multiG, multiMethod] = findMultipackWeight(n, c);
-
-  // Prefer a printed total weight only when it is self-consistent with any
-  // independent multipack equation visible on the same label.
-  for (const r of WEIGHT_PATTERNS) {
-    const m = n.match(r) || c.match(r);
-    if (!m) continue;
-
-    const recovered = recoverExplicitWeight(m[1], multiG);
-    if (recovered != null) {
-      const original = numberOf(m[1]);
-      const method =
-        Math.abs(recovered - original) > 0.001
-          ? "explicit_total_weight_ocr_recovered"
-          : "explicit_total_weight";
-      return [recovered, method];
-    }
-  }
-
-  // Structural recovery near the "100 g ... kcal" line.
-  const basisRe = /100\s*g(?:\s*당|\s*(?:per|pour|por|pro))?/gi;
-  let bm;
-  while ((bm = basisRe.exec(n))) {
-    const basisPos = bm.index;
-    const before = n.slice(Math.max(0, basisPos - 180), basisPos);
-    const after = n.slice(basisPos, Math.min(n.length, basisPos + 120));
-
-    if (!new RegExp("[\\d,.]+\\s*" + ENERGY + "\\b", "i").test(after)) continue;
-
-    const grams = [...before.matchAll(/([\d,.]+)\s*g\b/gi)]
-      .map((m) => ({ raw: m[1], v: numberOf(m[1]), pos: m.index }))
-      .filter((x) => x.v >= 10 && x.v <= 50000 && Math.abs(x.v - 100) > 0.01);
-
-    if (!grams.length) continue;
-
-    if (multiG != null) {
-      const tolerance = Math.max(15, multiG * 0.12);
-      const candidates = [];
-
-      for (const g of grams) {
-        const recovered = recoverExplicitWeight(g.raw, multiG);
-        if (recovered != null && Math.abs(recovered - multiG) <= tolerance) {
-          candidates.push({
-            v: recovered,
-            diff: Math.abs(recovered - multiG),
-            pos: g.pos,
-          });
-        }
-      }
-
-      if (candidates.length) {
-        candidates.sort((a, b) => a.diff - b.diff || b.pos - a.pos);
-        return [candidates[0].v, "structural_total_weight_crosschecked"];
-      }
-    } else {
-      // Without independent evidence, use only the closest preceding plausible
-      // value. Extreme values are not automatically accepted as a snack-package
-      // total just because OCR produced digits.
-      const chosen = grams.sort((a, b) => b.pos - a.pos)[0];
-      if (chosen && chosen.v <= 5000) {
-        return [chosen.v, "structural_total_weight"];
-      }
-    }
-  }
-
-  if (multiG != null) return [multiG, multiMethod];
-  return [null, null];
-}
-
-function kcalMatches(n) {
-  const re = new RegExp("([\\d,.]+)\\s*" + ENERGY + "\\b", "gi");
-  const out = [];
-  let m;
-  while ((m = re.exec(n))) {
-    const v = numberOf(m[1]);
-    if (v >= 1 && v <= 1500) out.push([m.index, v]);
-  }
-  return out;
-}
-
-function findReferenceEnergy(n) {
-  const c = n.replace(/\s+/g, "");
-
-  const patterns = [
-    [new RegExp("([\\d,.]+)\\s*g\\s*(?:당|per|pour|por|pro)?\\s*[:：]?\\s*([\\d,.]+)\\s*" + ENERGY + "\\b", "i"), "g"],
-    [new RegExp("([\\d,.]+)g(?:당|per|pour|por|pro)?[:：]?([\\d,.]+)" + ENERGY, "i"), "g"],
-    [new RegExp("([\\d,.]+)\\s*" + ENERGY + "\\s*(?:/|per|pour|por|pro)\\s*([\\d,.]+)\\s*g\\b", "i"), "k"],
-  ];
-
-  for (const [pat, mode] of patterns) {
-    const m = n.match(pat) || c.match(pat);
-    if (m) {
-      const bg = mode === "g" ? numberOf(m[1]) : numberOf(m[2]);
-      const kc = mode === "g" ? numberOf(m[2]) : numberOf(m[1]);
-      if (bg >= 0.5 && bg <= 50000 && kc >= 1 && kc <= 1500) {
-        return [bg, kc, "direct_reference_pair"];
-      }
-    }
-  }
-
-  const hm =
-    n.match(/100\s*g\s*당/i) ||
-    c.match(/100g당/i) ||
-    n.match(/100\s*g\s*(?:per|pour|por|pro)/i) ||
-    n.match(/(?:per|pour|por|pro)\s*100\s*g/i) ||
-    n.match(/100\s*g/i);
-
-  if (hm) {
-    const hp = hm.index || 0;
-    const near = n.slice(hp, Math.min(n.length, hp + 180));
-    const nearVals = kcalMatches(near);
-    if (nearVals.length) return [100, nearVals[0][1], "nearby_100g_reference"];
-
-    const vals = kcalMatches(n);
-    if (vals.length === 1) return [100, vals[0][1], "layout_100g_reference"];
-  }
-
-  if (
-    containsAny(n, MARKERS.nutrition_headings) &&
-    (n.match(/100\s*g/i) || c.includes("100g"))
-  ) {
-    const vals = [...new Set(kcalMatches(n).map((x) => x[1]))];
-    if (vals.length === 1) return [100, vals[0], "single_kcal_with_100g_basis"];
-  }
-
-  return [null, null, null];
-}
-
-export function extractCaloriesFromText(text) {
-  const n = normalizeCalorieOCR(text);
-  const [totalG, wm] = findWeight(n);
-  const [refG, refKcal, em] = findReferenceEnergy(n);
-
-  let explicit = null;
-  for (const r of [
-    new RegExp("총\\s*(?:열량|칼로리)\\s*[:：]?\\s*([\\d,.]+)\\s*" + ENERGY + "\\b", "i"),
-    new RegExp("(?:total\\s*(?:energy|calories)|energy\\s*per\\s*pack)\\s*[:：]?\\s*([\\d,.]+)\\s*" + ENERGY + "\\b", "i"),
-    new RegExp("(?:总热量|總熱量)\\s*[:：]?\\s*([\\d,.]+)\\s*" + ENERGY + "\\b", "i"),
-  ]) {
-    const m = n.match(r);
-    if (m) {
-      const v = numberOf(m[1]);
-      if (v >= 1 && v <= 100000) {
-        explicit = v;
-        break;
-      }
-    }
-  }
-
-  let packageKcal = null;
-  let basis = null;
-  let method = null;
-
-  if (explicit != null) {
-    packageKcal = Math.round(explicit);
-    basis = `Label states total energy: ${explicit} kcal`;
-    method = "explicit_total_energy";
-  } else if (totalG != null && refG != null && refKcal != null && refG > 0) {
-    packageKcal = Math.round((refKcal * totalG) / refG);
-    basis = `Calculated from ${refKcal} kcal / ${refG} g × ${totalG} g`;
-    method = `${wm}+${em}`;
-  }
-
-  // Consumer-safety plausibility guard:
-  // never display an extreme computed value unless the total energy itself was
-  // explicitly printed on the label. Ambiguous OCR should become "unknown",
-  // not a wildly wrong calorie number.
-  if (
-    method !== "explicit_total_energy" &&
-    packageKcal != null &&
-    (packageKcal <= 0 || packageKcal > 25000)
-  ) {
-    packageKcal = null;
-    basis = null;
-    method = "rejected_implausible_computed_energy";
-  }
-
-  if (!(packageKcal > 0 && packageKcal < 100000)) packageKcal = null;
-
-  return {
-    package_kcal: packageKcal,
-    basis,
-    total_weight_g: totalG,
-    reference_kcal: refKcal,
-    reference_g: refG,
-    method,
-  };
-}
-
-export function extractProductCalories(sources) {
-  const ranked = [...(sources || [])]
-    .map((s) => ({ s, ev: sourceEvidence(s) }))
-    .sort((a, b) => {
-      const an = a.ev.nutrition ? 1 : 0;
-      const bn = b.ev.nutrition ? 1 : 0;
-      return bn - an || b.ev.meanScore - a.ev.meanScore;
-    });
-
-  // Take a bounded set of best OCR texts to avoid duplicating every model's numbers.
-  const text = ranked.slice(0, 5).map((x) => x.ev.text).join("\n");
-  return extractCaloriesFromText(text);
+  // Defensive default, even if coverage policy changes later.
+  return {status: "unverified", direct_matches: [], caution_matches: [], mention_matches: mentions, coverage,
+    reason: "Complete ingredient-panel coverage is not verified."};
 }
 
 export function customRequiredFamilies(customTerms = []) {

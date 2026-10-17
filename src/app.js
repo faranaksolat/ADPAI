@@ -4,18 +4,18 @@ import {
   extractProductCalories,
   REQUIRED_BASE_FAMILIES,
   customRequiredFamilies,
-} from "./engine.js?v=2.2.0";
-import { deepScan, requiredFamiliesForProfile } from "./ocr.js?v=2.2.0";
+} from "./engine.js?v=1.3.0";
+import { deepScan, requiredFamiliesForProfile } from "./ocr.js?v=1.3.0";
 import {
   dHash,
   findLearnedTexts,
   saveCorrection,
   exportLearningData,
   getLearningCount,
-} from "./learning.js?v=2.2.0";
+} from "./learning.js?v=1.3.0";
 
 const MAX_PRODUCTS = 6;
-const APP_VERSION = "2.2.0";
+const APP_VERSION = "1.3.0-experimental";
 const MAX_PHOTOS = 3;
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
@@ -425,7 +425,7 @@ function refreshLearningUI() {
   }
 }
 
-exportLearningBtn.onclick = exportLearningData;
+if (exportLearningBtn) exportLearningBtn.onclick = exportLearningData;
 
 async function teachProduct(productIndex, analysisProduct) {
   const text = prompt(t("teachPrompt"));
@@ -645,7 +645,7 @@ analyze.onclick = async () => {
       const e = evaluateProduct({
         sources,
         profile: p,
-        familyStatus: scan.familyStatus,
+        familyStatus: scan.productFamilyStatus.get(prod.id),
         requiredFamilies: requiredIds,
         learnedTexts,
       });
