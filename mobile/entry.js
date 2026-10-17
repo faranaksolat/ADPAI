@@ -26,6 +26,6 @@ globalThis.ADPAI_OCR_OPTIONS=def=>({
   workerPath:new URL('./vendor/tesseract/worker.min.js',document.baseURI).href,
   corePath:new URL('./vendor/tesseract-core/',document.baseURI).href,
   ...(def.langs.every(lang=>['kor','eng','fra'].includes(lang))
-    ? {langPath:new URL('./vendor/tessdata/',document.baseURI).href}:{}),
+    ? {langPath:new URL('./vendor/tessdata/',document.baseURI).href,gzip:false}:{}),
 });
 await import('../src/browser.js');

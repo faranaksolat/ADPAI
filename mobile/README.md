@@ -24,6 +24,10 @@ are locked during inference. At most 3 photos belong to one product.
 backend files, `.env` and `.git` are excluded. It bundles the pinned Tesseract
 5.1.1 runtime, worker, WASM variants, and official Korean/English/French 1.0.0
 language data. These primary assets can run without a network download.
+Primary traineddata is stored uncompressed with `gzip:false`, because Android
+AAPT automatically unpacks `.gz` assets and removes the suffix. Always run
+`python scripts/verify-apk.py` after building to verify packaged filenames
+and bytes against `dist/`; compiling alone does not validate model loading.
 Fallback languages still download from jsDelivr if they are needed and not
 cached. The app does not register the PWA service worker or fetch remote app
 updates; rebuild and install a new binary to update its rules/code.

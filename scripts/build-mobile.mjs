@@ -3,6 +3,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {build} from 'esbuild';
+import {gunzipSync} from 'node:zlib';
 const root=path.resolve(import.meta.dirname,'..');
 const out=path.join(root,'dist');
 await fs.rm(out,{recursive:true,force:true});
@@ -23,7 +24,12 @@ for(const file of await fs.readdir(path.join(root,'node_modules/tesseract.js-cor
   if(/^tesseract-core.*\.(js|wasm)$/.test(file)) await fs.copyFile(path.join(root,'node_modules/tesseract.js-core',file),path.join(out,'vendor/tesseract-core',file));
 }
 await fs.mkdir(path.join(out,'vendor/tessdata'),{recursive:true});
-for(const lang of ['kor','eng','fra']) await fs.copyFile(path.join(root,`node_modules/@tesseract.js-data/${lang}/4.0.0_best_int/${lang}.traineddata.gz`),path.join(out,`vendor/tessdata/${lang}.traineddata.gz`));
+// AAPT transparently unpacks .gz assets and removes that suffix. Ship plain
+// traineddata on both platforms so the worker fetches the packaged filename.
+for(const lang of ['kor','eng','fra']) {
+  const compressed=await fs.readFile(path.join(root,`node_modules/@tesseract.js-data/${lang}/4.0.0_best_int/${lang}.traineddata.gz`));
+  await fs.writeFile(path.join(out,`vendor/tessdata/${lang}.traineddata`),gunzipSync(compressed));
+}
 await fs.mkdir(path.join(out,'licenses'),{recursive:true});
 await fs.copyFile(path.join(root,'mobile/THIRD_PARTY_NOTICES.md'),path.join(out,'licenses/NOTICE.md'));
 await fs.copyFile(path.join(root,'mobile/TESSDATA-LICENSE.txt'),path.join(out,'licenses/TESSDATA-LICENSE.txt'));

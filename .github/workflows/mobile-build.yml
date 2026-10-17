@@ -16,24 +16,29 @@ permissions:
 jobs:
   android:
     if: inputs.platform == 'android' || inputs.platform == 'both'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
         with:
           node-version: '22'
           cache: npm
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6.1.0
         with:
           distribution: temurin
           java-version: '21'
-      - uses: android-actions/setup-android@v3
+      # The hosted Ubuntu image already includes this SDK. Do not install
+      # the obsolete SDK "tools" package via a second setup action.
+      - name: Check hosted Android SDK
+        run: |
+          test -d "$ANDROID_HOME/platforms/android-36"
+          test -x "$ANDROID_HOME/build-tools/35.0.0/aapt2"
       - run: npm ci
       - run: npm test
-      - run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
       - run: npm run build:android:debug
-      - uses: actions/upload-artifact@v4
+      - run: python3 scripts/verify-apk.py
+      - uses: actions/upload-artifact@v7.0.2
         with:
           name: ADPAI-android-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
@@ -45,8 +50,8 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
         with:
           node-version: '22'
           cache: npm
@@ -62,7 +67,7 @@ jobs:
           -derivedDataPath ios/DerivedData CODE_SIGNING_ALLOWED=NO build
       - name: Preserve app bundle
         run: ditto -c -k --sequesterRsrc --keepParent ios/DerivedData/Build/Products/Debug-iphonesimulator/App.app ADPAI-ios-simulator.zip
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7.0.2
         with:
           name: ADPAI-ios-simulator
           path: ADPAI-ios-simulator.zip
