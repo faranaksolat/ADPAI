@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="./assets/icons/icon-192.png">
 <meta name="description" content="ADPAI helps you check food-package ingredients and selected allergens before you buy. Always verify results against the original label.">
-<!-- ADPAI v1.6.0: explicit tested-language scope + targeted language safety probe -->
+<!-- ADPAI v1.6.1: explicit tested-language scope + targeted language safety probe -->
 <title>ADPAI — Food allergen label checker</title>
 <style>
 :root{--ink:#0b1220;--muted:#667085;--bg:#f7f8fb;--card:#fff;--line:#e7eaf0;--brand:#4169e1;--brand-soft:#eef2ff;--danger:#b42318;--danger-bg:#fff2f0;--warn:#995400;--warn-bg:#fff8e8;--ok:#146c43;--ok-bg:#edf9f2;--shadow:0 16px 50px rgba(16,24,40,.08);--r:26px}
@@ -29,7 +29,7 @@
 .custom{display:flex;gap:8px;margin-top:13px}.custom input{flex:1;min-width:0;border:1px solid var(--line);border-radius:14px;padding:12px}.btn{border:0;border-radius:14px;padding:11px 15px;font-weight:850;cursor:pointer}.primary{background:var(--ink);color:white}.soft{background:#f0f2f6;color:var(--ink)}.outline{background:white;border:1px solid var(--line);color:var(--ink)}.brandbtn{background:var(--brand);color:white;width:100%;min-height:54px;font-size:16px;border-radius:17px}.btn:disabled{opacity:.45;cursor:not-allowed}
 .product{border:1px solid var(--line);border-radius:20px;padding:15px;margin-top:12px;background:#fcfdff}.ptop{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:11px}.ptitle{font-weight:900}.psub{font-size:11px;color:var(--muted);margin-top:2px}.removeProduct{border:0;background:#f2f4f7;border-radius:10px;padding:7px 9px;cursor:pointer;color:#475467}
 .capture{border:1.5px dashed #cfd6e2;border-radius:18px;background:#fbfcff;text-align:center;padding:18px}.capture p{color:var(--muted);font-size:12px;line-height:1.5;margin:7px 0 12px}.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:10px}@media(max-width:540px){.photos{grid-template-columns:1fr 1fr}}.photo{position:relative;aspect-ratio:4/3;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#f2f4f7}.photo img{width:100%;height:100%;object-fit:cover}.x{position:absolute;right:6px;top:6px;width:28px;height:28px;border:0;border-radius:50%;background:rgba(11,18,32,.84);color:white;font-size:17px;cursor:pointer}.added{position:absolute;left:6px;bottom:6px;background:rgba(255,255,255,.94);border-radius:999px;padding:4px 7px;font-size:10px;font-weight:800;color:var(--ok)}
-.addProduct{width:100%;margin-top:12px}.tips{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:14px}@media(max-width:540px){.tips{grid-template-columns:1fr}}.tip{border:1px solid var(--line);border-radius:13px;padding:10px 11px;color:#475467;font-size:12px;line-height:1.45}.action{margin-top:16px}.note{text-align:center;color:var(--muted);font-size:11px;line-height:1.5;margin-top:8px}
+.addProduct{width:100%;margin-top:12px}.photoHint{margin:12px 0 0;color:#475467;font-size:12px;line-height:1.5}.action{margin-top:16px}.note{text-align:center;color:var(--muted);font-size:11px;line-height:1.5;margin-top:8px}
 .loading{display:none;text-align:center;padding:24px 10px 5px}.loading.show{display:block}.spinner{width:42px;height:42px;border-radius:50%;border:4px solid #e8ecf7;border-top-color:var(--brand);animation:spin .8s linear infinite;margin:0 auto 12px}@keyframes spin{to{transform:rotate(360deg)}}.loading strong{display:block}.loading span{display:block;color:var(--muted);font-size:12px;margin-top:5px}
 .result{display:none;margin-top:16px;border:1px solid #dbe1ea;border-radius:22px;padding:19px;background:#f8fafc}.result.show{display:block}.summaryHead{display:flex;gap:12px;align-items:flex-start}.ricon{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;background:white;font-weight:900;flex:0 0 auto}.result h3{font-size:19px;margin:1px 0 4px}.result p{font-size:13px;line-height:1.55;margin:0}
 .productResults{display:grid;gap:10px;margin-top:14px}.presult{border:1px solid var(--line);border-radius:17px;padding:14px;background:white}.presult.danger{border-color:#f7c9c4;background:var(--danger-bg)}.presult.warn{border-color:#f3d69a;background:var(--warn-bg)}.presult.ok{border-color:#bfe6ce;background:var(--ok-bg)}.prtop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.prtitle{font-weight:900}.badge{font-size:10px;font-weight:900;border-radius:999px;padding:5px 8px;background:rgba(255,255,255,.78)}.prmsg{font-size:12px;line-height:1.5;margin-top:7px}.evidence{border-top:1px solid rgba(0,0,0,.08);padding-top:9px;margin-top:10px;display:grid;gap:6px}.ev{display:flex;justify-content:space-between;gap:20px;font-size:11px}.ev span{opacity:.72}.ev strong{text-align:right}
@@ -46,7 +46,7 @@
 <body>
 <dialog id="installDialog" aria-labelledby="installTitle"><h2 id="installTitle">ADPAI on your home screen</h2><p id="installBody"></p><button class="btn primary" id="closeInstall">Close</button></dialog>
 <main class="app">
-<header><div class="brand"><div class="mark" aria-label="ADPAI">A</div><div><div class="name">ADPAI <span style="font-size:10px;color:#667085;font-weight:800;vertical-align:middle">v1.6.0</span></div><div class="tag" data-i18n="tag">Check the label before you buy.</div></div></div><select id="lang" aria-label="Interface language"><option value="en">EN</option><option value="ko">한국어</option></select></header>
+<header><div class="brand"><div class="mark" aria-label="ADPAI">A</div><div><div class="name">ADPAI <span style="font-size:10px;color:#667085;font-weight:800;vertical-align:middle">v1.6.1</span></div><div class="tag" data-i18n="tag">Check the label before you buy.</div></div></div><select id="lang" aria-label="Interface language"><option value="en">EN</option><option value="ko">한국어</option></select></header>
 <section class="hero"><h1 data-i18n="hero">Check one product or a whole basket.</h1><p data-i18n="sub">Add several photos of the same product, or create separate product groups. Package language is detected automatically across major writing systems; no language selection is required.</p></section>
 <div id="installPanel" class="installPanel"><button id="installApp" class="btn primary" hidden>Install ADPAI</button><button id="installHelp" class="btn outline">How to install</button></div>
 <p id="offlineNotice" class="offlineNotice" role="status" hidden></p>
@@ -68,7 +68,7 @@
 <div class="head"><div class="num">2</div><div><h2 data-i18n="products">Add product photos</h2><p data-i18n="productsSub">Up to 3 photos belong to one product. Use “Add another product” for a different item.</p></div></div>
 <div id="products"></div>
 <button id="addProduct" class="btn outline addProduct" data-i18n="addProduct">+ Add another product</button>
-<div class="tips"><div class="tip"><strong>🌐 Automatic multilingual OCR</strong><br><span data-i18n="autoLang">No package-language selection needed.</span></div><div class="tip" data-i18n="tip1">Include the ingredient/allergen statement.</div><div class="tip" data-i18n="tip2">Include any may-contain or shared-equipment warning.</div><div class="tip" data-i18n="tip3">Use extra photos when text wraps around the package.</div></div>
+<p class="photoHint" data-i18n="photoHint">Take clear photos of the ingredients and all allergy warnings.</p>
 <div class="action"><button id="analyze" class="btn brandbtn" disabled data-i18n="analyze">Analyze products</button><div class="note" data-i18n="note">Photos are processed in your browser and stay on this device.</div></div>
 <div id="loading" class="loading"><div class="spinner"></div><strong data-i18n="checking">Checking products…</strong><span data-i18n="checkingSub">Reading each product separately.</span></div>
 <div id="result" class="result"><div class="summaryHead"><div id="ricon" class="ricon">i</div><div><h3 id="rtitle"></h3><p id="rbody"></p></div></div><div id="productResults" class="productResults"></div></div>
@@ -78,6 +78,6 @@
 <footer class="footer" data-i18n="footer">ADPAI may make mistakes. Please verify ingredients and allergens against the original package label. For severe allergies, check with the manufacturer; these results do not guarantee safety.</footer>
 <p class="footer"><a href="./privacy.html">Privacy / 개인정보 처리 안내</a></p>
 </main>
-<script type="module" src="./src/browser.js?v=1.6.0"></script>
+<script type="module" src="./src/browser.js?v=1.6.1"></script>
 </body>
 </html>

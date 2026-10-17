@@ -1,6 +1,6 @@
 // Increment RELEASE with the complete module graph. Installation is atomic;
 // updates wait for open tabs to close, and never interrupt ongoing analysis.
-const RELEASE='1.6.0';
+const RELEASE='1.6.1';
 const PREFIX=`adpai-shell:${self.registration.scope}:`;
 const CACHE=PREFIX+RELEASE;
 const FILES=['./','./index.html','./manifest.webmanifest','./privacy.html',

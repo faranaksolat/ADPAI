@@ -1,6 +1,6 @@
-import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.6.0';
-import { preprocess, rotateCanvas } from './image.js?v=1.6.0';
-import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.6.0';
+import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.6.1';
+import { preprocess, rotateCanvas } from './image.js?v=1.6.1';
+import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.6.1';
 
 const PRIMARY = {id: 'korean', langs: ['kor','eng','fra'], label: 'Korean / English / French'};
 const FALLBACKS = [

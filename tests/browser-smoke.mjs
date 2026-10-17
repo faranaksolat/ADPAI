@@ -166,7 +166,7 @@ try {
     await evaluate(`(async()=>{await navigator.serviceWorker.ready;const end=Date.now()+15000;while(!navigator.serviceWorker.controller){if(Date.now()>end)throw new Error('service worker did not claim page');await new Promise(r=>setTimeout(r,25))}})()`);
     const cache=await evaluate(`(async()=>({scope:(await navigator.serviceWorker.ready).scope,urls:(await Promise.all((await caches.keys()).map(async key=>(await (await caches.open(key)).keys()).map(r=>r.url)))).flat()}))()`);
     assert.ok(cache.scope.endsWith(prefix));
-    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.6.0')));
+    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.6.1')));
     assert.ok(cache.urls.every(url=>url.startsWith(cache.scope) && !/blob:|api\/|label\.png|profile/iu.test(url)));
     await send('Fetch.disable');
     await send('Network.enable');
@@ -180,7 +180,7 @@ try {
     assert.equal(await evaluate(`document.querySelector('#analyze').disabled`),true);
     assert.equal(await evaluate(`(async()=>(await fetch('./privacy.html')).ok)()`),true);
     // An offline shell is usable even when the CDN runtime is unavailable.
-    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.6.0');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
+    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.6.1');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
     assert.equal(offlineStatus,'unverified');
   }
   assert.deepEqual(errors,[]);
