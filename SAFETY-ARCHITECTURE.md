@@ -1,13 +1,12 @@
-# Current safety policy (v1.3.0)
+# Current safety policy (v1.4.0)
 
 The current implementation is documented in README.md. The historical design below is not evidence that the shipped page uses PaddleOCR or verifies complete panels.
 
 - The root page runs browser Tesseract through src/browser.js and src/tesseract.js.
-- Browser semantic and nutrition rules live in src/engine.js and src/nutrition.js.
+- Shared browser allergen rules live in src/engine.js.
 - Python rules have cross-language parity fixtures in shared/regressions.json.
 - All automatic negative results are disabled: OCR execution and heading detection cannot prove full ingredient coverage.
 - Weak positive evidence remains unresolved. Failed photos/models cannot certify absence.
-- Calories require compatible package quantities and remain unknown on conflicts.
 - Real-image benchmark validation is outstanding. See benchmarks/README.md.
 
 ---
@@ -111,10 +110,3 @@ new safety logic.
 A v2.2.0 live test must show:
 - visible header version `v2.2.0`;
 - 7 mandatory base OCR families, never 9.
-
-## v2.2.0 calorie sanity
-
-Printed total package weight is cross-validated against independent multipack
-evidence when available. OCR-corrupted values that disagree sharply are rejected or,
-only when independently supported, recovered by a numeric suffix. Extreme unsupported
-computed calorie values are suppressed rather than shown to the consumer.

@@ -1,21 +1,20 @@
 
 import {
   evaluateProduct,
-  extractProductCalories,
   REQUIRED_BASE_FAMILIES,
   customRequiredFamilies,
-} from "./engine.js?v=1.3.0";
-import { deepScan, requiredFamiliesForProfile } from "./ocr.js?v=1.3.0";
+} from "./engine.js?v=1.4.0";
+import { deepScan, requiredFamiliesForProfile } from "./ocr.js?v=1.4.0";
 import {
   dHash,
   findLearnedTexts,
   saveCorrection,
   exportLearningData,
   getLearningCount,
-} from "./learning.js?v=1.3.0";
+} from "./learning.js?v=1.4.0";
 
 const MAX_PRODUCTS = 6;
-const APP_VERSION = "1.3.0-experimental";
+const APP_VERSION = "1.4.0-experimental";
 const MAX_PHOTOS = 3;
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
@@ -26,7 +25,6 @@ const analyze = $("#analyze");
 const result = $("#result");
 const loading = $("#loading");
 const productResults = $("#productResults");
-const calTotal = $("#calTotal");
 const exportLearningBtn = $("#exportLearning");
 const learningCountEl = $("#learningCount");
 const versionEl = $("#versionBadge");
@@ -55,7 +53,7 @@ const I = {
     remove: "Remove",
     addProduct: "+ Add another product",
     tip1: "Include the complete ingredient/allergen statement when possible.",
-    tip2: "Include the nutrition panel if you want full-package calories.",
+    tip2: "Include any may-contain or shared-equipment warning.",
     tip3: "The first thorough scan downloads OCR models. Later scans can reuse browser cache.",
     autoLang: "PaddleOCR PP-OCRv5 on-device · fast language-family router · automatic rotation",
     analyze: "Run thorough safety scan",
@@ -63,7 +61,7 @@ const I = {
     checking: "Running safety scan…",
     checkingSub: "Starting the multilingual OCR pipeline…",
     privacy: "Photos and profile stay on this device during analysis. Learning corrections are stored only in this browser.",
-    footer: "ADPAI may make mistakes. Please verify ingredients, allergens, and calorie estimates against the original package label. For severe allergies, check with the manufacturer; these results do not guarantee safety.",
+    footer: "ADPAI may make mistakes. Please verify ingredients and allergens against the original package label. For severe allergies, check with the manufacturer; these results do not guarantee safety.",
     noProfile: "Select at least one item to check.",
     addPhoto: "Add at least one product photo.",
     conflict: "Conflict detected",
@@ -72,12 +70,6 @@ const I = {
     clear: "No listed conflict detected",
     mixed: "Products checked",
     reason: "Reason",
-    packageCalories: "Estimated full-package calories",
-    basis: "Calculation",
-    totalCalories: "Estimated total for full packages",
-    knownCalories: "Known calorie total",
-    incompleteCalories: "Some products could not be included because the visible label did not provide enough information.",
-    noCalories: "Full-package calories could not be calculated from the visible labels.",
     photoAdded: "Photo added",
     engineTitle: "On-device PaddleOCR could not start",
     engineBody: "One or more OCR models could not be loaded. ADPAI will not issue a negative result when coverage is incomplete.",
@@ -110,7 +102,7 @@ const I = {
     remove: "삭제",
     addProduct: "+ 다른 제품 추가",
     tip1: "가능하면 전체 원재료/알레르기 표시가 보이도록 촬영하세요.",
-    tip2: "전체 포장 열량을 원하면 영양정보도 포함하세요.",
+    tip2: "혼입 가능 또는 공용 설비 관련 주의 문구도 포함하세요.",
     tip3: "첫 정밀 분석에서는 OCR 모델을 다운로드합니다. 이후 브라우저 캐시를 사용할 수 있습니다.",
     autoLang: "PaddleOCR PP-OCRv5 기기 내 실행 · 빠른 언어 계열 라우터 · 자동 회전",
     analyze: "정밀 안전 스캔",
@@ -118,7 +110,7 @@ const I = {
     checking: "안전 스캔 중…",
     checkingSub: "다국어 OCR 파이프라인을 시작하는 중…",
     privacy: "사진과 프로필은 분석 중 이 기기에서 처리됩니다. 학습 교정도 이 브라우저에만 저장됩니다.",
-    footer: "ADPAI는 오류가 발생할 수 있습니다. 원재료, 알레르기 유발물질 및 예상 열량을 제품의 원본 라벨과 직접 대조해 주세요. 중증 알레르기가 있는 경우 제조사에도 확인하세요. 이 결과는 안전을 보장하지 않습니다.",
+    footer: "ADPAI는 오류가 발생할 수 있습니다. 원재료와 알레르기 유발물질을 제품의 원본 라벨과 직접 대조해 주세요. 중증 알레르기가 있는 경우 제조사에도 확인하세요. 이 결과는 안전을 보장하지 않습니다.",
     noProfile: "확인할 항목을 하나 이상 선택하세요.",
     addPhoto: "제품 사진을 하나 이상 추가하세요.",
     conflict: "주의 성분 확인",
@@ -127,12 +119,6 @@ const I = {
     clear: "표시된 충돌 성분 없음",
     mixed: "제품 분석 결과",
     reason: "판단 근거",
-    packageCalories: "전체 포장 예상 열량",
-    basis: "계산 근거",
-    totalCalories: "전체 제품 예상 열량 합계",
-    knownCalories: "확인 가능한 열량 합계",
-    incompleteCalories: "일부 제품은 보이는 라벨 정보가 부족해 합계에 포함되지 않았습니다.",
-    noCalories: "보이는 라벨만으로 전체 포장 열량을 계산할 수 없습니다.",
     photoAdded: "사진 추가됨",
     engineTitle: "기기 내 PaddleOCR을 시작할 수 없습니다",
     engineBody: "일부 OCR 모델을 불러오지 못했습니다. 커버리지가 불완전한 경우 ADPAI는 음성 결과를 표시하지 않습니다.",
@@ -403,16 +389,6 @@ function messageFor(p) {
   return "No selected conflict was found after the thorough multilingual coverage gate completed.";
 }
 
-function basisText(c) {
-  if (!c) return "";
-  if (c.reference_kcal != null && c.reference_g != null && c.total_weight_g != null) {
-    return lang.value === "ko"
-      ? `${c.reference_g} g당 ${c.reference_kcal} kcal × 총 내용량 ${c.total_weight_g} g`
-      : `${c.reference_kcal} kcal / ${c.reference_g} g × ${c.total_weight_g} g`;
-  }
-  return c.basis || "";
-}
-
 function refreshLearningUI() {
   const n = getLearningCount();
   if (learningCountEl) {
@@ -481,20 +457,6 @@ function showResults(data) {
       ? `제품 ${ps.length}개 · 충돌 ${conflicts}건 · 주의 ${cautions}건 · 확인 불가 ${unverified}건`
       : `${ps.length} ${ps.length === 1 ? "Product" : "Products"} · ${conflicts} Conflict · ${cautions} Caution · ${unverified} Unverified`;
 
-  const known = ps.filter((x) => x.calories?.package_kcal != null);
-  const total = known.length
-    ? known.reduce((a, x) => a + x.calories.package_kcal, 0)
-    : null;
-
-  if (total != null) {
-    calTotal.style.display = "block";
-    const complete = known.length === ps.length;
-    calTotal.innerHTML = `<strong>${Math.round(total)} kcal</strong><span>${complete ? t("totalCalories") : t("knownCalories")}${complete ? "" : " · " + t("incompleteCalories")}</span>`;
-  } else {
-    calTotal.style.display = "block";
-    calTotal.innerHTML = `<span>${t("noCalories")}</span>`;
-  }
-
   ps.forEach((p, idx) => {
     const box = document.createElement("div");
     box.className = `presult ${kindFor(p.status)}`;
@@ -548,21 +510,6 @@ function showResults(data) {
     );
 
     if (ev.children.length) box.appendChild(ev);
-
-    const kcal = document.createElement("div");
-    kcal.className = "kcal";
-    if (p.calories?.package_kcal != null) {
-      kcal.textContent = `${t("packageCalories")}: ${Math.round(p.calories.package_kcal)} kcal`;
-      const b = basisText(p.calories);
-      if (b) {
-        const sm = document.createElement("small");
-        sm.textContent = `${t("basis")}: ${b}`;
-        kcal.appendChild(sm);
-      }
-    } else {
-      kcal.textContent = t("noCalories");
-    }
-    box.appendChild(kcal);
 
     const teach = document.createElement("button");
     teach.className = "btn outline teachBtn";
@@ -653,7 +600,6 @@ analyze.onclick = async () => {
       out.push({
         product_id: prod.id,
         ...e,
-        calories: extractProductCalories(sources),
         family_ok: familyOk,
         family_total: requiredIds.length,
         _sources: sources,

@@ -2,7 +2,6 @@
 import assert from "node:assert/strict";
 import {
   evaluateProduct,
-  extractCaloriesFromText,
   REQUIRED_BASE_FAMILIES,
 } from "../src/engine.js";
 
@@ -113,25 +112,7 @@ function fullStatus() {
   assert.equal(x.status, "conflict");
 }
 
-// 7) Korean calorie regression.
-{
-  const c = extractCaloriesFromText(
-    "영양정보 총 내용량 253 g (5.8 g x 44봉지) 100 g당 485 kcal 나트륨 600 mg"
-  );
-  assert.equal(c.package_kcal, 1227);
-}
-
-// 8) Daily reference 2000 kcal must not override the nearby 100g basis.
-{
-  const c = extractCaloriesFromText(
-    "총 내용량 253 g 100 g당 485 kcal 1일 영양성분 기준치 2,000 kcal"
-  );
-  assert.equal(c.package_kcal, 1227);
-}
-
-
-
-// 9) Cocoa butter is NOT dairy milk.
+// 7) Cocoa butter is NOT dairy milk.
 {
   const x = evaluateProduct({
     sources: [
@@ -144,7 +125,7 @@ function fullStatus() {
   assert.equal(x.status, "unverified"); // OCR cannot certify complete panel coverage.
 }
 
-// 10) Persian cocoa butter is NOT dairy milk.
+// 8) Persian cocoa butter is NOT dairy milk.
 {
   const x = evaluateProduct({
     sources: [
@@ -157,7 +138,7 @@ function fullStatus() {
   assert.equal(x.status, "unverified");
 }
 
-// 11) Persian milk powder remains a direct dairy conflict even if cocoa butter is present.
+// 9) Persian milk powder remains a direct dairy conflict even if cocoa butter is present.
 {
   const x = evaluateProduct({
     sources: [
@@ -170,7 +151,7 @@ function fullStatus() {
   assert.equal(x.status, "conflict");
 }
 
-// 12) Plant milk phrase alone does not create a dairy conflict.
+// 10) Plant milk phrase alone does not create a dairy conflict.
 {
   const x = evaluateProduct({
     sources: [
@@ -183,9 +164,7 @@ function fullStatus() {
   assert.equal(x.status, "unverified");
 }
 
-
-
-// 13) Split "COCOA" + "BUTTER" must not become a Milk mention/conflict.
+// 11) Split "COCOA" + "BUTTER" must not become a Milk mention/conflict.
 {
   const x = evaluateProduct({
     sources: [
@@ -198,7 +177,7 @@ function fullStatus() {
   assert.equal(x.status, "unverified");
 }
 
-// 14) Real Persian milk remains conflict even when cocoa butter is split nearby.
+// 12) Real Persian milk remains conflict even when cocoa butter is split nearby.
 {
   const x = evaluateProduct({
     sources: [
@@ -209,34 +188,6 @@ function fullStatus() {
     requiredFamilies: REQUIRED_BASE_FAMILIES,
   });
   assert.equal(x.status, "conflict");
-}
-
-
-
-// 15) Real OCR corruption: 253 g must not become 8253 g when multipack evidence exists.
-{
-  const c = extractCaloriesFromText(
-    "영양정보 총 내용량 8253 g (5.8 g x 44봉지) 100 g당 485 kcal 나트륨 600 mg"
-  );
-  assert.equal(c.total_weight_g, 253);
-  assert.equal(c.package_kcal, 1227);
-}
-
-// 16) If an extreme OCR weight has no independent support, do not show absurd energy.
-{
-  const c = extractCaloriesFromText(
-    "영양정보 총 내용량 8253 g 100 g당 485 kcal 나트륨 600 mg"
-  );
-  assert.equal(c.package_kcal, null);
-}
-
-// 17) Original Korean label remains correct.
-{
-  const c = extractCaloriesFromText(
-    "영양정보 총 내용량 253 g (5.8 g x 44봉지) 100 g당 485 kcal"
-  );
-  assert.equal(c.total_weight_g, 253);
-  assert.equal(c.package_kcal, 1227);
 }
 
 console.log("ADPAI deterministic safety regressions: PASS");

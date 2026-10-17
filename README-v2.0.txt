@@ -43,12 +43,6 @@ This is not another Tesseract patch.
   This can later become supervised training/fine-tuning data for a real recognition model.
 - This is intentionally safer than autonomous self-training from unverified predictions.
 
-5. CALORIES
-- Keeps deterministic full-package calorie parsing.
-- Regression:
-  253 g + 485 kcal / 100 g = 1227 kcal.
-- 2000 kcal / 8700 kJ daily-reference text is not treated as product energy.
-
 DEPLOY TO GITHUB PAGES
 ======================
 Replace/copy these items into the repository root:

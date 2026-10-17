@@ -8,8 +8,6 @@ import re
 import unicodedata
 from pathlib import Path
 
-from .nutrition import extract_best_calories, extract_calories_from_text
-
 ROOT = Path(__file__).resolve().parent.parent
 ONTOLOGY = json.loads((ROOT / "backend/ontology.json").read_text(encoding="utf-8"))
 NON_DAIRY_PHRASES = json.loads((ROOT / "shared/non-dairy.json").read_text(encoding="utf-8"))
@@ -144,7 +142,7 @@ def label_evidence(source_texts):
                 readable=len(compact(text)) >= 18)
 
 
-def semantic_result(pid, source_texts, profile, exhaustive=False, calorie_source_texts=None):
+def semantic_result(pid, source_texts, profile, exhaustive=False):
     direct, caution, unresolved = scan_evidence(source_texts, profile)
     status = "conflict" if direct else "caution" if caution else "unverified"
     reason = {"conflict": "A selected ingredient or direct declaration was recognized.",
@@ -152,7 +150,6 @@ def semantic_result(pid, source_texts, profile, exhaustive=False, calorie_source
               "unverified": "Complete ingredient-panel coverage is not verified. Do not interpret this as absence of allergens."}[status]
     return dict(product_id=pid, label=f"Product {pid}", status=status, message=reason, reason=reason,
                 direct_matches=direct, caution_matches=caution, mention_matches=unresolved,
-                calories=extract_best_calories(calorie_source_texts if calorie_source_texts is not None else source_texts),
                 ocr_families_used=[key for key, lines in source_texts.items() if lines],
                 multilingual_exhaustive=False,
                 coverage={"complete": False, "panel_completeness_verified": False})

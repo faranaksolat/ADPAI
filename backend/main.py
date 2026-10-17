@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import List, Optional, TYPE_CHECKING
 from threading import Lock
 
-from PIL import Image, ImageFilter, ImageOps
+from PIL import Image, ImageOps
 
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,7 +34,7 @@ INFERENCE_LOCK = Lock()
 
 from .analysis import (
     ONTOLOGY, ALLERGENS, MARKERS, compact, scan_profile, label_evidence,
-    semantic_result, extract_calories_from_text, extract_best_calories,
+    semantic_result,
 )
 
 # Two high-probability passes first. Other scripts are lazy fallbacks.
@@ -55,7 +55,7 @@ ENGINE_CONFIG = {
 PRIMARY_ENGINES = ["korean", "latin"]
 FALLBACK_ENGINES = ["arabic", "cyrillic", "devanagari", "japanese", "chinese", "thai", "greek", "tamil", "telugu"]
 
-app = FastAPI(title="ADPAI Multilingual OCR API", version="1.3.0")
+app = FastAPI(title="ADPAI Multilingual OCR API", version="1.4.0")
 app.mount("/src", StaticFiles(directory=ROOT / "src"), name="frontend-modules")
 
 app.add_middleware(
@@ -109,14 +109,9 @@ def get_primary_engine(engine_key: str) -> PaddleOCR:
         _ACTIVE_ENGINE_KEY = engine_key
     return _ACTIVE_ENGINE
 
-def ocr_paths_dual(engine: PaddleOCR, paths: list[str]) -> tuple[list[dict], list[dict]]:
-    """
-    One OCR inference, two views:
-    - safe_lines: all recognized text with confidence and photo identity.
-    - calorie_lines: lower-threshold text used only for nutrition numbers.
-    """
+def ocr_paths(engine: PaddleOCR, paths: list[str]) -> list[dict]:
+    """Retain recognized allergen evidence, confidence and photo identity."""
     safe_lines: list[dict] = []
-    calorie_lines: list[dict] = []
 
     for photo_index, path in enumerate(paths):
         try:
@@ -146,49 +141,11 @@ def ocr_paths_dual(engine: PaddleOCR, paths: list[str]) -> tuple[list[dict], lis
                     except Exception:
                         pass
 
-                if score >= 0.18:
-                    calorie_lines.append({"text": txt, "photoIndex": photo_index})
                 # Retain weak terms as unresolved evidence instead of deleting
                 # a potentially critical allergen below a confidence threshold.
                 safe_lines.append({"text": txt, "score": score, "photoIndex": photo_index})
 
-    return safe_lines, calorie_lines
-
-def make_nutrition_variants(paths: list[str]) -> list[str]:
-    """
-    Retry difficult nutrition panels on an enlarged, autocontrasted,
-    lightly sharpened copy. These variants are used ONLY for calorie OCR.
-    """
-    variants: list[str] = []
-
-    for path in paths:
-        try:
-            with Image.open(path) as im:
-                im = im.convert("RGB")
-                w, h = im.size
-                longest = max(w, h)
-                scale = 1.0 if longest >= 2200 else min(2.2, 2200.0 / max(1, longest))
-
-                if scale > 1.02:
-                    im = im.resize(
-                        (max(1, int(round(w * scale))), max(1, int(round(h * scale)))),
-                        Image.Resampling.LANCZOS,
-                    )
-
-                gray = ImageOps.grayscale(im)
-                gray = ImageOps.autocontrast(gray, cutoff=0.5)
-                gray = gray.filter(
-                    ImageFilter.UnsharpMask(radius=1.2, percent=145, threshold=2)
-                )
-
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
-                    gray.save(tmp.name, format="PNG", optimize=False)
-                    variants.append(tmp.name)
-        except Exception:
-            continue
-
-    return variants
-
+    return safe_lines
 
 def normalize_image(path):
     try:
@@ -214,7 +171,7 @@ def health():
         "ok": True,
         "engine": "PaddleOCR PP-OCRv5 explicit-mobile multilingual router",
         "mode": "local-or-cloud",
-        "version": "1.3.0",
+        "version": "1.4.0",
         "language_selection_required": False,
         "primary_ocr_families": PRIMARY_ENGINES,
         "fallback_ocr_families": FALLBACK_ENGINES,
@@ -224,8 +181,6 @@ def health():
             for lang in item["aliases"].keys()
         }),
         "multi_product": True,
-        "calorie_estimation": True,
-        "calorie_parser": "v4-scoped-quantities",
         "automatic_negative_results": False,
     }
 
@@ -294,7 +249,6 @@ async def analyze(
             except OSError:
                 pass
 
-
 def process_groups(grouped, profile):
     # Paddle predictors are mutable process-local objects. Run CPU work outside
     # the async event loop and serialize access to the shared model cache.
@@ -304,137 +258,92 @@ def process_groups(grouped, profile):
         finally:
             clear_active_engine()
 
-
 def _run_ocr(grouped, p):
-    temp_paths = []
-    try:
-        sources = {pid: {} for pid in grouped}
-        calorie_sources = {pid: {} for pid in grouped}
-        failures = {pid: [] for pid in grouped}
-        successful_inference = {pid: False for pid in grouped}
+    sources = {pid: {} for pid in grouped}
+    failures = {pid: [] for pid in grouped}
+    successful_inference = {pid: False for pid in grouped}
 
-        # Stage 1: Korean + Latin multilingual. These cover the common Korea/international case.
-        for engine_key in PRIMARY_ENGINES:
+    # Stage 1: Korean + Latin multilingual. These cover the common Korea/international case.
+    for engine_key in PRIMARY_ENGINES:
+        try:
+            engine = get_primary_engine(engine_key)
+        except Exception:
+            for pid in grouped:
+                failures[pid].append({"family": engine_key, "message": "Model initialization failed."})
+            continue
+        for pid, paths in grouped.items():
+            safe_lines = ocr_paths(engine, paths)
+            failures[pid].extend({"family": engine_key, "photoIndex": line["photoIndex"], "message": line["error"]} for line in safe_lines if line.get("error"))
+            if not any(line.get("error") for line in safe_lines) or any(line.get("text") for line in safe_lines):
+                successful_inference[pid] = True
+            sources[pid][engine_key] = safe_lines
+
+    # Products with a positive or precautionary result can stop early.
+    unresolved = set()
+    for pid in grouped:
+        direct, caution = scan_profile(sources[pid], p)
+        evidence = label_evidence(sources[pid])
+        # Additional models are recovery attempts; a heading never certifies a negative.
+        if not direct and not caution and not evidence["ingredient"]:
+            unresolved.add(pid)
+
+    # Stage 2: automatic script-family fallbacks. No language choice is shown to the user.
+    # Model attempts alone never certify a negative result.
+    if unresolved:
+        clear_active_engine()
+
+    for engine_key in FALLBACK_ENGINES:
+        if not unresolved:
+            break
+        try:
+            engine = make_engine(engine_key)
+        except Exception:
+            for pid in unresolved:
+                failures[pid].append({"family": engine_key, "message": "Model initialization failed."})
+            continue
+
+        resolved_now = []
+        for pid in list(unresolved):
             try:
-                engine = get_primary_engine(engine_key)
-            except Exception:
-                for pid in grouped:
-                    failures[pid].append({"family": engine_key, "message": "Model initialization failed."})
-                continue
-            for pid, paths in grouped.items():
-                safe_lines, calorie_lines = ocr_paths_dual(engine, paths)
+                safe_lines = ocr_paths(engine, grouped[pid])
                 failures[pid].extend({"family": engine_key, "photoIndex": line["photoIndex"], "message": line["error"]} for line in safe_lines if line.get("error"))
                 if not any(line.get("error") for line in safe_lines) or any(line.get("text") for line in safe_lines):
                     successful_inference[pid] = True
                 sources[pid][engine_key] = safe_lines
-                calorie_sources[pid][engine_key] = calorie_lines
 
-        # Products with a positive or precautionary result can stop early.
-        unresolved = set()
-        for pid in grouped:
-            direct, caution = scan_profile(sources[pid], p)
-            evidence = label_evidence(sources[pid])
-            # Additional models are recovery attempts; a heading never certifies a negative.
-            if not direct and not caution and not evidence["ingredient"]:
-                unresolved.add(pid)
-
-        # Stage 2: automatic script-family fallbacks. No language choice is shown to the user.
-        # Model attempts alone never certify a negative result.
-        if unresolved:
-            clear_active_engine()
-
-        for engine_key in FALLBACK_ENGINES:
-            if not unresolved:
-                break
-            try:
-                engine = make_engine(engine_key)
             except Exception:
-                for pid in unresolved:
-                    failures[pid].append({"family": engine_key, "message": "Model initialization failed."})
-                continue
+                sources[pid][engine_key] = []
 
-            resolved_now = []
-            for pid in list(unresolved):
-                try:
-                    safe_lines, calorie_lines = ocr_paths_dual(engine, grouped[pid])
-                    failures[pid].extend({"family": engine_key, "photoIndex": line["photoIndex"], "message": line["error"]} for line in safe_lines if line.get("error"))
-                    if not any(line.get("error") for line in safe_lines) or any(line.get("text") for line in safe_lines):
-                        successful_inference[pid] = True
-                    sources[pid][engine_key] = safe_lines
-                    calorie_sources[pid][engine_key] = calorie_lines
-                except Exception:
-                    sources[pid][engine_key] = []
-                    calorie_sources[pid][engine_key] = []
+            direct, caution = scan_profile(sources[pid], p)
+            if direct or caution:
+                resolved_now.append(pid)
 
-                direct, caution = scan_profile(sources[pid], p)
-                if direct or caution:
-                    resolved_now.append(pid)
+        for pid in resolved_now:
+            unresolved.discard(pid)
 
-            for pid in resolved_now:
-                unresolved.discard(pid)
+        del engine
+        gc.collect()
 
-            del engine
-            gc.collect()
+    if not any(successful_inference.values()):
+        raise RuntimeError("No OCR inference could complete.")
+    products = []
+    for pid in sorted(grouped):
+        result = semantic_result(pid, sources[pid], p)
+        result["errors"] = failures[pid]
+        products.append(result)
 
-        # Nutrition-only recovery: retry difficult labels at larger scale,
-        # but only when a nutrition panel was actually detected.
-        for pid in sorted(grouped):
-            if extract_best_calories(calorie_sources[pid]).get("package_kcal") is not None:
-                continue
-            if not label_evidence(sources[pid])["nutrition"]:
-                continue
+    priority = {
+        "backend_error": 6, "conflict": 5, "caution": 4,
+        "unverified": 3, "ingredient_not_confirmed": 3, "unreadable": 3,
+        "nutrition_panel": 2, "no_listed_conflict": 1,
+    }
+    overall = max(products, key=lambda x: priority.get(x["status"], 0))["status"]
 
-            enhanced_paths = make_nutrition_variants(grouped[pid])
-            temp_paths.extend(enhanced_paths)
-
-            for engine_key in PRIMARY_ENGINES:
-                if not enhanced_paths:
-                    break
-                try:
-                    engine = get_primary_engine(engine_key)
-                    _, recovered = ocr_paths_dual(engine, enhanced_paths)
-                    existing = calorie_sources[pid].get(engine_key, [])
-                    calorie_sources[pid][engine_key] = existing + recovered
-                except Exception:
-                    pass
-
-        if not any(successful_inference.values()):
-            raise RuntimeError("No OCR inference could complete.")
-        products = []
-        for pid in sorted(grouped):
-            result = semantic_result(pid, sources[pid], p, calorie_source_texts=calorie_sources[pid])
-            result["errors"] = failures[pid]
-            products.append(result)
-
-        known = [
-            x["calories"]["package_kcal"]
-            for x in products
-            if x.get("calories", {}).get("package_kcal") is not None
-        ]
-        total_kcal = sum(known) if known else None
-        complete = bool(products) and len(known) == len(products)
-
-        priority = {
-            "backend_error": 6, "conflict": 5, "caution": 4,
-            "unverified": 3, "ingredient_not_confirmed": 3, "unreadable": 3,
-            "nutrition_panel": 2, "no_listed_conflict": 1,
-        }
-        overall = max(products, key=lambda x: priority.get(x["status"], 0))["status"]
-
-        return {
-            "status": overall,
-            "products": products,
-            "summary": {
-                "product_count": len(products),
-                "total_package_kcal": total_kcal,
-                "calories_complete": complete,
-                "calorie_products_count": len(known),
-                "automatic_multilingual": True,
-            },
-        }
-    finally:
-        for path in temp_paths:
-            try:
-                os.remove(path)
-            except OSError:
-                pass
+    return {
+        "status": overall,
+        "products": products,
+        "summary": {
+            "product_count": len(products),
+            "automatic_multilingual": True,
+        },
+    }

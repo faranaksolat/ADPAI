@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import patch
 from PIL import Image
 from fastapi.testclient import TestClient
-from backend.main import app, ocr_paths_dual
+from backend.main import app, ocr_paths
 
 
 def image_bytes():
@@ -17,10 +17,12 @@ class ApiTests(unittest.TestCase):
         self.client=TestClient(app)
 
     def test_health_and_real_frontend_modules(self):
-        self.assertFalse(self.client.get('/api/health').json()['automatic_negative_results'])
+        health=self.client.get('/api/health').json()
+        self.assertFalse(health['automatic_negative_results'])
+        self.assertNotIn('calorie_estimation',health)
         html=self.client.get('/').text
-        self.assertIn('src/browser.js?v=1.3.0',html)
-        for path in ['browser.js','tesseract.js','engine.js','ontology.js','image.js','nutrition.js']:
+        self.assertIn('src/browser.js?v=1.4.0',html)
+        for path in ['browser.js','tesseract.js','engine.js','ontology.js','image.js']:
             response=self.client.get('/src/'+path)
             self.assertEqual(response.status_code,200,path)
 
@@ -63,12 +65,14 @@ class ApiTests(unittest.TestCase):
             response=self.client.post('/api/analyze',data={'profile':'{"allergens":["peanut"]}'},files={'images':('x.png',image_bytes(),'image/png')})
         self.assertEqual(response.status_code,200)
         self.assertEqual(response.json()['products'][0]['status'],'conflict')
+        self.assertNotIn('calories',response.json()['products'][0])
+        self.assertNotIn('total_package_kcal',response.json()['summary'])
 
     def test_weak_terms_and_missing_scores_are_retained(self):
         class Engine:
             def predict(self,input):
                 yield {'rec_texts':['milk','peanut'],'rec_scores':[.2]}
-        items,_=ocr_paths_dual(Engine(),['image'])
+        items=ocr_paths(Engine(),['image'])
         self.assertEqual([x['score'] for x in items],[.2,0])
         self.assertEqual([x['text'] for x in items],['milk','peanut'])
 

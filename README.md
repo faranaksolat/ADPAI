@@ -1,6 +1,6 @@
 # ADPAI
 
-Food-package label prototype. The current GitHub Pages entry point is `index.html`, which loads `src/browser.js` and runs Tesseract.js in the browser. Images stay in the browser. Both the page and the experimental PaddleOCR browser adapter use `src/engine.js` and `src/nutrition.js`.
+Food-allergen label-checking prototype for shopping. The current GitHub Pages entry point is `index.html`, which loads `src/browser.js` and runs Tesseract.js in the browser. Images stay in the browser. Both the page and the experimental PaddleOCR browser adapter use the shared allergen rules in `src/engine.js`.
 
 `backend/main.py` is a separate FastAPI/PaddleOCR API (`POST /api/analyze`). It also serves the current frontend and its modules, but the frontend does **not** automatically upload to or call this API. `src/app.js` / `src/ocr.js` are an experimental browser PaddleOCR path, not the Pages entry point.
 
@@ -8,7 +8,7 @@ Food-package label prototype. The current GitHub Pages entry point is `index.htm
 
 Outputs are `conflict`, `caution`, or `unverified`. An OCR run, an ingredient heading, or an empty match list cannot prove full label coverage. Automatic negative results are disabled until a separately validated completeness policy exists. Never interpret `unverified` as allergen absence. Positive results refer to recognized label evidence, not laboratory testing.
 
-Low-confidence selected terms remain unresolved evidence. Direct ingredient evidence is not downgraded by an unrelated precautionary statement. Numeric recovery is isolated from allergen decisions. Package calories require explicit compatible quantities; missing units/scope, conflicting readings, and unsupported conversions remain unknown.
+Low-confidence selected terms remain unresolved evidence. Direct ingredient evidence is not downgraded by an unrelated precautionary statement. ADPAI focuses on selected ingredients, direct allergen declarations, and precautionary cross-contact warnings. Nutrition headings are retained only to keep unrelated label text outside ingredient evidence.
 
 ## Develop and test
 
@@ -19,7 +19,6 @@ python -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 npm test
 .venv/bin/python -m unittest discover -s tests -p 'test_*.py' -v
-.venv/bin/python test_calories.py
 npm run test:browser
 ```
 

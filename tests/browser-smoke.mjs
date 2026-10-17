@@ -66,7 +66,7 @@ try {
     const canvas=document.createElement('canvas');canvas.width=1400;canvas.height=400;
     const ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,1400,400);ctx.fillStyle='black';ctx.font='48px sans-serif';
     ctx.fillText('INGREDIENTS: MILK, SUGAR, WHEAT',30,80);ctx.fillText('CONTAINS: MILK',30,180);
-    ctx.fillText('Net weight 100 g. Energy 485 kcal per 100 g',30,280);
+    ctx.fillText('Please check the original ingredient label.',30,280);
     const blob=await new Promise(resolve=>canvas.toBlob(resolve));
     const input=document.querySelector('#products input[type=file]');
     const files=new DataTransfer();files.items.add(new File([blob],'label.png',{type:'image/png'}));input.files=files.files;
@@ -75,11 +75,15 @@ try {
   })()`);
   const cases=[['INGREDIENTS: milk, sugar','Conflict detected'],['INGREDIENTS: sugar and cocoa','Unable to verify'],['Nutrition facts: per 100 g 500 kcal','Unable to verify']];
   for(const [text,expected] of realOcr ? cases.slice(0,1) : cases) {
-    const result=await evaluate(`(async()=>{globalThis.testOcrText=${JSON.stringify(text)};document.querySelector('#analyze').click();const end=Date.now()+${realOcr?180000:20000};while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw new Error('analysis timeout');await new Promise(r=>setTimeout(r,25));}return {title:document.querySelector('#rtitle').textContent,icon:document.querySelector('#ricon').textContent,badge:document.querySelector('.presult .badge').textContent};})()`);
+    const result=await evaluate(`(async()=>{globalThis.testOcrText=${JSON.stringify(text)};document.querySelector('#analyze').click();const end=Date.now()+${realOcr?180000:20000};while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw new Error('analysis timeout');await new Promise(r=>setTimeout(r,25));}return {title:document.querySelector('#rtitle').textContent,icon:document.querySelector('#ricon').textContent,badge:document.querySelector('.presult .badge').textContent,body:document.body.textContent,hasCalorieElements:!!document.querySelector('#calTotal,.kcal')};})()`);
     assert.equal(result.title,expected);
     assert.equal(result.badge,expected);
     assert.equal(result.icon,'!');
+    assert.equal(result.hasCalorieElements,false);
+    assert.ok(!/calorie|kcal|열량|칼로리/iu.test(result.body));
   }
+  await evaluate(`document.querySelector('#lang').value='ko';document.querySelector('#lang').dispatchEvent(new Event('change'));`);
+  assert.ok(!/calorie|kcal|열량|칼로리/iu.test(await evaluate(`document.body.textContent`)));
   assert.deepEqual(errors,[]);
   console.log(realOcr ? 'PASS: real Tesseract browser inference on a generated label; not a package benchmark' : 'PASS: shipped browser page, imports, image selection, conflict and unverified UI; controlled OCR');
 } finally {

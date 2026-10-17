@@ -12,7 +12,7 @@ from backend.main import app
 image = Image.new("RGB", (1400, 400), "white")
 draw = ImageDraw.Draw(image)
 font = ImageFont.truetype("DejaVuSans.ttf", 48)
-for index, line in enumerate(["INGREDIENTS: MILK, SUGAR, WHEAT", "CONTAINS: MILK", "Net weight 100 g. Energy 485 kcal per 100 g"]):
+for index, line in enumerate(["INGREDIENTS: MILK, SUGAR, WHEAT", "CONTAINS: MILK", "Please check the original ingredient label."]):
     draw.text((30, 30+index*100), line, font=font, fill="black")
 data = io.BytesIO()
 image.save(data, format="PNG")

@@ -1,6 +1,5 @@
-import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.3.0';
-import { extractProductCalories } from './nutrition.js?v=1.3.0';
-import { preprocess, rotateCanvas } from './image.js?v=1.3.0';
+import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.4.0';
+import { preprocess, rotateCanvas } from './image.js?v=1.4.0';
 
 const PRIMARY = {id: 'korean', langs: ['kor','eng','fra'], label: 'Korean / English / French'};
 const FALLBACKS = [
@@ -37,8 +36,8 @@ function sourceQuality(source) {
 
 export async function analyzeProducts(products, profile, options = {}) {
   const {onProgress = () => {}, createWorker = (...args) => globalThis.Tesseract.createWorker(...args), prepare = preprocess, rotate = rotateCanvas} = options;
-  const states = products.map(product => ({product:{...product,photos:[...product.photos]}, sources: [], nutritionSources: [], familyStatus: {}, errors: []}));
-  async function run(def, jobs, enhanced = false) {
+  const states = products.map(product => ({product:{...product,photos:[...product.photos]}, sources: [], familyStatus: {}, errors: []}));
+  async function run(def, jobs) {
     let worker;
     onProgress(`Reading ${def.label || def.id}…`);
     try {
@@ -48,7 +47,7 @@ export async function analyzeProducts(products, profile, options = {}) {
         for (let photoIndex=0; photoIndex<state.product.photos.length; photoIndex++) {
           const photo = state.product.photos[photoIndex];
           try {
-            const canvas = await prepare(photo.file, enhanced);
+            const canvas = await prepare(photo.file);
             const candidates = [];
             // Orientations belong to a photo, never to the entire product.
             for (const rotation of [0,90,270,180]) {
@@ -56,18 +55,18 @@ export async function analyzeProducts(products, profile, options = {}) {
               candidates.push({familyId: def.id, photoIndex, rotation, items: itemsFrom(result)});
             }
             candidates.sort((a,b) => sourceQuality(b)-sourceQuality(a));
-            (enhanced ? state.nutritionSources : state.sources).push(candidates[0]);
+            state.sources.push(candidates[0]);
           } catch (error) {
             complete = false;
-            state.errors.push({family: def.id, photoIndex, nutritionOnly: enhanced, message: String(error?.message || error)});
+            state.errors.push({family: def.id, photoIndex, message: String(error?.message || error)});
           }
         }
-        if (!enhanced) state.familyStatus[def.id] = {ok: complete, attempted: true};
+        state.familyStatus[def.id] = {ok: complete, attempted: true};
       }
     } catch (error) {
       for (const state of jobs) {
-        if (!enhanced) state.familyStatus[def.id] = {ok: false, attempted: true};
-        state.errors.push({family: def.id, nutritionOnly: enhanced, message: String(error?.message || error)});
+        state.familyStatus[def.id] = {ok: false, attempted: true};
+        state.errors.push({family: def.id, message: String(error?.message || error)});
       }
     } finally {
       if (worker) { try { await worker.terminate(); } catch {} }
@@ -82,16 +81,12 @@ export async function analyzeProducts(products, profile, options = {}) {
       (extras.includes(def) || def.hint?.test(textOf(state)) || !containsAny(textOf(state),MARKERS.ingredient_headings)));
     if (jobs.length) await run(def,jobs);
   }
-  const retry = states.filter(state => extractProductCalories(state.sources).package_kcal == null);
-  // Optional numeric recovery cannot erase an already recognized allergen.
-  if (retry.length) await run({id: 'nutrition', langs: ['kor','eng']},retry,true);
   const out = states.map((state,index) => {
     const result = evaluate(state);
     return {...result, product_id: state.product.id ?? index+1, label: `Product ${index+1}`,
-      message: result.reason, calories: extractProductCalories([...state.sources,...state.nutritionSources]),
-      ocr_families_used: [...new Set(state.sources.map(s => s.familyId))],
+      message: result.reason,
+      ocr_families_used: [...new Set(state.sources.map(s => s.familyId === PRIMARY.id ? PRIMARY.label : (FALLBACKS.find(def => def.id === s.familyId)?.label || s.familyId)))],
       errors: state.errors, sources: state.sources};
   });
-  const known = out.filter(p => p.calories.package_kcal != null);
-  return {status: 'ok', products: out, summary: {total_package_kcal: known.length ? known.reduce((sum,p) => sum+p.calories.package_kcal,0) : null, calories_complete: out.length > 0 && known.length === out.length}};
+  return {status: 'ok', products: out, summary: {product_count: out.length}};
 }

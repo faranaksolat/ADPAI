@@ -25,11 +25,6 @@ Safety:
   negative result is blocked.
 - Manual learning corrections do NOT affect live allergen decisions in this build.
 
-Calories:
-- The observed 8253 g OCR corruption is cross-checked against 5.8 g × 44.
-- This can recover 253 g -> 1227 kcal for the Korean test label.
-- Unsupported extreme computed calories are suppressed.
-
 Deploy:
   git add .
   git commit -m "Restore stable fast multilingual OCR v1.1"

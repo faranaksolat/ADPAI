@@ -1,6 +1,5 @@
 
-import { ONTOLOGY, NON_DAIRY_PHRASES } from "./ontology.js?v=1.3.0";
-export { extractCaloriesFromText, extractProductCalories, normalizeCalorieOCR } from "./nutrition.js?v=1.3.0";
+import { ONTOLOGY, NON_DAIRY_PHRASES } from "./ontology.js?v=1.4.0";
 
 export const ALLERGENS = ONTOLOGY.allergens;
 export const MARKERS = ONTOLOGY.label_markers;
