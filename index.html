@@ -5,8 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b1220">
 <meta name="application-name" content="ADPAI">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ADPAI">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="./assets/icons/icon-192.png">
 <meta name="description" content="ADPAI helps you check food-package ingredients and selected allergens before you buy. Always verify results against the original label.">
-<!-- ADPAI v1.4.0: explicit tested-language scope + targeted language safety probe -->
+<!-- ADPAI v1.5.0: explicit tested-language scope + targeted language safety probe -->
 <title>ADPAI — Food allergen label checker</title>
 <style>
 :root{--ink:#0b1220;--muted:#667085;--bg:#f7f8fb;--card:#fff;--line:#e7eaf0;--brand:#4169e1;--brand-soft:#eef2ff;--danger:#b42318;--danger-bg:#fff2f0;--warn:#995400;--warn-bg:#fff8e8;--ok:#146c43;--ok-bg:#edf9f2;--shadow:0 16px 50px rgba(16,24,40,.08);--r:26px}
@@ -28,18 +34,22 @@
 .result{display:none;margin-top:16px;border:1px solid #dbe1ea;border-radius:22px;padding:19px;background:#f8fafc}.result.show{display:block}.summaryHead{display:flex;gap:12px;align-items:flex-start}.ricon{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;background:white;font-weight:900;flex:0 0 auto}.result h3{font-size:19px;margin:1px 0 4px}.result p{font-size:13px;line-height:1.55;margin:0}
 .productResults{display:grid;gap:10px;margin-top:14px}.presult{border:1px solid var(--line);border-radius:17px;padding:14px;background:white}.presult.danger{border-color:#f7c9c4;background:var(--danger-bg)}.presult.warn{border-color:#f3d69a;background:var(--warn-bg)}.presult.ok{border-color:#bfe6ce;background:var(--ok-bg)}.prtop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.prtitle{font-weight:900}.badge{font-size:10px;font-weight:900;border-radius:999px;padding:5px 8px;background:rgba(255,255,255,.78)}.prmsg{font-size:12px;line-height:1.5;margin-top:7px}.evidence{border-top:1px solid rgba(0,0,0,.08);padding-top:9px;margin-top:10px;display:grid;gap:6px}.ev{display:flex;justify-content:space-between;gap:20px;font-size:11px}.ev span{opacity:.72}.ev strong{text-align:right}
 .privacy,.footer{color:var(--muted);font-size:11px;line-height:1.6}.privacy{margin-top:14px}.footer{text-align:center;padding:20px 5px 0}html[dir="rtl"] .brand,html[dir="rtl"] .head,html[dir="rtl"] .summaryHead{flex-direction:row-reverse;text-align:right}html[dir="rtl"] .hero{text-align:right}
+.app{padding-top:calc(22px + env(safe-area-inset-top));padding-bottom:calc(48px + env(safe-area-inset-bottom));padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}[hidden]{display:none!important}.installPanel{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 18px}.installPanel .btn{min-height:44px}.offlineNotice{padding:12px;border:1px solid #f3d69a;border-radius:12px;background:var(--warn-bg);font-size:13px;line-height:1.5}dialog{max-width:min(480px,calc(100% - 32px));border:1px solid var(--line);border-radius:20px;padding:24px;color:var(--ink)}dialog::backdrop{background:#0b122088}dialog p{line-height:1.6}.capture .btn{margin:4px;min-height:44px}input,select{font-size:16px}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 </head>
 <body>
+<dialog id="installDialog" aria-labelledby="installTitle"><h2 id="installTitle">ADPAI on your home screen</h2><p id="installBody"></p><button class="btn primary" id="closeInstall">Close</button></dialog>
 <main class="app">
-<header><div class="brand"><div class="mark" aria-label="ADPAI">A</div><div><div class="name">ADPAI <span style="font-size:10px;color:#667085;font-weight:800;vertical-align:middle">v1.4.0</span></div><div class="tag" data-i18n="tag">Check the label before you buy.</div></div></div><select id="lang"><option value="en">EN</option><option value="ko">한국어</option></select></header>
+<header><div class="brand"><div class="mark" aria-label="ADPAI">A</div><div><div class="name">ADPAI <span style="font-size:10px;color:#667085;font-weight:800;vertical-align:middle">v1.5.0</span></div><div class="tag" data-i18n="tag">Check the label before you buy.</div></div></div><select id="lang" aria-label="Interface language"><option value="en">EN</option><option value="ko">한국어</option></select></header>
 <section class="hero"><h1 data-i18n="hero">Check one product or a whole basket.</h1><p data-i18n="sub">Add several photos of the same product, or create separate product groups. Package language is detected automatically across major writing systems; no language selection is required.</p></section>
+<div id="installPanel" class="installPanel"><button id="installApp" class="btn primary" hidden>Install ADPAI</button><button id="installHelp" class="btn outline">How to install</button></div>
+<p id="offlineNotice" class="offlineNotice" role="status" hidden></p>
 <section class="langscope">
   <strong>🌐 <span data-i18n="langCoverage">Language coverage</span></strong>
   <p class="tested" data-i18n="testedScope">Prototype languages: Korean · English · French; accuracy is not yet benchmarked.</p>
   <p class="experimental" data-i18n="experimentalScope">Under validation: Persian · Arabic · Russian · Chinese/Japanese · Hindi · Thai</p>
-  <p data-i18n="negativeScope">Negative results apply only to verified text in the tested language scope.</p>
+  <p data-i18n="negativeScope">Incomplete or uncertain reads remain unverified; no result certifies absence of allergens.</p>
 </section>
 <div class="stack">
 <section class="card">
@@ -61,7 +71,8 @@
 </section>
 </div>
 <footer class="footer" data-i18n="footer">ADPAI may make mistakes. Please verify ingredients and allergens against the original package label. For severe allergies, check with the manufacturer; these results do not guarantee safety.</footer>
+<p class="footer"><a href="./privacy.html">Privacy / 개인정보 처리 안내</a></p>
 </main>
-<script type="module" src="./src/browser.js?v=1.4.0"></script>
+<script type="module" src="./src/browser.js?v=1.5.0"></script>
 </body>
 </html>

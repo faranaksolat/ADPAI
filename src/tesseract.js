@@ -1,5 +1,5 @@
-import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.4.0';
-import { preprocess, rotateCanvas } from './image.js?v=1.4.0';
+import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.5.0';
+import { preprocess, rotateCanvas } from './image.js?v=1.5.0';
 
 const PRIMARY = {id: 'korean', langs: ['kor','eng','fra'], label: 'Korean / English / French'};
 const FALLBACKS = [
@@ -41,7 +41,7 @@ export async function analyzeProducts(products, profile, options = {}) {
     let worker;
     onProgress(`Reading ${def.label || def.id}…`);
     try {
-      worker = await createWorker(def.langs, 1, {logger: () => {}});
+      worker = await createWorker(def.langs, 1, {...globalThis.ADPAI_OCR_OPTIONS?.(def),logger: () => {}});
       for (const state of jobs) {
         let complete = true;
         for (let photoIndex=0; photoIndex<state.product.photos.length; photoIndex++) {

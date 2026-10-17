@@ -55,8 +55,21 @@ ENGINE_CONFIG = {
 PRIMARY_ENGINES = ["korean", "latin"]
 FALLBACK_ENGINES = ["arabic", "cyrillic", "devanagari", "japanese", "chinese", "thai", "greek", "tamil", "telugu"]
 
-app = FastAPI(title="ADPAI Multilingual OCR API", version="1.4.0")
+app = FastAPI(title="ADPAI Multilingual OCR API", version="1.5.0")
 app.mount("/src", StaticFiles(directory=ROOT / "src"), name="frontend-modules")
+app.mount("/assets", StaticFiles(directory=ROOT / "assets"), name="frontend-assets")
+
+@app.get("/manifest.webmanifest", include_in_schema=False)
+def web_manifest():
+    return FileResponse(ROOT / "manifest.webmanifest", media_type="application/manifest+json")
+
+@app.get("/sw.js", include_in_schema=False)
+def service_worker():
+    return FileResponse(ROOT / "sw.js", media_type="text/javascript", headers={"Cache-Control": "no-cache"})
+
+@app.get("/privacy.html", include_in_schema=False)
+def privacy_page():
+    return FileResponse(ROOT / "privacy.html")
 
 app.add_middleware(
     CORSMiddleware,
@@ -171,7 +184,7 @@ def health():
         "ok": True,
         "engine": "PaddleOCR PP-OCRv5 explicit-mobile multilingual router",
         "mode": "local-or-cloud",
-        "version": "1.4.0",
+        "version": "1.5.0",
         "language_selection_required": False,
         "primary_ocr_families": PRIMARY_ENGINES,
         "fallback_ocr_families": FALLBACK_ENGINES,

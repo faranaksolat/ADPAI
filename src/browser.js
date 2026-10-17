@@ -1,26 +1,28 @@
-import { analyzeProducts } from "./tesseract.js?v=1.4.0";
-const APP_VERSION="1.4.0";
+import { analyzeProducts } from "./tesseract.js?v=1.5.0";
+import { initPwa, updateInstallUI } from "./pwa.js?v=1.5.0";
+const APP_VERSION="1.5.0";
 const MAX_PRODUCTS=6,MAX_PHOTOS=3;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const lang=$("#lang"),productsEl=$("#products"),analyze=$("#analyze"),result=$("#result"),loading=$("#loading"),productResults=$("#productResults");
-let analyzing=false;
+let analyzing=false,selectingPhoto=false,inputRevision=0,lastResult=null;
 let custom=[],products=[{id:1,photos:[]}],nextId=2;
 
 const I={
- en:{tag:"Check the label before you buy.",hero:"Check one product or a whole basket.",sub:"Add several photos of the same product, or create separate product groups. Package language is detected automatically; analysis runs on this device.",profile:"What should we watch for?",profileSub:"Choose one or more allergens or ingredients you avoid.",milk:"Milk",egg:"Egg",peanut:"Peanut",treeNuts:"Tree nuts",soy:"Soy",wheat:"Wheat",sesame:"Sesame",fish:"Fish",shellfish:"Shellfish",add:"Add",products:"Add product photos",productsSub:"Up to 3 photos belong to one product. Use “Add another product” for a different item.",product:"Product",photosForSame:"Photos in this box are treated as the same product.",choose:"Take or choose photos",remove:"Remove",addProduct:"+ Add another product",tip1:"Include the ingredient/allergen statement.",tip2:"Include any may-contain or shared-equipment warning.",tip3:"Primary OCR runs first; extra language models load only when the label requires them.",analyze:"Analyze on this device",note:"Photos are processed in your browser and are not uploaded to an ADPAI analysis server.",checking:"Checking products…",checkingSub:"Starting on-device OCR…",privacy:"Photos and your selected profile stay on this device during analysis.",footer:"ADPAI may make mistakes. Please verify ingredients and allergens against the original package label. For severe allergies, check with the manufacturer; these results do not guarantee safety.",noProfile:"Select at least one item to check.",addPhoto:"Add at least one product photo.",conflict:"Conflict detected",caution:"Caution",clear:"No listed conflict detected",mixed:"Products checked",reason:"Reason",photoAdded:"Photo added",serverTitle:"On-device OCR could not start",serverBody:"The OCR engine or language data could not be loaded. Check your internet connection once, then try again.",autoLang:"Prototype OCR for Korean, English and French. Other languages are experimental.",directMatches:"Direct matches",cautionMatches:"Precautionary matches",ocrCoverage:"OCR families used",progressPrimary:"Reading Korean/Latin label text on this device…",progressRotate:"Checking rotated label text on this device…",progressFallback:"Trying another writing system on this device…",langProbe:"Checking language tags…",unableVerify:"Unable to verify",langCoverage:"Language coverage",testedScope:"Prototype languages: Korean · English · French; accuracy is not yet benchmarked.",experimentalScope:"Under validation: Persian · Arabic · Russian · Chinese/Japanese · Hindi · Thai",negativeScope:"Incomplete or uncertain reads remain unverified; no result certifies absence of allergens."},
- ko:{tag:"구매 전에 라벨을 확인하세요.",hero:"한 제품부터 여러 제품까지 한 번에 확인하세요.",sub:"같은 제품은 여러 장의 사진을 추가하고, 다른 제품은 별도 제품으로 추가하세요. 분석은 이 기기에서 직접 실행됩니다.",profile:"무엇을 확인할까요?",profileSub:"피하고 싶은 알레르기 유발물질 또는 성분을 선택하세요.",milk:"우유",egg:"달걀",peanut:"땅콩",treeNuts:"견과류",soy:"대두",wheat:"밀",sesame:"참깨",fish:"생선",shellfish:"갑각류",add:"추가",products:"제품 사진 추가",productsSub:"한 제품당 최대 3장까지 추가할 수 있습니다. 다른 제품은 ‘다른 제품 추가’를 사용하세요.",product:"제품",photosForSame:"이 박스의 사진은 같은 제품으로 분석됩니다.",choose:"촬영 또는 사진 선택",remove:"삭제",addProduct:"+ 다른 제품 추가",tip1:"원재료/알레르기 표시가 보이게 촬영하세요.",tip2:"혼입 가능 또는 공용 설비 관련 주의 문구도 포함하세요.",tip3:"기본 OCR을 먼저 실행하고, 라벨에 필요한 언어 모델만 추가로 불러옵니다.",analyze:"기기에서 제품 분석",note:"사진은 브라우저 안에서 처리되며 ADPAI 분석 서버로 업로드되지 않습니다.",checking:"제품 확인 중…",checkingSub:"기기 내 OCR을 시작하는 중…",privacy:"분석 중 사진과 선택한 프로필은 이 기기에서 처리됩니다.",footer:"ADPAI는 오류가 발생할 수 있습니다. 원재료와 알레르기 유발물질을 제품의 원본 라벨과 직접 대조해 주세요. 중증 알레르기가 있는 경우 제조사에도 확인하세요. 이 결과는 안전을 보장하지 않습니다.",noProfile:"확인할 항목을 하나 이상 선택하세요.",addPhoto:"제품 사진을 하나 이상 추가하세요.",conflict:"주의 성분이 확인되었습니다",caution:"주의가 필요합니다",clear:"표시된 충돌 성분 없음",mixed:"제품 분석 결과",reason:"판단 근거",photoAdded:"사진 추가됨",serverTitle:"기기 내 OCR을 시작할 수 없습니다",serverBody:"OCR 엔진 또는 언어 데이터를 불러오지 못했습니다. 처음 한 번 인터넷 연결을 확인한 뒤 다시 시도해 주세요.",autoLang:"기기 내 빠른 OCR. 현재 테스트 범위: 한국어, 영어, 프랑스어. 다른 언어는 검증 중입니다.",directMatches:"직접 확인된 항목",cautionMatches:"주의 표시 항목",ocrCoverage:"사용된 OCR 계열",progressPrimary:"이 기기에서 한국어·라틴계 라벨을 읽는 중…",progressRotate:"회전된 라벨 텍스트를 확인하는 중…",progressFallback:"이 기기에서 다른 문자 체계를 확인하는 중…",langProbe:"언어 표시를 확인하는 중…",unableVerify:"확인 불가",langCoverage:"언어 커버리지",testedScope:"프로토타입 언어: 한국어 · 영어 · 프랑스어; 정확도 평가 전",experimentalScope:"검증 중: 페르시아어 · 아랍어 · 러시아어 · 중국어/일본어 · 힌디어 · 태국어",negativeScope:"불완전하거나 불확실한 판독은 확인 불가이며 알레르기 유발물질 부재를 보장하지 않습니다."}
+ en:{tag:"Check the label before you buy.",hero:"Check one product or a whole basket.",sub:"Add several photos of the same product, or create separate product groups. Package language is detected automatically; analysis runs on this device.",profile:"What should we watch for?",profileSub:"Choose one or more allergens or ingredients you avoid.",milk:"Milk",egg:"Egg",peanut:"Peanut",treeNuts:"Tree nuts",soy:"Soy",wheat:"Wheat",sesame:"Sesame",fish:"Fish",shellfish:"Shellfish",add:"Add",products:"Add product photos",productsSub:"Up to 3 photos belong to one product. Use “Add another product” for a different item.",product:"Product",photosForSame:"Photos in this box are treated as the same product.",choose:"Choose photos",remove:"Remove",addProduct:"+ Add another product",tip1:"Include the ingredient/allergen statement.",tip2:"Include any may-contain or shared-equipment warning.",tip3:"Primary OCR runs first; extra language models load only when the label requires them.",analyze:"Analyze on this device",note:"Photos are processed in your browser and are not uploaded to an ADPAI analysis server.",checking:"Checking products…",checkingSub:"Starting on-device OCR…",privacy:"Photos and your selected profile stay on this device during analysis.",footer:"ADPAI may make mistakes. Please verify ingredients and allergens against the original package label. For severe allergies, check with the manufacturer; these results do not guarantee safety.",noProfile:"Select at least one item to check.",addPhoto:"Add at least one product photo.",conflict:"Conflict detected",caution:"Caution",clear:"No listed conflict detected",mixed:"Products checked",reason:"Reason",photoAdded:"Photo added",serverTitle:"On-device OCR could not start",serverBody:"The OCR engine or language data could not be loaded. Check your internet connection once, then try again.",autoLang:"Prototype OCR for Korean, English and French. Other languages are experimental.",directMatches:"Direct matches",cautionMatches:"Precautionary matches",ocrCoverage:"OCR families used",progressPrimary:"Reading Korean/Latin label text on this device…",progressRotate:"Checking rotated label text on this device…",progressFallback:"Trying another writing system on this device…",langProbe:"Checking language tags…",unableVerify:"Unable to verify",langCoverage:"Language coverage",testedScope:"Prototype languages: Korean · English · French; accuracy is not yet benchmarked.",experimentalScope:"Under validation: Persian · Arabic · Russian · Chinese/Japanese · Hindi · Thai",negativeScope:"Incomplete or uncertain reads remain unverified; no result certifies absence of allergens."},
+ ko:{tag:"구매 전에 라벨을 확인하세요.",hero:"한 제품부터 여러 제품까지 한 번에 확인하세요.",sub:"같은 제품은 여러 장의 사진을 추가하고, 다른 제품은 별도 제품으로 추가하세요. 분석은 이 기기에서 직접 실행됩니다.",profile:"무엇을 확인할까요?",profileSub:"피하고 싶은 알레르기 유발물질 또는 성분을 선택하세요.",milk:"우유",egg:"달걀",peanut:"땅콩",treeNuts:"견과류",soy:"대두",wheat:"밀",sesame:"참깨",fish:"생선",shellfish:"갑각류",add:"추가",products:"제품 사진 추가",productsSub:"한 제품당 최대 3장까지 추가할 수 있습니다. 다른 제품은 ‘다른 제품 추가’를 사용하세요.",product:"제품",photosForSame:"이 박스의 사진은 같은 제품으로 분석됩니다.",choose:"사진 선택",remove:"삭제",addProduct:"+ 다른 제품 추가",tip1:"원재료/알레르기 표시가 보이게 촬영하세요.",tip2:"혼입 가능 또는 공용 설비 관련 주의 문구도 포함하세요.",tip3:"기본 OCR을 먼저 실행하고, 라벨에 필요한 언어 모델만 추가로 불러옵니다.",analyze:"기기에서 제품 분석",note:"사진은 브라우저 안에서 처리되며 ADPAI 분석 서버로 업로드되지 않습니다.",checking:"제품 확인 중…",checkingSub:"기기 내 OCR을 시작하는 중…",privacy:"분석 중 사진과 선택한 프로필은 이 기기에서 처리됩니다.",footer:"ADPAI는 오류가 발생할 수 있습니다. 원재료와 알레르기 유발물질을 제품의 원본 라벨과 직접 대조해 주세요. 중증 알레르기가 있는 경우 제조사에도 확인하세요. 이 결과는 안전을 보장하지 않습니다.",noProfile:"확인할 항목을 하나 이상 선택하세요.",addPhoto:"제품 사진을 하나 이상 추가하세요.",conflict:"주의 성분이 확인되었습니다",caution:"주의가 필요합니다",clear:"표시된 충돌 성분 없음",mixed:"제품 분석 결과",reason:"판단 근거",photoAdded:"사진 추가됨",serverTitle:"기기 내 OCR을 시작할 수 없습니다",serverBody:"OCR 엔진 또는 언어 데이터를 불러오지 못했습니다. 처음 한 번 인터넷 연결을 확인한 뒤 다시 시도해 주세요.",autoLang:"기기 내 빠른 OCR. 현재 테스트 범위: 한국어, 영어, 프랑스어. 다른 언어는 검증 중입니다.",directMatches:"직접 확인된 항목",cautionMatches:"주의 표시 항목",ocrCoverage:"사용된 OCR 계열",progressPrimary:"이 기기에서 한국어·라틴계 라벨을 읽는 중…",progressRotate:"회전된 라벨 텍스트를 확인하는 중…",progressFallback:"이 기기에서 다른 문자 체계를 확인하는 중…",langProbe:"언어 표시를 확인하는 중…",unableVerify:"확인 불가",langCoverage:"언어 커버리지",testedScope:"프로토타입 언어: 한국어 · 영어 · 프랑스어; 정확도 평가 전",experimentalScope:"검증 중: 페르시아어 · 아랍어 · 러시아어 · 중국어/일본어 · 힌디어 · 태국어",negativeScope:"불완전하거나 불확실한 판독은 확인 불가이며 알레르기 유발물질 부재를 보장하지 않습니다."}
 };
 
 function t(k){return(I[lang.value]||I.en)[k]||I.en[k]||k}
-function setLang(v){document.documentElement.lang=v;document.documentElement.dir="ltr";$$('[data-i18n]').forEach(e=>e.textContent=t(e.dataset.i18n));localStorage.setItem('aller_lang',v);renderProducts()}
+function setLang(v){document.documentElement.lang=v;document.documentElement.dir="ltr";$$('[data-i18n]').forEach(e=>e.textContent=t(e.dataset.i18n));localStorage.setItem('aller_lang',v);renderProducts();updateInstallUI();if(lastResult&&result.classList.contains('show'))showResults(lastResult)}
 lang.value=localStorage.getItem('aller_lang')||'en';if(!['en','ko'].includes(lang.value))lang.value='en';lang.onchange=()=>setLang(lang.value);
 
 function profile(){return{allergens:$$('#chips input:checked').map(x=>x.value),custom_avoid:[...custom]}}
-function save(){result.classList.remove('show');localStorage.setItem('aller_profile',JSON.stringify(profile()));update()}
+function invalidateResults(){inputRevision++;lastResult=null;result.classList.remove('show')}
+function save(){invalidateResults();localStorage.setItem('aller_profile',JSON.stringify(profile()));update()}
 try{const p=JSON.parse(localStorage.getItem('aller_profile')||'{}');(p.allergens||[]).forEach(v=>{const x=$(`#chips input[value="${v}"]`);if(x)x.checked=true});custom=Array.isArray(p.custom_avoid)?p.custom_avoid:[]}catch{}
 $('#chips').onchange=save;
-function renderCustom(){const e=$('#customList');e.innerHTML='';custom.forEach((v,i)=>{const l=document.createElement('label');l.className='chip';l.innerHTML="<input type='checkbox' checked><span></span>";l.querySelector('span').textContent=v+' ×';l.onclick=x=>{x.preventDefault();custom.splice(i,1);renderCustom();save()};e.appendChild(l)})}
-$('#add').onclick=()=>{const v=$('#custom').value.trim();if(v&&!custom.some(x=>x.toLowerCase()===v.toLowerCase()))custom.push(v);$('#custom').value='';renderCustom();save()};
+function renderCustom(){const e=$('#customList');e.innerHTML='';custom.forEach((v,i)=>{const l=document.createElement('label');l.className='chip';l.innerHTML="<input type='checkbox' checked><span></span>";l.querySelector('span').textContent=v+' ×';l.onclick=x=>{x.preventDefault();if(analyzing||selectingPhoto)return;custom.splice(i,1);renderCustom();save()};e.appendChild(l)})}
+$('#add').onclick=()=>{if(analyzing||selectingPhoto)return;const v=$('#custom').value.trim();if(v&&!custom.some(x=>x.toLowerCase()===v.toLowerCase()))custom.push(v);$('#custom').value='';renderCustom();save()};
 $('#custom').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('#add').click()}};
 
 function renderProducts(){
@@ -29,17 +31,41 @@ function renderProducts(){
   const box=document.createElement('div');box.className='product';
   const top=document.createElement('div');top.className='ptop';
   const left=document.createElement('div');left.innerHTML=`<div class="ptitle">${t('product')} ${idx+1}</div><div class="psub">${t('photosForSame')}</div>`;top.appendChild(left);
-  if(products.length>1){const rm=document.createElement('button');rm.className='removeProduct';rm.textContent=t('remove');rm.onclick=()=>{p.photos.forEach(x=>URL.revokeObjectURL(x.url));products.splice(idx,1);renderProducts();update()};top.appendChild(rm)}
-  const cap=document.createElement('div');cap.className='capture';const btn=document.createElement('button');btn.className='btn primary';btn.textContent=t('choose');const inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;inp.hidden=true;btn.onclick=()=>inp.click();
-  inp.onchange=e=>{for(const f of [...e.target.files]){if(p.photos.length>=MAX_PHOTOS)break;if(f.type.startsWith('image/'))p.photos.push({file:f,url:URL.createObjectURL(f)})}inp.value='';renderProducts();update()};
-  const msg=document.createElement('p');msg.textContent=`${p.photos.length}/${MAX_PHOTOS} ${t('photoAdded')}`;cap.append(btn,inp,msg);
-  const ph=document.createElement('div');ph.className='photos';p.photos.forEach((photo,j)=>{const d=document.createElement('div');d.className='photo';const im=document.createElement('img');im.src=photo.url;const x=document.createElement('button');x.className='x';x.textContent='×';x.onclick=()=>{URL.revokeObjectURL(photo.url);p.photos.splice(j,1);renderProducts();update()};const b=document.createElement('div');b.className='added';b.textContent=t('photoAdded');d.append(im,x,b);ph.appendChild(d)});
+  if(products.length>1){const rm=document.createElement('button');rm.className='removeProduct';rm.textContent=t('remove');rm.onclick=()=>{if(analyzing||selectingPhoto)return;invalidateResults();p.photos.forEach(x=>URL.revokeObjectURL(x.url));products.splice(idx,1);renderProducts();update()};top.appendChild(rm)}
+  const cap=document.createElement('div');cap.className='capture';
+  const btn=document.createElement('button');btn.className='btn primary';btn.textContent=t('choose');
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;inp.hidden=true;
+  const camera=document.createElement('button');camera.className='btn outline';camera.textContent=lang.value==='ko'?'사진 촬영':'Take a photo';camera.dataset.camera='true';
+  const capture=document.createElement('input');capture.type='file';capture.accept='image/*';capture.setAttribute('capture','environment');capture.hidden=true;
+  const addFiles=files=>{invalidateResults();for(const f of files){if(p.photos.length>=MAX_PHOTOS)break;if(f.type.startsWith('image/'))p.photos.push({file:f,url:URL.createObjectURL(f)})}renderProducts();update()};
+  const pickNative=async source=>{
+    if(analyzing||selectingPhoto||p.photos.length>=MAX_PHOTOS)return;
+    selectingPhoto=true;invalidateResults();update();
+    try{addFiles(await (source==='camera'?globalThis.ADPAI_NATIVE.takePhoto():globalThis.ADPAI_NATIVE.pickPhotos(MAX_PHOTOS-p.photos.length)))}
+    catch(error){
+      // Cancellation and denied permission leave no result behind.
+      if(!/cancel/iu.test(String(error?.message||error)))alert(lang.value==='ko'?'사진을 열 수 없습니다. 카메라 또는 사진 접근 권한을 확인하고 다시 시도하세요.':'Could not open the photo. Check camera or photo access and try again.');
+    }finally{selectingPhoto=false;update()}
+  };
+  btn.onclick=()=>{if(globalThis.ADPAI_NATIVE)pickNative('gallery');else inp.click()};
+  camera.onclick=()=>{if(globalThis.ADPAI_NATIVE)pickNative('camera');else capture.click()};
+  inp.onchange=e=>{if(!analyzing&&!selectingPhoto)addFiles([...e.target.files]);inp.value=''};
+  capture.onchange=e=>{if(!analyzing&&!selectingPhoto)addFiles([...e.target.files]);capture.value=''};
+  btn.disabled=camera.disabled=p.photos.length>=MAX_PHOTOS;
+  const msg=document.createElement('p');msg.textContent=`${p.photos.length}/${MAX_PHOTOS} ${t('photoAdded')}`;cap.append(btn,camera,inp,capture,msg);
+  const ph=document.createElement('div');ph.className='photos';p.photos.forEach((photo,j)=>{const d=document.createElement('div');d.className='photo';const im=document.createElement('img');im.src=photo.url;const x=document.createElement('button');x.className='x';x.textContent='×';x.onclick=()=>{if(analyzing||selectingPhoto)return;invalidateResults();URL.revokeObjectURL(photo.url);p.photos.splice(j,1);renderProducts();update()};const b=document.createElement('div');b.className='added';b.textContent=t('photoAdded');d.append(im,x,b);ph.appendChild(d)});
   box.append(top,cap,ph);productsEl.appendChild(box)
  });
  $('#addProduct').disabled=products.length>=MAX_PRODUCTS
 }
-$('#addProduct').onclick=()=>{if(products.length<MAX_PRODUCTS){products.push({id:nextId++,photos:[]});renderProducts();update()}};
-function update(){const p=profile(),hasPhoto=products.some(x=>x.photos.length);analyze.disabled=analyzing||!(hasPhoto&&(p.allergens.length||p.custom_avoid.length))}
+$('#addProduct').onclick=()=>{if(!analyzing&&!selectingPhoto&&products.length<MAX_PRODUCTS){invalidateResults();products.push({id:nextId++,photos:[]});renderProducts();update()}};
+function update(){
+ const p=profile(),hasPhoto=products.some(x=>x.photos.length),busy=analyzing||selectingPhoto;
+ analyze.disabled=busy||!(hasPhoto&&(p.allergens.length||p.custom_avoid.length));
+ $$('#products button,#products input,#chips input,#custom,#add,#lang,#customList input').forEach(el=>el.disabled=busy);
+ products.forEach((product,index)=>{if(product.photos.length>=MAX_PHOTOS)$$('#products .product')[index].querySelectorAll('.capture button').forEach(el=>el.disabled=true)});
+ $('#addProduct').disabled=busy||products.length>=MAX_PRODUCTS;
+}
 
 function setProgress(txt){const e=$('#loading span');if(e)e.textContent=txt}
 async function analyzeOnDevice(p,active){return analyzeProducts(active,p,{onProgress:setProgress})}
@@ -56,6 +82,7 @@ function localizedReason(p){if(lang.value!=='ko')return p.reason||'';if(p.status
  if(p.status==='ingredient_not_confirmed'&&(p.required_panels||[]).some(x=>!(p.verified_panels||[]).includes(x)))return'표시된 모든 언어의 원재료 패널이 확인될 때까지 안전한 결과로 분류하지 않습니다.';
  return p.reason||''}
 function showResults(data) {
+  lastResult=data;
   loading.classList.remove('show');
   result.classList.add('show');
   productResults.innerHTML = '';
@@ -96,8 +123,10 @@ function showResults(data) {
   result.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-analyze.onclick=async()=>{const p=profile();if(!(p.allergens.length||p.custom_avoid.length)){alert(t('noProfile'));return}const active=products.filter(x=>x.photos.length);if(!active.length){alert(t('addPhoto'));return}result.classList.remove('show');loading.classList.add('show');analyzing=true;analyze.disabled=true;try{const d=await analyzeOnDevice(p,active);showResults(d)}catch(e){console.error(e);loading.classList.remove('show');alert(t('serverTitle')+'\n'+t('serverBody'))}finally{analyzing=false;update()}};
+analyze.onclick=async()=>{if(analyzing||selectingPhoto)return;const p=profile();if(!(p.allergens.length||p.custom_avoid.length)){alert(t('noProfile'));return}const active=products.filter(x=>x.photos.length);if(!active.length){alert(t('addPhoto'));return}result.classList.remove('show');loading.classList.add('show');analyzing=true;const revision=inputRevision;update();try{const d=await analyzeOnDevice(p,active);if(revision===inputRevision)showResults(d)}catch(e){console.error(e);loading.classList.remove('show');alert(t('serverTitle')+'\n'+t('serverBody'))}finally{loading.classList.remove('show');analyzing=false;update()}};
 
 // Make the two visible tips explicitly on-device.
 const tips=$$('.tip');if(tips[0])tips[0].querySelector('strong').textContent='🌐 On-device OCR · incomplete reads remain unverified';
 renderCustom();setLang(lang.value);renderProducts();update();
+
+initPwa();

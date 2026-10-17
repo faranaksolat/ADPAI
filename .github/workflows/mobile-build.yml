@@ -1,0 +1,70 @@
+name: Mobile test builds
+
+# Deliberate test builds only. No store upload, release signing or deployment.
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Test build to create
+        type: choice
+        options: [android, ios, both]
+        default: android
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    if: inputs.platform == 'android' || inputs.platform == 'both'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - run: npm ci
+      - run: npm test
+      - run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+      - run: npm run build:android:debug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ADPAI-android-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  ios:
+    if: inputs.platform == 'ios' || inputs.platform == 'both'
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: xcodebuild -version
+      - run: npm ci
+      - run: npm test
+      - run: npm run build:mobile && npx cap sync ios
+      - name: Build for simulator without release signing
+        run: >-
+          xcodebuild -project ios/App/App.xcodeproj -scheme App
+          -configuration Debug -sdk iphonesimulator
+          -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath ios/DerivedData CODE_SIGNING_ALLOWED=NO build
+      - name: Preserve app bundle
+        run: ditto -c -k --sequesterRsrc --keepParent ios/DerivedData/Build/Products/Debug-iphonesimulator/App.app ADPAI-ios-simulator.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ADPAI-ios-simulator
+          path: ADPAI-ios-simulator.zip
+          if-no-files-found: error
+          retention-days: 14

@@ -2,10 +2,32 @@
   "name": "adpai-safety-first",
   "private": true,
   "type": "module",
+  "version": "1.5.0",
+  "engines": {"node": ">=22"},
   "scripts": {
     "test": "node scripts/generate-ontology.mjs --check && node --test tests/*.test.mjs",
     "generate:ontology": "node scripts/generate-ontology.mjs",
     "test:python": "python -m unittest discover -s tests -p 'test_*.py'",
-    "test:browser": "node tests/browser-smoke.mjs"
+    "test:browser": "node tests/browser-smoke.mjs",
+    "test:mobile-web": "MOBILE_WEB=1 node tests/browser-smoke.mjs",
+    "build:mobile": "node scripts/build-mobile.mjs",
+    "mobile:sync": "npm run build:mobile && cap sync",
+    "mobile:android": "npm run mobile:sync && cap open android",
+    "mobile:ios": "npm run mobile:sync && cap open ios",
+    "build:android:debug": "npm run build:mobile && cap sync android && cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/camera": "8.2.6",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/ios": "8.5.3",
+    "@tesseract.js-data/eng": "1.0.0",
+    "@tesseract.js-data/fra": "1.0.0",
+    "@tesseract.js-data/kor": "1.0.0",
+    "tesseract.js": "5.1.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3",
+    "esbuild": "0.28.2"
   }
 }

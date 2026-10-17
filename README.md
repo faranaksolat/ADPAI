@@ -17,12 +17,13 @@ Use Python 3.11.9 (`.python-version`) and Node.js 22+.
 ```bash
 python -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
+npm ci
 npm test
 .venv/bin/python -m unittest discover -s tests -p 'test_*.py' -v
 npm run test:browser
 ```
 
-No npm installation is needed for tests. `test:browser` requires Chromium on PATH (or `CHROMIUM_PATH`); it uses controlled OCR responses to exercise the actual page, not model accuracy.
+The rule tests use Node's built-in runner. Install the pinned npm dependencies for native builds. `test:browser` requires Chromium on PATH (or `CHROMIUM_PATH`); it uses controlled OCR responses to exercise the actual page, not model accuracy.
 
 Run the frontend locally with `python -m http.server 8000`. Run the backend separately with:
 
@@ -53,4 +54,19 @@ The regression suite uses annotated text and controlled OCR. It does not establi
 
 ## Product name and public URL
 
-The product name is **ADPAI**. The intended Pages address is `https://faranaksolat.github.io/ADPAI/`. GitHub derives the hostname from the owning account and the project-site path from the repository name. Publishing at this address requires an account named `faranaksolat` that owns the `ADPAI` repository; changing source code alone cannot activate this hostname. Account/repository naming and the Pages deployment must be completed before this address is treated as live. API origin changes are deferred until ownership of the destination account is established. Browser profile/learning storage keys remain compatible within the same origin; browser storage does not automatically move between GitHub Pages hostnames.
+The product name is **ADPAI**. The live Pages address is `https://faranaksolat.github.io/ADPAI/`; its repository is `faranaksolat/ADPAI`. Browser profile/learning storage keys remain compatible within the same origin; browser storage does not automatically move between GitHub Pages hostnames or into a native app.
+
+## Install on a phone
+
+The website is a PWA: use its installation button/browser menu on Android,
+or Safari → Share → Add to Home Screen on iPhone. Its offline cache stores
+the application shell, never photos or results; OCR may still require model
+and runtime downloads. See [privacy.html](privacy.html).
+
+Capacitor projects in `android/` and `ios/` reuse the current browser analysis
+path and include the primary OCR engine/models locally. Build with
+`npm run mobile:sync`; then open Android Studio with `npm run mobile:android`
+or Xcode with `npm run mobile:ios`. See [mobile/README.md](mobile/README.md)
+for prerequisites, debug builds, manual GitHub Actions builds and release
+requirements. These projects remain a prototype until real-package accuracy
+and physical-device behavior are validated; no store publication is automated.

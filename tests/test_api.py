@@ -21,10 +21,12 @@ class ApiTests(unittest.TestCase):
         self.assertFalse(health['automatic_negative_results'])
         self.assertNotIn('calorie_estimation',health)
         html=self.client.get('/').text
-        self.assertIn('src/browser.js?v=1.4.0',html)
-        for path in ['browser.js','tesseract.js','engine.js','ontology.js','image.js']:
+        self.assertIn('src/browser.js?v=1.5.0',html)
+        for path in ['browser.js','tesseract.js','engine.js','ontology.js','image.js','pwa.js']:
             response=self.client.get('/src/'+path)
             self.assertEqual(response.status_code,200,path)
+        for path in ['/manifest.webmanifest','/sw.js','/privacy.html','/assets/icons/icon-192.png']:
+            self.assertEqual(self.client.get(path).status_code,200,path)
 
     def test_bad_profiles_do_not_load_models(self):
         for profile in ['null','[]','{}','{"allergens":["unknown"]}','{"allergens":"milk"}']:

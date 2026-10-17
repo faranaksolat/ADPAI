@@ -9,13 +9,17 @@ import path from 'node:path';
 import {spawn} from 'node:child_process';
 import {once} from 'node:events';
 
-const root=path.resolve(import.meta.dirname,'..');
+const mobileWeb=process.env.MOBILE_WEB==='1';
+const root=path.resolve(import.meta.dirname,'..',mobileWeb?'dist':'.');
 const realOcr=process.env.REAL_OCR==='1';
-const mime={'.js':'text/javascript','.html':'text/html'};
+const prefix='/ADPAI/';
+const mime={'.js':'text/javascript','.html':'text/html','.webmanifest':'application/manifest+json','.png':'image/png','.wasm':'application/wasm'};
 const server=http.createServer(async(req,res)=>{
   try {
-    const name=decodeURIComponent(new URL(req.url,'http://local').pathname);
-    const file=path.resolve(root,'.'+(name==='/'?'/index.html':name));
+    const pathname=decodeURIComponent(new URL(req.url,'http://local').pathname);
+    if(!pathname.startsWith(prefix))throw new Error('outside app scope');
+    const name=pathname.slice(prefix.length)||'index.html';
+    const file=path.resolve(root,name);
     if(!file.startsWith(root+path.sep)) throw new Error('outside root');
     res.setHeader('Content-Type',mime[path.extname(file)]||'application/octet-stream');
     res.end(await fs.readFile(file));
@@ -47,21 +51,33 @@ try {
   });
   const errors=[];
   listeners.set('Runtime.exceptionThrown',[event=>errors.push(event.exceptionDetails.text+': '+(event.exceptionDetails.exception?.description||''))]);
-  const stub=`globalThis.Tesseract={createWorker:async()=>({recognize:async()=>({data:{words:(globalThis.testOcrText||'INGREDIENTS: milk, sugar').split(' ').map((text,i)=>({text,confidence:95,bbox:{x0:i*40,y0:0,x1:i*40+38,y1:24}}))}}),terminate:async()=>{}})};`;
+  const stub=`globalThis.Tesseract={createWorker:async()=>({recognize:async()=>{if(globalThis.testOcrDelay)await new Promise(r=>setTimeout(r,globalThis.testOcrDelay));return {data:{words:(globalThis.testOcrText||'INGREDIENTS: milk, sugar').split(' ').map((text,i)=>({text,confidence:95,bbox:{x0:i*40,y0:0,x1:i*40+38,y1:24}}))}}},terminate:async()=>{}})};`;
   listeners.set('Fetch.requestPaused',[event=>{
-    send('Fetch.fulfillRequest',{requestId:event.requestId,responseCode:200,responseHeaders:[{name:'Content-Type',value:'text/javascript'}],body:Buffer.from(stub).toString('base64')}).catch(e=>errors.push(e.message));
+    (realOcr ? send('Fetch.failRequest',{requestId:event.requestId,errorReason:'InternetDisconnected'})
+      : send('Fetch.fulfillRequest',{requestId:event.requestId,responseCode:200,responseHeaders:[{name:'Content-Type',value:'text/javascript'}],body:Buffer.from(stub).toString('base64')})).catch(e=>errors.push(e.message));
   }]);
   await send('Runtime.enable');
-  if(!realOcr) await send('Fetch.enable',{patterns:[{urlPattern:'https://cdn.jsdelivr.net/*'}]});
+  if(!realOcr) await send('Fetch.enable',{patterns:[{urlPattern:'https://cdn.jsdelivr.net/*'},{urlPattern:'*vendor/tesseract/tesseract.min.js'}]});
+  else if(mobileWeb) await send('Fetch.enable',{patterns:[{urlPattern:'https://*'}]});
   await send('Page.enable');
+  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+  if(mobileWeb)await send('Page.addScriptToEvaluateOnNewDocument',{source:'globalThis.ADPAI_NATIVE={};'});
   const loaded=new Promise(resolve=>listeners.set('Page.loadEventFired',[resolve]));
-  await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/`});
+  await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}${prefix}`});
   await loaded;
   const evaluate=async(expression)=>{
     const result=await send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});
     if(result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description||result.exceptionDetails.text);
     return result.result.value;
   };
+  assert.equal(await evaluate(`document.documentElement.scrollWidth<=window.innerWidth`),true,'phone layout overflows horizontally');
+  if(!mobileWeb) {
+    await evaluate(`document.querySelector('#installHelp').click()`);
+    assert.equal(await evaluate(`document.querySelector('#installDialog').open`),true);
+    assert.ok((await evaluate(`document.querySelector('#installBody').textContent`)).includes('Add to Home Screen'));
+    await evaluate(`document.querySelector('#closeInstall').click()`);
+    assert.equal(await evaluate(`document.querySelector('#installDialog').open`),false);
+  }
   await evaluate(`(async()=>{
     const canvas=document.createElement('canvas');canvas.width=1400;canvas.height=400;
     const ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,1400,400);ctx.fillStyle='black';ctx.font='48px sans-serif';
@@ -69,7 +85,8 @@ try {
     ctx.fillText('Please check the original ingredient label.',30,280);
     const blob=await new Promise(resolve=>canvas.toBlob(resolve));
     const input=document.querySelector('#products input[type=file]');
-    const files=new DataTransfer();files.items.add(new File([blob],'label.png',{type:'image/png'}));input.files=files.files;
+    globalThis.testPhotoFile=new File([blob],'label.png',{type:'image/png'});
+    const files=new DataTransfer();files.items.add(globalThis.testPhotoFile);input.files=files.files;
     input.dispatchEvent(new Event('change',{bubbles:true}));
     const milk=document.querySelector('#chips input[value=milk]');milk.checked=true;milk.dispatchEvent(new Event('change',{bubbles:true}));
   })()`);
@@ -83,9 +100,58 @@ try {
     assert.ok(!/calorie|kcal|열량|칼로리/iu.test(result.body));
   }
   await evaluate(`document.querySelector('#lang').value='ko';document.querySelector('#lang').dispatchEvent(new Event('change'));`);
+  assert.equal(await evaluate(`document.querySelector('#rtitle').textContent`),realOcr?'주의 성분 확인':'확인 불가');
   assert.ok(!/calorie|kcal|열량|칼로리/iu.test(await evaluate(`document.body.textContent`)));
+  if(process.env.BROWSER_SCREENSHOT) {
+    const {data}=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});
+    await fs.writeFile(process.env.BROWSER_SCREENSHOT,Buffer.from(data,'base64'));
+  }
+  if(mobileWeb)assert.equal(await evaluate(`document.querySelector('#installPanel').hidden`),true);
+  if(!realOcr) {
+    // Users cannot change the product/profile during inference and accidentally
+    // associate old OCR with a new photograph or selection.
+    await evaluate(`globalThis.testOcrDelay=30;document.querySelector('#analyze').click()`);
+    assert.equal(await evaluate(`document.querySelector('#chips input').disabled && document.querySelector('.photo .x').disabled && document.querySelector('#lang').disabled`),true);
+    await evaluate(`(async()=>{while(document.querySelector('#analyze').disabled)await new Promise(r=>setTimeout(r,25));globalThis.testOcrDelay=0})()`);
+    await evaluate(`document.querySelector('.photo .x').click()`);
+    assert.equal(await evaluate(`document.querySelector('#result').classList.contains('show')`),false);
+    assert.equal(await evaluate(`document.querySelector('#analyze').disabled`),true);
+    await evaluate(`globalThis.ADPAI_NATIVE={pickPhotos:async()=>[globalThis.testPhotoFile],takePhoto:async()=>{throw new Error('User cancelled')}};document.querySelector('.capture .primary').click()`);
+    await evaluate(`(async()=>{while(document.querySelector('#analyze').disabled)await new Promise(r=>setTimeout(r,25))})()`);
+    assert.equal(await evaluate(`document.querySelectorAll('.photo').length`),1);
+    await evaluate(`document.querySelector('[data-camera]').click()`);
+    await evaluate(`(async()=>{while(document.querySelector('#analyze').disabled)await new Promise(r=>setTimeout(r,25))})()`);
+    assert.equal(await evaluate(`document.querySelectorAll('.photo').length`),1);
+    assert.equal(await evaluate(`document.querySelector('#result').classList.contains('show')`),false);
+    await evaluate(`globalThis.testAlerts=[];globalThis.alert=message=>globalThis.testAlerts.push(message);globalThis.ADPAI_NATIVE.takePhoto=async()=>{throw new Error('Permission denied')};document.querySelector('[data-camera]').click()`);
+    await evaluate(`(async()=>{while(document.querySelector('#analyze').disabled)await new Promise(r=>setTimeout(r,25))})()`);
+    assert.equal(await evaluate(`globalThis.testAlerts.length`),1);
+    assert.equal(await evaluate(`document.querySelector('#result').classList.contains('show')`),false);
+    await evaluate(`delete globalThis.ADPAI_NATIVE;document.querySelector('#lang').value='en';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
+  }
+  if(!mobileWeb) {
+    await evaluate(`(async()=>{await navigator.serviceWorker.ready;const end=Date.now()+15000;while(!navigator.serviceWorker.controller){if(Date.now()>end)throw new Error('service worker did not claim page');await new Promise(r=>setTimeout(r,25))}})()`);
+    const cache=await evaluate(`(async()=>({scope:(await navigator.serviceWorker.ready).scope,urls:(await Promise.all((await caches.keys()).map(async key=>(await (await caches.open(key)).keys()).map(r=>r.url)))).flat()}))()`);
+    assert.ok(cache.scope.endsWith(prefix));
+    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.5.0')));
+    assert.ok(cache.urls.every(url=>url.startsWith(cache.scope) && !/blob:|api\/|label\.png|profile/iu.test(url)));
+    await send('Fetch.disable');
+    await send('Network.enable');
+    await send('Network.emulateNetworkConditions',{offline:true,latency:0,downloadThroughput:0,uploadThroughput:0});
+    const offlineLoaded=new Promise(resolve=>listeners.set('Page.loadEventFired',[resolve]));
+    await send('Page.reload');await offlineLoaded;
+    assert.equal(await evaluate(`document.querySelector('.name').textContent.includes('ADPAI')`),true);
+    assert.equal(await evaluate(`document.querySelector('#offlineNotice').hidden`),false);
+    assert.equal(await evaluate(`document.querySelector('#result').classList.contains('show')`),false);
+    assert.equal(await evaluate(`document.querySelectorAll('.photo').length`),0);
+    assert.equal(await evaluate(`document.querySelector('#analyze').disabled`),true);
+    assert.equal(await evaluate(`(async()=>(await fetch('./privacy.html')).ok)()`),true);
+    // An offline shell is usable even when the CDN runtime is unavailable.
+    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.5.0');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
+    assert.equal(offlineStatus,'unverified');
+  }
   assert.deepEqual(errors,[]);
-  console.log(realOcr ? 'PASS: real Tesseract browser inference on a generated label; not a package benchmark' : 'PASS: shipped browser page, imports, image selection, conflict and unverified UI; controlled OCR');
+  console.log(realOcr ? `PASS: real ${mobileWeb?'bundled offline':'CDN'} Tesseract on a generated label; not a package benchmark` : `PASS: ${mobileWeb?'mobile bundle':'Pages /ADPAI/ + offline PWA'}, conflict/unverified UI, camera cancellation/permission and stale-result prevention; controlled OCR`);
 } finally {
   socket?.close();
   chrome.kill();

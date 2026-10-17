@@ -1,0 +1,8 @@
+{
+  "appId": "io.github.faranaksolat.adpai",
+  "appName": "ADPAI",
+  "webDir": "dist",
+  "server": {"androidScheme": "https"},
+  "ios": {"contentInset": "never"},
+  "android": {"allowMixedContent": false}
+}
