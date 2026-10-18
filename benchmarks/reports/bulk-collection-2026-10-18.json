@@ -159,5 +159,15 @@
     "bytes": 522552523,
     "photos": 357,
     "publicly_uploaded": false
+  },
+  "final_network_and_git_status": {
+    "checked_utc": "2026-10-18T05:20:27.010114+00:00",
+    "github_public_api_status": 503,
+    "git_push_succeeded": false,
+    "error": "upstream connect error; immediate connect error: Invalid argument; envoy://cloudflare_https_tunnel/",
+    "scope": "Final failure also affected GitHub; do not attribute every earlier AWS503 definitively to this cause.",
+    "remote_pr_updated": false,
+    "local_commit_preserved": true,
+    "automatic_approval_rejection": false
   }
 }
