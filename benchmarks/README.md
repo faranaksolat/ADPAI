@@ -2,6 +2,10 @@
 
 No real-image dataset or accuracy claim is included in this change. Text regression fixtures are not an OCR benchmark.
 
+The executable Korean collection, annotation and evaluation workflow is in
+[KOREAN-DATASET.md](KOREAN-DATASET.md). Its synthetic debug fixtures do not
+replace this real-package protocol.
+
 1. Collect at least 300 independent products with clear reference captures and difficult captures (roughly 900–1500 images). Stratify Korean/English/French and multilingual panels; report experimental languages separately. Include glare, curvature, blur, crops, fine print, all orientations, importer stickers, direct/caution/negated statements, non-dairy compounds, nested ingredients and nutrition-only crops.
 2. Two annotators transcribe text and annotate panel polygons, reading order, ingredient spans, allergen concept and context; adjudicate disagreements. Annotate missing/illegible panels as requiring abstention. Ground truth describes the package, not laboratory allergen absence.
 3. Store versioned JSONL with product_id, variant_id, capture_id, image_sha256, relative image paths, polygons, transcript, ingredient spans, direct_allergens, caution_allergens, required_abstention, and annotation version. Keep source rights and consent alongside the corpus. Split by product family/SKU, never by photo; freeze the holdout before tuning.

@@ -1,5 +1,6 @@
-import { GLOSSARY } from './ingredient-glossary.js?v=1.6.1';
-import { NON_DAIRY_PHRASES } from './ontology.js?v=1.6.1';
+import { GLOSSARY } from './ingredient-glossary.js?v=1.6.2';
+import { NON_DAIRY_PHRASES } from './ontology.js?v=1.6.2';
+import { labelPattern } from './label-pattern.js?v=1.6.2';
 
 // Keep offsets in original OCR text. Folding before slicing would corrupt
 // accented names and provenance. This module is display-only.
@@ -14,8 +15,9 @@ export function sourceTranscript(source) {
   }
   return {text,spans};
 }
-const HEADING=/(?:^|\n)[ \t]*(?:ingredients|ingrédients|원재료(?:명)?(?:\s*및\s*함량)?|원료명)[ \t]*[:：]?[ \t]*(?:\n[ \t]*)?|(?<![\p{L}\p{N}])(?:ingredients?|ingrédients?|원재료(?:명)?(?:\s*및\s*함량)?|원료명)[ \t]*[:：][ \t]*/giu;
-const STOP=/(?:\b(?:allergen(?:\s+statement)?|contains?|may\s+contain|nutrition(?:al)?|storage|store\s+in|best\s+before|manufactured|distributed|contient|peut\s+contenir|conservation)\b|알레르기|영양정보|보관방법|소비기한|유통기한|제조원)/iu;
+const koreanHead=['원재료명 및 함량','원재료 및 함량','원재료명','원재료','원료명'].map(x=>labelPattern(x)).join('|');
+const HEADING=new RegExp(`(?:^|\\n)[ \\t]*(?:ingredients|ingrédients|${koreanHead})[ \\t]*[:：]?[ \\t]*(?:\\n[ \\t]*)?|(?<![\\p{L}\\p{N}])(?:ingredients?|ingrédients?|${koreanHead})[ \\t]*[:：][ \\t]*`,'giu');
+const STOP=new RegExp(`(?:\\b(?:allergen(?:\\s+statement)?|contains?|may\\s+contain|nutrition(?:al)?|storage|store\\s+in|best\\s+before|manufactured|distributed|contient|peut\\s+contenir|conservation)\\b|${['알레르기','영양정보','보관방법','소비기한','유통기한','제조원'].map(x=>labelPattern(x)).join('|')})`,'iu');
 function scoreIn(spans,start,end) {
   const scores=spans.filter(s=>s.end>start && s.start<end).map(s=>s.score);
   return scores.length?Math.min(...scores):0;
@@ -31,10 +33,9 @@ function splitIngredients(text) {
   parts.push({start,end:text.length});
   return parts;
 }
-const escape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-const nonDairyPattern=new RegExp(`(?<![\\p{L}\\p{N}])(?:${NON_DAIRY_PHRASES.map(escape).join('|')})(?![\\p{L}\\p{N}])`,'giu');
+const nonDairyPattern=new RegExp(`(?<![\\p{L}\\p{N}])(?:${NON_DAIRY_PHRASES.map(x=>labelPattern(x)).join('|')})(?![\\p{L}\\p{N}])`,'giu');
 const aliases=GLOSSARY.flatMap(entry=>entry.aliases.map(alias=>({entry,alias,
-  pattern:new RegExp(`(?<![\\p{L}\\p{N}])${escape(alias).replace(/ /g,'\\s+')}(?![\\p{L}\\p{N}])`,'giu')})))
+  pattern:new RegExp(`(?<![\\p{L}\\p{N}])${labelPattern(alias)}(?![\\p{L}\\p{N}])`,'giu')})))
   .sort((a,b)=>b.alias.length-a.alias.length);
 
 export function explainIngredient(original,language='en') {
@@ -67,8 +68,10 @@ export function extractIngredients(sources) {
       if(stop) body=body.slice(0,stop.index);
       // Korean precautions put the marker at the end of the line. Exclude
       // that entire warning line from the ingredient list.
-      const warning=/(?:^|\n)[^\n]*(?:혼입\s*가능|같은\s*(?:제조\s*)?시설|공용\s*설비)[^\n]*/u.exec(body);
+      const warning=new RegExp(`(?:^|\\n)[^\\n]*(?:${['혼입가능','같은 제조시설','같은 시설','공용설비'].map(x=>labelPattern(x)).join('|')})[^\\n]*`,'u').exec(body);
       if(warning) body=body.slice(0,warning.index);
+      const declaration=new RegExp(`\\n[^\\n]*${labelPattern('함유')}[^\\n]*`,'u').exec(body);
+      if(declaration)body=body.slice(0,declaration.index);
       for(const part of splitIngredients(body).slice(0,80)) {
         const raw=body.slice(part.start,part.end);
         const original=raw.trim().replace(/[.。]+$/u,'').trim();

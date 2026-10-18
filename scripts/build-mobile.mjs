@@ -10,7 +10,7 @@ await fs.rm(out,{recursive:true,force:true});
 await fs.mkdir(out,{recursive:true});
 let html=await fs.readFile(path.join(root,'index.html'),'utf8');
 html=html.replace('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js','./vendor/tesseract/tesseract.min.js')
-  .replace('./src/browser.js?v=1.6.1','./mobile.js');
+  .replace('./src/browser.js?v=1.6.2','./mobile.js');
 if(html.includes('cdn.jsdelivr.net') || html.includes('./src/browser.js')) throw new Error('Mobile entry point replacement failed');
 await fs.writeFile(path.join(out,'index.html'),html);
 for(const file of ['privacy.html','manifest.webmanifest']) await fs.copyFile(path.join(root,file),path.join(out,file));

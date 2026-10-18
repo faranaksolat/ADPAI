@@ -1,14 +1,14 @@
-import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.6.1';
-import { preprocess, rotateCanvas } from './image.js?v=1.6.1';
-import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.6.1';
+import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.6.2';
+import { preprocess, rotateCanvas } from './image.js?v=1.6.2';
+import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.6.2';
 
 const PRIMARY = {id: 'korean', langs: ['kor','eng','fra'], label: 'Korean / English / French'};
 const FALLBACKS = [
   {id: 'arabic', langs: ['fas','ara'], hint: /\b(?:PER|ARB|Persian|Farsi|Arabic)\b/iu},
-  {id: 'cyrillic', langs: ['rus'], hint: /\b(?:RU|Russian)\b/iu},
-  {id: 'cjk', langs: ['chi_sim','jpn'], hint: /\b(?:CHN|CN|JPN|JP|Chinese|Japanese)\b/iu},
-  {id: 'devanagari', langs: ['hin'], hint: /\b(?:HI|Hindi)\b/iu},
-  {id: 'thai', langs: ['tha'], hint: /\b(?:TH|Thai)\b/iu},
+  {id: 'cyrillic', langs: ['rus'], hint: /\b(?:RUS|Russian)\b|\bRU\s*[:：]|\[\s*RU\s*\]/iu},
+  {id: 'cjk', langs: ['chi_sim','jpn'], hint: /\b(?:CHN|JPN|Chinese|Japanese)\b|\b(?:CN|JP)\s*[:：]|\[\s*(?:CN|JP)\s*\]/iu},
+  {id: 'devanagari', langs: ['hin'], hint: /\b(?:HIN|Hindi)\b|\bHI\s*[:：]|\[\s*HI\s*\]/iu},
+  {id: 'thai', langs: ['tha'], hint: /\b(?:THA|Thai)\b|\bTH\s*[:：]|\[\s*TH\s*\]/iu},
 ];
 const EXTRA = {greek: ['ell'], tamil: ['tam'], telugu: ['tel']};
 
@@ -51,7 +51,12 @@ function selectCandidates(candidates) {
   const sorted=[...candidates].sort((a,b)=>sourceQuality(b)-sourceQuality(a));
   // Several directions can contain different panels. Preserve their context
   // without pretending rotations are independent OCR model families.
-  return [...new Set([sorted[0],...sorted.filter(hasPanel).slice(0,2)])].filter(Boolean);
+  const panels=sorted.filter(hasPanel).slice(0,2);
+  // Preserve a nutrition reading for correct abstention/routing even when a
+  // nonsensical rotation has a higher average confidence. It is not an
+  // ingredient panel and cannot establish allergen absence.
+  const nutrition=panels.length?[]:sorted.filter(s=>containsAny(sourceTranscript(s).text,MARKERS.nutrition_headings)).slice(0,1);
+  return [...new Set([...panels,...nutrition,sorted[0]])].filter(Boolean);
 }
 
 export async function analyzeProducts(products, profile, options = {}) {
@@ -115,8 +120,11 @@ export async function analyzeProducts(products, profile, options = {}) {
   const evaluate = state => evaluateProduct({sources: state.sources, profile, familyStatus: state.familyStatus, requiredFamilies: Object.keys(state.familyStatus)});
   const extras = customRequiredFamilies(profile.custom_avoid || []).map(id => ({id, langs: EXTRA[id]}));
   for (const def of [...FALLBACKS, ...extras]) {
-    const jobs = states.filter(state => evaluate(state).status !== 'conflict' &&
-      (extras.includes(def) || def.hint?.test(textOf(state)) || !containsAny(textOf(state),MARKERS.ingredient_headings)));
+    const jobs = states.filter(state => {
+      const text=textOf(state),noIngredients=!containsAny(text,MARKERS.ingredient_headings);
+      const nutritionOnly=noIngredients&&containsAny(text,MARKERS.nutrition_headings);
+      return evaluate(state).status!=='conflict' && (extras.includes(def)||def.hint?.test(text)||noIngredients&&!nutritionOnly);
+    });
     if (jobs.length) await run(def,jobs);
   }
   const out = states.map((state,index) => {

@@ -47,3 +47,10 @@ test('a reference to an ingredient label in instructions is not a list heading',
   assert.deepEqual(extractIngredients([source('Please check the original\ningredient\nlabel.')]),[]);
   assert.deepEqual(extractIngredients([source('INGREDIENTS\nsugar, milk powder. CONTAINS MILK')]).map(x=>x.original),['sugar','milk powder']);
 });
+
+test('Korean OCR spaces preserve original names, explanations and declaration boundaries',()=>{
+  const rows=extractIngredients([source('원 재 료 명: 설탕, 코 코 아 버터, 전 지 분 유\n우유 함 유\n대두 혼 입 가능')]);
+  assert.deepEqual(rows.map(x=>x.original),['설탕','코 코 아 버터','전 지 분 유']);
+  assert.equal(explainIngredient(rows[1].original)[0].id,'cocoa-butter');
+  assert.equal(explainIngredient(rows[2].original)[0].id,'milk-powder');
+});

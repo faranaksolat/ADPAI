@@ -768,6 +768,332 @@
       "status": "unverified",
       "direct": [],
       "caution": []
+    },
+    {
+      "name": "Korean spaced ingredient heading",
+      "profile": {
+        "allergens": [
+          "fish",
+          "shellfish"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "원 재 료 명: 멸치, 새우",
+              "score": 0.95
+            }
+          ]
+        }
+      ],
+      "status": "conflict",
+      "direct": [
+        "fish",
+        "shellfish"
+      ],
+      "caution": []
+    },
+    {
+      "name": "Korean spaced caution suffix",
+      "profile": {
+        "allergens": [
+          "milk",
+          "egg"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "원 재 료 명: 설탕\n우유, 계란 혼 입 가능",
+              "score": 0.95
+            }
+          ]
+        }
+      ],
+      "status": "caution",
+      "direct": [],
+      "caution": [
+        "egg",
+        "milk"
+      ]
+    },
+    {
+      "name": "Korean spaced shared facility",
+      "profile": {
+        "allergens": [
+          "milk",
+          "soy"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "원 재 료 명: 설탕\n우 유, 대 두와 같은 제 조 시 설에서 제조",
+              "score": 0.95
+            }
+          ]
+        }
+      ],
+      "status": "caution",
+      "direct": [],
+      "caution": [
+        "milk",
+        "soy"
+      ]
+    },
+    {
+      "name": "Korean cocoa butter is not milk",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "원재료명: 코코아버터, 설탕",
+              "score": 0.95
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "Korean spaced nut butter is not milk",
+      "profile": {
+        "allergens": [
+          "milk",
+          "peanut"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "원 재 료 명: 땅 콩 버터, 설탕",
+              "score": 0.95
+            }
+          ]
+        }
+      ],
+      "status": "conflict",
+      "direct": [
+        "peanut"
+      ],
+      "caution": []
+    },
+    {
+      "name": "Korean coconut cream is not dairy cream",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "원재료명: 코코넛크림, 설탕",
+              "score": 0.95
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "Korean real milk remains after cocoa fat",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "원 재 료 명: 코 코 아 버터, 전 지 분 유",
+              "score": 0.95
+            }
+          ]
+        }
+      ],
+      "status": "conflict",
+      "direct": [
+        "milk"
+      ],
+      "caution": []
+    },
+    {
+      "name": "weak Korean split alias does not borrow confidence",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "원 재 료 명:",
+              "score": 0.99,
+              "lineId": 0
+            },
+            {
+              "text": "유",
+              "score": 0.99,
+              "lineId": 0
+            },
+            {
+              "text": "청",
+              "score": 0.2,
+              "lineId": 0
+            },
+            {
+              "text": "단백",
+              "score": 0.99,
+              "lineId": 0
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "weak Latin multiword alias does not borrow confidence",
+      "profile": {
+        "allergens": [
+          "milk"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "INGREDIENTS:",
+              "score": 0.99,
+              "lineId": 0
+            },
+            {
+              "text": "milk",
+              "score": 0.2,
+              "lineId": 0
+            },
+            {
+              "text": "powder",
+              "score": 0.99,
+              "lineId": 0
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "Korean spaced milk transliteration is not wheat",
+      "profile": {
+        "allergens": [
+          "wheat"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "원 재 료 명: 밀 크 초콜릿",
+              "score": 0.95
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "Korean spaced perilla is not sesame",
+      "profile": {
+        "allergens": [
+          "sesame"
+        ],
+        "custom_avoid": []
+      },
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "원 재 료 명: 들 깨 가루",
+              "score": 0.95
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
+    },
+    {
+      "name": "weak single letter custom term keeps its confidence",
+      "profile": {
+        "allergens": [],
+        "custom_avoid": [
+          "x"
+        ]
+      },
+      "sources": [
+        {
+          "familyId": "latin",
+          "items": [
+            {
+              "text": "INGREDIENTS:",
+              "score": 0.99,
+              "lineId": 0
+            },
+            {
+              "text": "x",
+              "score": 0.2,
+              "lineId": 0
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
     }
   ]
 }

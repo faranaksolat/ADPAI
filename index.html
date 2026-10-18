@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="./assets/icons/icon-192.png">
 <meta name="description" content="ADPAI helps you check food-package ingredients and selected allergens before you buy. Always verify results against the original label.">
-<!-- ADPAI v1.6.1: explicit tested-language scope + targeted language safety probe -->
+<!-- ADPAI v1.6.2: explicit tested-language scope + targeted language safety probe -->
 <title>ADPAI — Food allergen label checker</title>
 <style>
 :root{--ink:#0b1220;--muted:#667085;--bg:#f7f8fb;--card:#fff;--line:#e7eaf0;--brand:#4169e1;--brand-soft:#eef2ff;--danger:#b42318;--danger-bg:#fff2f0;--warn:#995400;--warn-bg:#fff8e8;--ok:#146c43;--ok-bg:#edf9f2;--shadow:0 16px 50px rgba(16,24,40,.08);--r:26px}
@@ -46,7 +46,7 @@
 <body>
 <dialog id="installDialog" aria-labelledby="installTitle"><h2 id="installTitle">ADPAI on your home screen</h2><p id="installBody"></p><button class="btn primary" id="closeInstall">Close</button></dialog>
 <main class="app">
-<header><div class="brand"><div class="mark" aria-label="ADPAI">A</div><div><div class="name">ADPAI <span style="font-size:10px;color:#667085;font-weight:800;vertical-align:middle">v1.6.1</span></div><div class="tag" data-i18n="tag">Check the label before you buy.</div></div></div><select id="lang" aria-label="Interface language"><option value="en">EN</option><option value="ko">한국어</option></select></header>
+<header><div class="brand"><div class="mark" aria-label="ADPAI">A</div><div><div class="name">ADPAI <span style="font-size:10px;color:#667085;font-weight:800;vertical-align:middle">v1.6.2</span></div><div class="tag" data-i18n="tag">Check the label before you buy.</div></div></div><select id="lang" aria-label="Interface language"><option value="en">EN</option><option value="ko">한국어</option></select></header>
 <section class="hero"><h1 data-i18n="hero">Check one product or a whole basket.</h1><p data-i18n="sub">Add several photos of the same product, or create separate product groups. Package language is detected automatically across major writing systems; no language selection is required.</p></section>
 <div id="installPanel" class="installPanel"><button id="installApp" class="btn primary" hidden>Install ADPAI</button><button id="installHelp" class="btn outline">How to install</button></div>
 <p id="offlineNotice" class="offlineNotice" role="status" hidden></p>
@@ -78,6 +78,6 @@
 <footer class="footer" data-i18n="footer">ADPAI may make mistakes. Please verify ingredients and allergens against the original package label. For severe allergies, check with the manufacturer; these results do not guarantee safety.</footer>
 <p class="footer"><a href="./privacy.html">Privacy / 개인정보 처리 안내</a></p>
 </main>
-<script type="module" src="./src/browser.js?v=1.6.1"></script>
+<script type="module" src="./src/browser.js?v=1.6.2"></script>
 </body>
 </html>

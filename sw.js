@@ -1,11 +1,11 @@
 // Increment RELEASE with the complete module graph. Installation is atomic;
 // updates wait for open tabs to close, and never interrupt ongoing analysis.
-const RELEASE='1.6.1';
+const RELEASE='1.6.2';
 const PREFIX=`adpai-shell:${self.registration.scope}:`;
 const CACHE=PREFIX+RELEASE;
 const FILES=['./','./index.html','./manifest.webmanifest','./privacy.html',
   './assets/icons/icon-192.png','./assets/icons/icon-512.png','./assets/icons/apple-touch-icon.png',
-  ...['browser','tesseract','engine','ontology','image','pwa','crop','ingredients','ingredient-glossary'].map(name=>`./src/${name}.js?v=${RELEASE}`)];
+  ...['browser','tesseract','engine','ontology','image','pwa','crop','ingredients','ingredient-glossary','label-pattern'].map(name=>`./src/${name}.js?v=${RELEASE}`)];
 const urls=FILES.map(file=>new URL(file,self.registration.scope).href);
 self.addEventListener('install',event=>event.waitUntil((async()=>{
   const cache=await caches.open(CACHE);

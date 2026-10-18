@@ -55,7 +55,7 @@ ENGINE_CONFIG = {
 PRIMARY_ENGINES = ["korean", "latin"]
 FALLBACK_ENGINES = ["arabic", "cyrillic", "devanagari", "japanese", "chinese", "thai", "greek", "tamil", "telugu"]
 
-app = FastAPI(title="ADPAI Multilingual OCR API", version="1.6.1")
+app = FastAPI(title="ADPAI Multilingual OCR API", version="1.6.2")
 app.mount("/src", StaticFiles(directory=ROOT / "src"), name="frontend-modules")
 app.mount("/assets", StaticFiles(directory=ROOT / "assets"), name="frontend-assets")
 
@@ -184,7 +184,7 @@ def health():
         "ok": True,
         "engine": "PaddleOCR PP-OCRv5 explicit-mobile multilingual router",
         "mode": "local-or-cloud",
-        "version": "1.6.1",
+        "version": "1.6.2",
         "language_selection_required": False,
         "primary_ocr_families": PRIMARY_ENGINES,
         "fallback_ocr_families": FALLBACK_ENGINES,

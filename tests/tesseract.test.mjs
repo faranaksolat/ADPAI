@@ -66,7 +66,7 @@ test('readable marketing does not discard a rotated ingredient panel',async()=>{
     return {data:{words:text.split(' ').map(text=>({text,confidence:rotation===0?99:85}))}};
   }});
   const p=(await analyzeProducts([{photos:[photo('back')]}],{allergens:['milk']},h.options)).products[0];
-  assert.equal(p.status,'conflict');assert.ok(p.sources.some(s=>s.rotation===90));
+  assert.equal(p.status,'conflict');assert.equal(p.sources[0].rotation,90);
   assert.ok(p.ingredients.some(i=>/^milk\s+powder$/u.test(i.original)));
 });
 
@@ -97,4 +97,19 @@ test('a failed rotation preserves successful positive evidence and reports failu
 test('line metadata preserves warnings independently of y-position and bad confidence is unresolved',()=>{
   const items=itemsFrom({data:{words:[{text:'INGREDIENTS:',confidence:99,line_num:1},{text:'sugar',confidence:95,line_num:1},{text:'may contain milk',confidence:'bad',line_num:2}]}});
   assert.equal(items[0].lineId,items[1].lineId);assert.notEqual(items[1].lineId,items[2].lineId);assert.equal(items[2].score,0);
+});
+
+test('stray two-letter language-like noise does not start unrelated models',async()=>{
+  const h=harness({text:'INGREDIENTS: sugar. HI m RU TH CN JP'});
+  const p=(await analyzeProducts([{photos:[photo('back')]}],{allergens:['milk']},h.options)).products[0];
+  assert.equal(p.status,'unverified');assert.deepEqual(h.workers,[['kor','eng','fra']]);
+  const marked=harness({text:'HI: INGREDIENTS: sugar'});
+  await analyzeProducts([{photos:[photo('back')]}],{allergens:['milk']},marked.options);
+  assert.ok(marked.workers.some(x=>x.includes('hin')));
+});
+
+test('nutrition-only pictures abstain without requesting unrelated script models',async()=>{
+  const h=harness({text:'영양정보 나트륨 100 mg 탄수화물 20 g'});
+  const p=(await analyzeProducts([{photos:[photo('nutrition')]}],{allergens:['milk']},h.options)).products[0];
+  assert.equal(p.status,'unverified');assert.deepEqual(h.workers,[['kor','eng','fra']]);
 });
