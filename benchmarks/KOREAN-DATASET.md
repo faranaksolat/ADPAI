@@ -25,7 +25,9 @@ verified against an actual response; unit fixtures alone do not prove access.
 On 2026-10-18 the search endpoint returned HTTP 503 and the image host returned
 an explicit request to stop automated requests because the service was
 overloaded. Collection was stopped; do not retry in a loop or use mirrors to
-evade this response. No real photographs were obtained in this attempt.
+evade this response. No real photographs were obtained in that API attempt.
+Later collection used the provider-recommended AWS bulk route; see the
+[updated collection report](BULK-STATUS-2026-10-18.md) for actual counts and limits.
 
 The generated `candidates.jsonl` is **unreviewed**, not a scoring dataset. Country
 tags and imported allergen/ingredient fields are hints and can be wrong. Do

@@ -4,14 +4,19 @@ import io
 import json
 from pathlib import Path
 import tempfile
+from threading import Barrier, Lock
+import time
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError
 from PIL import Image
 
 spec = importlib.util.spec_from_file_location("bulk_off", Path(__file__).resolve().parent.parent / "benchmarks/bulk-off.py")
 bulk = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(bulk)
+review_spec = importlib.util.spec_from_file_location("export_review", Path(__file__).resolve().parent.parent / "benchmarks/export-review.py")
+review = importlib.util.module_from_spec(review_spec)
+review_spec.loader.exec_module(review)
 
 
 def product(index, languages=("ko", "en")):
@@ -34,6 +39,51 @@ def photo(color):
 
 
 class BulkDatasetTests(unittest.TestCase):
+    def test_image_transport_preserves_tls_limits_bytes_and_never_follows_redirects(self):
+        session, response = MagicMock(), MagicMock()
+        session.get.return_value.__enter__.return_value = response
+        response.status_code = 200
+        response.headers = {"Content-Type": "image/jpeg"}
+        response.raw.read.return_value = photo("red")
+        url = bulk.off.candidate(product(1))["bulk_image_url"]
+        with patch.object(bulk._http_session, "session", session, create=True):
+            self.assertEqual(bulk.fetch_image(url), photo("red"))
+            self.assertTrue(session.get.call_args.kwargs["verify"])
+            self.assertFalse(session.get.call_args.kwargs["allow_redirects"])
+            self.assertEqual(response.raw.read.call_args.args, (bulk.MAX_IMAGE_BYTES+1,))
+            response.status_code = 307
+            with self.assertRaises(HTTPError) as error:
+                bulk.fetch_image(url)
+            self.assertEqual(error.exception.code, 307)
+            response.status_code = 200
+            with patch.object(bulk, "MAX_IMAGE_BYTES", 5):
+                with self.assertRaisesRegex(ValueError, "size limit"):
+                    bulk.fetch_image(url)
+
+    def test_review_export_does_not_invent_references_and_preserves_annotator_work(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = queue(root, 1)
+            bulk.download(source, root/"downloaded", limit=1, delay=0, fetch=lambda _: photo("red"))
+            result = review.export_review(root/"downloaded")
+            row = json.loads(Path(result["worksheet"]).read_text())
+            self.assertEqual(result["reviewed_references"], 0)
+            self.assertEqual(row["annotation"]["status"], "unreviewed")
+            self.assertIsNone(row["direct_allergens"])
+            self.assertIsNone(row["required_abstention"])
+            self.assertEqual(row["images"][0]["transcript"], "")
+            self.assertEqual(row["split"], "unassigned")
+            with self.assertRaises(FileExistsError):
+                review.export_review(root/"downloaded")
+
+    def test_review_export_rejects_a_changed_image(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            bulk.download(queue(root, 1), root/"downloaded", limit=1, delay=0, fetch=lambda _: photo("red"))
+            next((root/"downloaded/images").iterdir()).write_bytes(b"changed")
+            with self.assertRaisesRegex(ValueError, "integrity"):
+                review.export_review(root/"downloaded")
+
     def test_official_remote_catalog_is_streamed_and_snapshot_headers_are_kept(self):
         with tempfile.TemporaryDirectory() as tmp:
             response = io.BytesIO(gzip.compress((json.dumps(product(1))+"\n").encode()))
@@ -68,6 +118,17 @@ class BulkDatasetTests(unittest.TestCase):
             self.assertTrue(all(r["annotation_status"] == "unreviewed" for r in rows))
             with self.assertRaises(FileExistsError):
                 bulk.prepare(catalog, root/"selected")
+
+    def test_remote_prefilter_keeps_escaped_keys_and_counts_unrelated_records(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            row = json.dumps(product(1)).replace('ingredients_ko', r'ingredients_\u006b\u006f')
+            response = io.BytesIO(gzip.compress(('{}\n'+row+'\n').encode()))
+            response.headers = {}
+            with patch.object(bulk, "build_opener") as opener:
+                opener.return_value.open.return_value = response
+                report = bulk.prepare(bulk.CATALOG_URL, Path(tmp)/"selected", {"ko": 1, "en": 0})
+            self.assertEqual(report["records_scanned"], 2)
+            self.assertEqual(report["selected_candidates"], {"ko": 1, "en": 0})
 
     def test_failed_catalog_keeps_partial_provenance_and_never_claims_completion(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -116,6 +177,51 @@ class BulkDatasetTests(unittest.TestCase):
                 self.assertEqual(report["state"], "incomplete")
                 self.assertEqual(report["downloaded_unique_images"], 1)
                 self.assertEqual(report["error_type"], "HTTPError")
+
+    def test_parallel_requests_are_bounded_stop_at_limit_and_keep_queue_order(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = queue(root, 10)
+            lock, barrier = Lock(), Barrier(3)
+            active, peak, calls = [0], [0], []
+            def fetch(url):
+                index = int(url.split('/')[-2])
+                with lock:
+                    calls.append(index)
+                    active[0] += 1
+                    peak[0] = max(peak[0], active[0])
+                try:
+                    if index < 3:
+                        barrier.wait(timeout=3)
+                    time.sleep(.01)
+                    return photo((index*30, 50, 90))
+                finally:
+                    with lock:
+                        active[0] -= 1
+            report = bulk.download(source, root/"downloaded", limit=5, delay=0, workers=3, fetch=fetch)
+            self.assertEqual(report["downloaded_unique_images"], 5)
+            self.assertEqual(len(calls), 5)
+            self.assertEqual(peak[0], 3)
+            rows = [json.loads(line) for line in (root/"downloaded/downloaded.jsonl").read_text().splitlines()]
+            self.assertEqual([row["product_id"] for row in rows], [bulk.off.candidate(product(i))["product_id"] for i in range(5)])
+
+    def test_parallel_failure_does_not_dispatch_another_wave(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = queue(root, 10)
+            barrier, calls = Barrier(3), []
+            def fetch(url):
+                index = int(url.split('/')[-2])
+                calls.append(index)
+                barrier.wait(timeout=3)
+                if index == 0:
+                    raise HTTPError(url, 429, "Fixture limit", None, None)
+                time.sleep(.01)
+                return photo((index*30, 50, 90))
+            with self.assertRaises(HTTPError):
+                bulk.download(source, root/"downloaded", limit=10, delay=0, workers=3, fetch=fetch)
+            self.assertEqual(sorted(calls), [0, 1, 2])
+            self.assertEqual(json.loads((root/"downloaded/download.json").read_text())["state"], "incomplete")
 
     def test_bad_hosts_credentials_paths_and_modified_queues_are_rejected(self):
         prefix = "https://"+bulk.IMAGE_HOST

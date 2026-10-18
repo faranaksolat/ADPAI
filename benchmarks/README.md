@@ -1,6 +1,8 @@
 # Real-package benchmark protocol
 
-No real-image dataset or accuracy claim is included in this change. Text regression fixtures are not an OCR benchmark.
+Real photographs collected locally are unreviewed; counts and source limitations
+are in [the collection report](BULK-STATUS-2026-10-18.md). No real-package accuracy
+claim is established. Text regression fixtures are not an OCR benchmark.
 
 The executable Korean collection, annotation and evaluation workflow is in
 [KOREAN-DATASET.md](KOREAN-DATASET.md). Its synthetic debug fixtures do not

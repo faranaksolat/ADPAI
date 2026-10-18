@@ -7,7 +7,9 @@ a separate resumable step.
 """
 import argparse
 import bz2
-from contextlib import contextmanager
+from collections import deque
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing, contextmanager
 import gzip
 import hashlib
 import importlib.util
@@ -15,6 +17,9 @@ import io
 import json
 from pathlib import Path
 import re
+import ssl
+import sys
+from threading import Event, Lock, local
 import time
 from urllib.error import HTTPError
 from urllib.parse import urlsplit
@@ -26,6 +31,32 @@ spec.loader.exec_module(off)
 CATALOG_URL = "https://openfoodfacts-ds.s3.eu-west-3.amazonaws.com/openfoodfacts-products.jsonl.gz"
 IMAGE_HOST = "openfoodfacts-images.s3.eu-west-3.amazonaws.com"
 MAX_IMAGE_BYTES = 32 * 1024 * 1024
+_http_session = local()
+
+
+def http_session():
+    """Reuse TLS connections briefly, without retaining an ageing proxy tunnel."""
+    import requests
+    now = time.monotonic()
+    if hasattr(_http_session, "session") and now-getattr(_http_session, "created", now) >= 45:
+        _http_session.session.close()
+        del _http_session.session
+    if not hasattr(_http_session, "session"):
+        _http_session.session = requests.Session()
+        _http_session.session.headers["User-Agent"] = off.AGENT
+        _http_session.created = now
+    return _http_session.session
+
+
+class CandidateExcluded(Exception):
+    def __init__(self, reason, details=None):
+        super().__init__(reason)
+        self.reason, self.details = reason, details or {}
+
+
+class FetchedImage:
+    def __init__(self, data, screening):
+        self.data, self.screening = data, screening
 
 
 def write_json(path, value):
@@ -55,8 +86,8 @@ def catalog_stream(catalog):
 
 def prepare(catalog, output, targets=None, max_records=1_000_000):
     targets = targets or {"ko": 1000, "en": 10000}
-    if set(targets) != {"ko", "en"} or any(not isinstance(n, int) or not 0 <= n <= 10000 for n in targets.values()) or not any(targets.values()):
-        raise ValueError("Use ko/en targets between 0 and 10000, with at least one positive target")
+    if set(targets) != {"ko", "en"} or any(not isinstance(n, int) or not 0 <= n <= 50000 for n in targets.values()) or not any(targets.values()):
+        raise ValueError("Use ko/en candidate targets between 0 and 50000, with at least one positive target")
     if max_records < 1:
         raise ValueError("max_records must be positive")
     root = Path(output)
@@ -70,7 +101,8 @@ def prepare(catalog, output, targets=None, max_records=1_000_000):
               "downloaded_images": 0, "annotated_images": 0,
               "stop_reason": None, "source": catalog if catalog == CATALOG_URL else str(Path(catalog).resolve()),
               "catalog_documentation": "https://github.com/openfoodfacts/openfoodfacts-server/blob/main/conf/nginx/snippets/off.locations-redirects.include",
-              "metadata_license": "ODbL-1.0 / DbCL-1.0", "photos_license": "CC-BY-SA-3.0"}
+              "metadata_license": "ODbL-1.0 / DbCL-1.0", "photos_license": "CC-BY-SA-3.0",
+              "json_validation_scope": "candidate_records_only" if catalog == CATALOG_URL else "all_nonempty_records"}
     write_json(root/"selection.json", report)
     files = {lang: (root/f"{lang}-candidates.jsonl").open("w", encoding="utf8") for lang in targets}
     try:
@@ -79,22 +111,30 @@ def prepare(catalog, output, targets=None, max_records=1_000_000):
             for index, line in enumerate(source, 1):
                 catalog_hash.update(line)
                 report["records_scanned"] = index
-                if not line.strip():
-                    continue
-                try:
-                    product = json.loads(line)
-                except (ValueError, UnicodeDecodeError) as exc:
-                    raise ValueError(f"Invalid catalog JSON at line {index}") from exc
-                for lang, target in targets.items():
-                    if counts[lang] >= target:
-                        continue
-                    item = off.candidate(product, lang)
-                    if not item or item["product_id"] in seen[lang]:
-                        continue
-                    seen[lang].add(item["product_id"])
-                    item["catalog_line"] = index
-                    files[lang].write(json.dumps(item, ensure_ascii=False)+"\n")
-                    counts[lang] += 1
+                active = [lang for lang, target in targets.items() if counts[lang] < target]
+                # The export contains large unrelated fields. An ASCII image
+                # key prefilter avoids decoding those objects. Escaped Unicode
+                # keys always take the full parser path, preserving JSON's
+                # equivalent spellings (e.g. ingredients_\u006b\u006f).
+                relevant = any(('"ingredients_'+lang+'"').encode() in line for lang in active)
+                if line.strip() and (catalog != CATALOG_URL or relevant or b'\\u' in line):
+                    try:
+                        product = json.loads(line)
+                    except (ValueError, UnicodeDecodeError) as exc:
+                        raise ValueError(f"Invalid catalog JSON at line {index}") from exc
+                    for lang in active:
+                        item = off.candidate(product, lang)
+                        if not item or item["product_id"] in seen[lang]:
+                            continue
+                        seen[lang].add(item["product_id"])
+                        item["catalog_line"] = index
+                        files[lang].write(json.dumps(item, ensure_ascii=False)+"\n")
+                        counts[lang] += 1
+                if index % 25000 == 0:
+                    for file in files.values():
+                        file.flush()
+                    write_json(root/"selection.json", report)
+                    print(f"Catalog records={index} ko={counts['ko']} en={counts['en']}", file=sys.stderr, flush=True)
                 if all(counts[lang] >= n for lang, n in targets.items()):
                     report["stop_reason"] = "targets_reached"
                     break
@@ -104,6 +144,9 @@ def prepare(catalog, output, targets=None, max_records=1_000_000):
             else:
                 report["stop_reason"] = "catalog_exhausted"
         report["state"] = "complete"
+    except KeyboardInterrupt:
+        report["stop_reason"] = "interrupted"
+        raise
     except Exception as exc:
         report["stop_reason"] = "catalog_error"
         report["error_type"] = type(exc).__name__
@@ -126,28 +169,65 @@ def approved_image_url(url):
             and bool(re.fullmatch(r"/data/\d{3}/\d{3}/\d{3}/\d{4,5}/\d+\.jpg", value.path)))
 
 
-class BulkRedirect(HTTPRedirectHandler):
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
-        if not approved_image_url(newurl):
-            raise ValueError("Unexpected image redirect; no alternate hosts are used")
-        return super().redirect_request(req, fp, code, msg, headers, newurl)
-
-
 def fetch_image(url):
     if not approved_image_url(url):
         raise ValueError("Only the documented OFF image bucket is supported")
-    request = Request(url, headers={"User-Agent": off.AGENT})
-    with build_opener(BulkRedirect()).open(request, timeout=45) as response:
+    # One verified, reusable proxy/TLS connection per worker avoids creating
+    # a fresh CONNECT tunnel for every photograph. No automatic retries.
+    with http_session().get(url, timeout=(20, 45), stream=True,
+                                   verify=ssl.get_default_verify_paths().cafile or True,
+                                   allow_redirects=False) as response:
+        if response.status_code != 200:
+            raise HTTPError(url, response.status_code, "Bulk image request failed", response.headers, None)
         if not response.headers.get("Content-Type", "").lower().startswith("image/"):
             raise ValueError("Non-image response; collection stopped")
-        data = response.read(MAX_IMAGE_BYTES+1)
+        data = response.raw.read(MAX_IMAGE_BYTES+1)
     if len(data) > MAX_IMAGE_BYTES:
         raise ValueError("Image exceeds size limit; collection stopped")
     return data
 
 
-def download(queue, output, limit=1000, delay=1.0, fetch=fetch_image):
-    if not 1 <= limit <= 10000 or delay < 0:
+def image_results(items, fetch, workers, delay, remaining):
+    """Bound in-flight requests; retain queue order and stop new work on failure."""
+    stopped, throttle = Event(), Lock()
+    fatal, next_start = [], [0.0]
+
+    def retrieve(item):
+        with throttle:
+            if stopped.is_set() or stopped.wait(max(0, next_start[0]-time.monotonic())):
+                return None, fatal[0] if fatal else RuntimeError("Collection stopped")
+            next_start[0] = time.monotonic()+delay
+        try:
+            return fetch(item["bulk_image_url"]), None
+        except Exception as exc:
+            if not isinstance(exc, CandidateExcluded) and (not isinstance(exc, HTTPError) or exc.code != 404):
+                fatal.append(exc)
+                stopped.set()
+            return None, exc
+
+    source, pending, exhausted = iter(items), deque(), False
+    pool = ThreadPoolExecutor(max_workers=workers)
+    try:
+        while True:
+            while not exhausted and not stopped.is_set() and len(pending) < min(workers, remaining()):
+                try:
+                    item = next(source)
+                except StopIteration:
+                    exhausted = True
+                    break
+                pending.append((item, pool.submit(retrieve, item)))
+            if not pending:
+                break
+            item, future = pending.popleft()
+            data, error = future.result()
+            yield item, data, error
+    finally:
+        stopped.set()
+        pool.shutdown(wait=True, cancel_futures=True)
+
+
+def download(queue, output, limit=1000, delay=1.0, fetch=fetch_image, workers=1):
+    if not 1 <= limit <= 10000 or delay < 0 or not 1 <= workers <= 8:
         raise ValueError("Invalid download limit/delay")
     queue_bytes = Path(queue).read_bytes()
     queue_hash = hashlib.sha256(queue_bytes).hexdigest()
@@ -192,51 +272,63 @@ def download(queue, output, limit=1000, delay=1.0, fetch=fetch_image):
         excluded = {json.loads(line)["product_id"] for line in exclusions.read_text(encoding="utf8").splitlines()}
     report = {"state": "incomplete", "queue_sha256": queue_hash,
               "downloaded_unique_images": len(done), "excluded_candidates": len(excluded),
-              "reviewed_images": 0, "requested_limit": limit, "stop_reason": None}
+              "reviewed_images": 0, "requested_limit": limit, "stop_reason": None,
+              "workers": workers, "minimum_candidate_dispatch_spacing_seconds": delay}
     write_json(state_path, report)
     (root/"images").mkdir(exist_ok=True)
     try:
-        for item in items:
-            if len(done) >= limit:
-                break
-            key = item["product_id"]
-            if key in done or key in excluded:
-                continue
-            try:
-                data = fetch(item["bulk_image_url"])
-            except HTTPError as exc:
-                if exc.code != 404:
-                    raise  # 403/429/5xx: stop, never retry or switch hosts
-                with exclusions.open("a", encoding="utf8") as target:
-                    target.write(json.dumps({"product_id": key, "reason": "not_in_monthly_bucket_404"})+"\n")
-                excluded.add(key)
-                time.sleep(delay)
-                continue
-            from PIL import Image
-            with Image.open(io.BytesIO(data)) as image:
-                width, height = image.size
-                image.verify()
-            digest = hashlib.sha256(data).hexdigest()
-            if digest in hashes:
-                with exclusions.open("a", encoding="utf8") as target:
-                    target.write(json.dumps({"product_id": key, "reason": "identical_image_bytes", "duplicate_of": hashes[digest]})+"\n")
-                excluded.add(key)
-            else:
-                result = {**item, "path": f"images/{key}-{item['image_id']}.jpg", "sha256": digest,
-                          "width": width, "height": height, "download_url": item["bulk_image_url"]}
-                temp = root/(result["path"]+".part")
-                temp.write_bytes(data)
-                temp.replace(root/result["path"])
-                with manifest.open("a", encoding="utf8") as target:
-                    target.write(json.dumps(result, ensure_ascii=False)+"\n")
-                done[key] = result
-                hashes[digest] = key
-            report["downloaded_unique_images"] = len(done)
-            report["excluded_candidates"] = len(excluded)
-            write_json(state_path, report)
-            time.sleep(delay)
+        eligible = (item for item in items if item["product_id"] not in done and item["product_id"] not in excluded)
+        with closing(image_results(eligible, fetch, workers, delay, lambda: max(0, limit-len(done)))) as results:
+            for item, data, error in results:
+                key = item["product_id"]
+                if error:
+                    if isinstance(error, CandidateExcluded):
+                        reason, details = error.reason, error.details
+                    elif isinstance(error, HTTPError) and error.code == 404:
+                        reason, details = "not_in_monthly_bucket_404", {}
+                    else:
+                        report["failed_candidate"] = {"product_id": key, "bulk_image_url": item["bulk_image_url"],
+                                                      "http_status": error.code if isinstance(error, HTTPError) else None}
+                        raise error  # no retries, fallback hosts or new dispatches
+                    with exclusions.open("a", encoding="utf8") as target:
+                        target.write(json.dumps({"product_id": key, "reason": reason, "screening": details})+"\n")
+                    excluded.add(key)
+                    report["excluded_candidates"] = len(excluded)
+                    write_json(state_path, report)
+                    continue
+                screening = data.screening if isinstance(data, FetchedImage) else None
+                data = data.data if isinstance(data, FetchedImage) else data
+                from PIL import Image
+                with Image.open(io.BytesIO(data)) as image:
+                    width, height = image.size
+                    image.verify()
+                digest = hashlib.sha256(data).hexdigest()
+                if digest in hashes:
+                    with exclusions.open("a", encoding="utf8") as target:
+                        target.write(json.dumps({"product_id": key, "reason": "identical_image_bytes", "duplicate_of": hashes[digest]})+"\n")
+                    excluded.add(key)
+                else:
+                    result = {**item, "path": f"images/{key}-{item['image_id']}.jpg", "sha256": digest,
+                              "width": width, "height": height, "download_url": item["bulk_image_url"]}
+                    if screening is not None:
+                        result["source_screening_UNVERIFIED"] = screening
+                    temp = root/(result["path"]+".part")
+                    temp.write_bytes(data)
+                    temp.replace(root/result["path"])
+                    with manifest.open("a", encoding="utf8") as target:
+                        target.write(json.dumps(result, ensure_ascii=False)+"\n")
+                    done[key] = result
+                    hashes[digest] = key
+                report["downloaded_unique_images"] = len(done)
+                report["excluded_candidates"] = len(excluded)
+                write_json(state_path, report)
+                if len(done) and len(done) % 100 == 0:
+                    print(f"Downloaded unique images={len(done)} excluded={len(excluded)}", file=sys.stderr, flush=True)
         report["state"] = "complete"
         report["stop_reason"] = "target_reached" if len(done) >= limit else "queue_exhausted"
+    except KeyboardInterrupt:
+        report["stop_reason"] = "interrupted"
+        raise
     except Exception as exc:
         report["stop_reason"] = "request_or_integrity_error"
         report["error_type"] = type(exc).__name__
@@ -255,17 +347,20 @@ def main():
     select.add_argument("--catalog", required=True)
     select.add_argument("--output", required=True)
     select.add_argument("--ko-products", type=int, default=1000)
-    select.add_argument("--en-images", type=int, default=10000)
+    select.add_argument("--en-candidates", "--en-images", dest="en_images", type=int, default=20000,
+                        help="Unreviewed candidate pool; oversample before downloading 10000 unique photos")
     select.add_argument("--max-records", type=int, default=1_000_000)
     fetch = commands.add_parser("download", help="Use the official public AWS bucket; resume same queue/output")
     fetch.add_argument("--queue", required=True)
     fetch.add_argument("--output", required=True)
     fetch.add_argument("--limit", type=int, default=1000)
+    fetch.add_argument("--workers", type=int, default=1)
+    fetch.add_argument("--delay", type=float, default=1.0, help="Minimum seconds between request starts, globally")
     args = parser.parse_args()
     if args.command == "prepare":
         report = prepare(args.catalog, args.output, {"ko": args.ko_products, "en": args.en_images}, args.max_records)
     else:
-        report = download(args.queue, args.output, args.limit)
+        report = download(args.queue, args.output, args.limit, delay=args.delay, workers=args.workers)
     print(json.dumps(report, ensure_ascii=False))
 
 
