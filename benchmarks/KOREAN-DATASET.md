@@ -4,6 +4,11 @@ This workflow separates real photographs, manually reviewed references,
 synthetic debugging fixtures, OCR, extraction, and allergen semantics.
 **Generated labels are never evidence of accuracy on real packages.**
 
+For the requested larger stages (1,000 Korean products, then 10,000 English
+ingredient photos), use [BULK-DATASET.md](BULK-DATASET.md). It documents the
+provider's official AWS bulk route and separates candidate, downloaded and
+reviewed counts.
+
 ## Collect actual label photographs
 
 ```sh

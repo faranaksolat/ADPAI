@@ -38,22 +38,42 @@ def get(url):
         return response.read()
 
 
-def candidate(product):
+def candidate(product, language="ko"):
+    if language not in {"ko", "en"}:
+        raise ValueError("Supported label languages: ko, en")
+    if not isinstance(product, dict):
+        return None
     code = str(product.get("code", ""))
     if not re.fullmatch(r"\d{8,14}", code):
         return None
-    selected = product.get("images", {}).get("ingredients_ko", {})
+    # Match ProductOpener::Products::normalize_code_zeroes/split_code.
+    # UPC-12 and zero-prefixed versions must not become separate products.
+    significant = code.lstrip("0")
+    if len(significant) < 4:
+        return None
+    padded = significant.zfill(13)
+    code = padded[-8:] if len(padded) == 13 and padded.startswith("00000") else padded
+    images = product.get("images") or {}
+    if not isinstance(images, dict):
+        return None
+    selected = images.get("ingredients_"+language) or {}
+    if not isinstance(selected, dict):
+        return None
     imgid = str(selected.get("imgid", ""))
-    original = product.get("images", {}).get(imgid, {})
+    original = images.get(imgid) or {}
+    if not isinstance(original, dict):
+        return None
     uploader = original.get("uploader")
-    if not imgid.isdigit() or not uploader:
+    if not imgid.isdigit() or not isinstance(uploader, str) or not uploader.strip():
         return None  # missing author attribution is a review blocker
-    folder = "/".join([code[:3], code[3:6], code[6:9], code[9:]]) if len(code)>8 else code
+    folder = "/".join([padded[:3], padded[3:6], padded[6:9], padded[9:]])
     url = f"https://images.openfoodfacts.org/images/products/{folder}/{imgid}.jpg"
     return {"product_id": "off-"+code, "source_url": "https://world.openfoodfacts.org/product/"+code,
-            "product_name": product.get("product_name_ko") or product.get("product_name"),
+            "product_name": product.get("product_name_"+language) or product.get("product_name"),
+            "language": language, "panel": "ingredients",
             "image_url": url, "uploader": uploader, "image_id": imgid,
-            "reference_hint_UNVERIFIED": product.get("ingredients_text_ko", ""),
+            "bulk_image_url": f"https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/{folder}/{imgid}.jpg",
+            "reference_hint_UNVERIFIED": product.get("ingredients_text_"+language, ""),
             "allergen_tags_UNVERIFIED": product.get("allergens_tags", []),
             "trace_tags_UNVERIFIED": product.get("traces_tags", []),
             "annotation_status": "unreviewed", "license": "CC-BY-SA-3.0",

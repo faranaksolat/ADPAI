@@ -25,6 +25,18 @@ class DatasetToolsTests(unittest.TestCase):
         self.assertTrue(collector.approved_url("https://images.openfoodfacts.org/images/products/a.jpg"))
         self.assertIsNone(collector.candidate({"code": "../../etc/passwd"}))
 
+    def test_english_selection_and_normalized_barcode_image_paths(self):
+        product = {"code": "123456789012", "images": {"ingredients_en": {"imgid": "4"}, "4": {"uploader": "fixture-user"}}}
+        self.assertIsNone(collector.candidate(product))  # not a Korean panel
+        result = collector.candidate(product, "en")
+        self.assertEqual(result["product_id"], "off-0123456789012")
+        self.assertEqual(result["bulk_image_url"], "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/012/345/678/9012/4.jpg")
+        product["code"] = "12345678"
+        self.assertIn("/000/001/234/5678/4.jpg", collector.candidate(product, "en")["bulk_image_url"])
+        product["code"] = "0000012345678"
+        self.assertEqual(collector.candidate(product, "en")["product_id"], "off-12345678")
+        self.assertIsNone(collector.candidate({"code": "00000000"}, "en"))
+
 
 if __name__ == "__main__":
     unittest.main()
