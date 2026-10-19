@@ -1,5 +1,9 @@
 # Real-package benchmark protocol
 
+Restaurant menus use a [separate corpus and menu evaluation path](KOREA-RESTAURANT-MENUS.md).
+The [first real-menu pilot result](KOREA-MENU-STATUS-2026-10-19.md) documents
+three bilingual photos, remaining dish-association failures and reference limits.
+
 Real photographs collected locally are unreviewed; counts and source limitations
 are in [the collection report](BULK-STATUS-2026-10-18.md). No real-package accuracy
 claim is established. Text regression fixtures are not an OCR benchmark.
