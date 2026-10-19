@@ -1,6 +1,6 @@
 
-import { ONTOLOGY, NON_DAIRY_PHRASES } from "./ontology.js?v=1.6.2";
-import { labelPattern } from './label-pattern.js?v=1.6.2';
+import { ONTOLOGY, NON_DAIRY_PHRASES } from "./ontology.js?v=1.6.3";
+import { labelPattern } from './label-pattern.js?v=1.6.3';
 
 export const ALLERGENS = ONTOLOGY.allergens;
 export const MARKERS = ONTOLOGY.label_markers;
@@ -163,6 +163,12 @@ const SUFFIX_DIRECT = new RegExp(["함유", "含有", "含む"].map(x=>labelPatt
 function contextEvents(text) {
   const groups = [["direct", MARKERS.ingredient_headings], ["direct", MARKERS.direct_markers], ["caution", MARKERS.caution_markers], ["mention", STOP_HEADINGS]];
   const events = groups.flatMap(([kind, terms]) => terms.flatMap(term => matchSpans(text, term).map(span => ({...span, kind}))));
+  // Korean shared-facility warnings often wrap before their final marker.
+  // Start their scope at the explicit subject, keeping prior ingredients out.
+  for(const subject of ['이 제품은','본 제품은'])for(const span of matchSpans(text,subject)){
+    const following=text.slice(span.end,span.end+350).split('\n').slice(0,5).join('\n').split(/[.!?。]/u)[0];
+    if(SUFFIX_CAUTION.test(following))events.push({...span,kind:'caution'});
+  }
   // "contains" inside "may contain" and overlapping multilingual markers must
   // not turn a precautionary declaration into a direct declaration.
   return events.filter(e => !events.some(other => other !== e && other.start <= e.start && other.end >= e.end && (other.end - other.start > e.end - e.start || other.kind === "caution" && e.kind !== "caution")))

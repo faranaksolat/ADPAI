@@ -1,12 +1,15 @@
 # ADPAI
 
-Food-allergen label-checking prototype for shopping. The current GitHub Pages entry point is `index.html`, which loads `src/browser.js` and runs Tesseract.js in the browser. Images stay in the browser. Both the page and the experimental PaddleOCR browser adapter use the shared allergen rules in `src/engine.js`.
+Food-allergen checking prototype with **Shopping** and **Restaurant menu**
+entry points. GitHub Pages loads `index.html` → `src/browser.js`; photos remain
+on the device. The installed Capacitor app bundles the same modules and models.
 
-Version 1.6.0 adds local photo cropping, retained ingredient-panel readings,
-one bounded primary OCR enhancement retry for unresolved products, and a
-partial ingredient list with plain English/Korean explanations for common
-terms. Original names and raw OCR remain visible. Unknown/uncertain terms are
-not guessed. See [scope and limitations](docs/ingredient-explanations.md).
+Version 1.6.3 adds menu checks against printed ingredient descriptions, visible
+uncertainty/staff-confirmation warnings, bounded worker failures, language/layout
+re-reading, and bonito/가다랑어 fish aliases. Package ingredient names stay visible
+with available plain English/Korean explanations. Menu names and photos are not
+used to infer recipes. See [menu behavior and limits](docs/menu-mode.md) and
+[ingredient explanations](docs/ingredient-explanations.md).
 
 `backend/main.py` is a separate FastAPI/PaddleOCR API (`POST /api/analyze`). It also serves the current frontend and its modules, but the frontend does **not** automatically upload to or call this API. `src/app.js` / `src/ocr.js` are an experimental browser PaddleOCR path, not the Pages entry point.
 
@@ -56,7 +59,12 @@ Edit `backend/ontology.json` and `shared/non-dairy.json`, then run `npm run gene
 
 ## Accuracy validation still required
 
-The regression suite uses annotated text and controlled OCR. It does not establish accuracy, allergen recall, or latency on real packages. See `benchmarks/README.md` for the required dataset and evaluation protocol. Do not enable reassuring negative results based only on these passing tests.
+The regression suite uses annotated text and controlled OCR. A separate local
+[real-photo diagnostic](benchmarks/REAL-PHOTO-DIAGNOSTIC-2026-10-19.md) uses16
+development captures with model-visual excerpts, not independent human references;
+it cannot establish population accuracy or release readiness. See
+`benchmarks/README.md` for the required dataset and evaluation protocol. Do not
+enable reassuring negative results based only on these passing tests.
 
 ## Product name and public URL
 

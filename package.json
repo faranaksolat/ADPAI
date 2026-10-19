@@ -2,8 +2,10 @@
   "name": "adpai-safety-first",
   "private": true,
   "type": "module",
-  "version": "1.6.2",
-  "engines": {"node": ">=22"},
+  "version": "1.6.3",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test": "node scripts/generate-ontology.mjs --check && node --test tests/*.test.mjs",
     "generate:ontology": "node scripts/generate-ontology.mjs",

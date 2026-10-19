@@ -1,6 +1,7 @@
-import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.6.2';
-import { preprocess, rotateCanvas } from './image.js?v=1.6.2';
-import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.6.2';
+import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.6.3';
+import { preprocess, rotateCanvas, resizeForOcr } from './image.js?v=1.6.3';
+import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.6.3';
+import {createManagedWorker} from './ocr-worker.js?v=1.6.3';
 
 const PRIMARY = {id: 'korean', langs: ['kor','eng','fra'], label: 'Korean / English / French'};
 const FALLBACKS = [
@@ -17,6 +18,34 @@ export function itemsFrom(result) {
   // Word confidence must stay attached to the actual word. A high-confidence
   // heading must not lend its score to a damaged allergen on another line.
   if (data.words?.length) {
+    // Sparse OCR can emit each Korean syllable as a separate "line". Rebuild
+    // physical rows from boxes so a suffix such as 대두 함유 keeps its context.
+    // Large horizontal gaps remain separate, rather than joining menu columns.
+    const visible=data.words.filter(w=>String(w.text||'').trim());
+    const geometric=visible.length&&visible.every(w=>w.bbox&&Number.isFinite(w.bbox.x0)&&w.bbox.x1>w.bbox.x0&&w.bbox.y1>w.bbox.y0);
+    if(geometric){
+      const rows=[];
+      for(const word of [...visible].sort((a,b)=>(a.bbox.y0+a.bbox.y1)-(b.bbox.y0+b.bbox.y1))){
+        const b=word.bbox,h=b.y1-b.y0,cy=(b.y0+b.y1)/2;
+        let row=rows.filter(r=>Math.min(r.y1,b.y1)-Math.max(r.y0,b.y0)>=Math.min(h,r.height)*.5&&Math.abs(cy-r.cy)<=Math.max(h,r.height)*.55)
+          .sort((a,b)=>Math.abs(a.cy-cy)-Math.abs(b.cy-cy))[0];
+        if(!row){row={words:[],y0:b.y0,y1:b.y1,height:h,cy};rows.push(row)}
+        row.words.push(word);
+      }
+      const items=[];let lineId=0;
+      for(const row of rows.sort((a,b)=>a.y0-b.y0)){
+        let previous;
+        const heights=row.words.map(w=>w.bbox.y1-w.bbox.y0).sort((a,b)=>a-b),height=heights[Math.floor(heights.length/2)];
+        for(const word of row.words.sort((a,b)=>a.bbox.x0-b.bbox.x0)){
+          if(previous&&word.bbox.x0-previous.bbox.x1>Math.max(60,height*3))lineId++;
+          const confidence=Number(word.confidence);
+          items.push({text:String(word.text||''),score:Number.isFinite(confidence)?Math.max(0,Math.min(1,confidence/100)):0,lineId,box:word.bbox});
+          previous=word;
+        }
+        lineId++;
+      }
+      return items;
+    }
     let lineId = 0, previous;
     return data.words.map(word => {
       const box = word.bbox;
@@ -60,7 +89,9 @@ function selectCandidates(candidates) {
 }
 
 export async function analyzeProducts(products, profile, options = {}) {
-  const {onProgress = () => {}, createWorker = (...args) => globalThis.Tesseract.createWorker(...args), prepare = preprocess, rotate = rotateCanvas} = options;
+  const menuMode=options.purpose==='menu';
+  const maxPhotoMs=options.maxPhotoMs??65000;
+  const {onProgress = () => {}, createWorker = globalThis.ADPAI_CREATE_OCR_WORKER||createManagedWorker, prepare = preprocess, rotate = rotateCanvas} = options;
   const states = products.map(product => ({product:{...product,photos:[...product.photos]}, sources: [], familyStatus: {}, errors: []}));
   async function run(def, jobs) {
     let worker;
@@ -70,35 +101,60 @@ export async function analyzeProducts(products, profile, options = {}) {
       for (const state of jobs) {
         let complete = true;
         for (let photoIndex=0; photoIndex<state.product.photos.length; photoIndex++) {
+          if(worker.closed){complete=false;state.errors.push({family:def.id,photoIndex,message:'OCR worker closed after an earlier failure'});break}
           const photo = state.product.photos[photoIndex];
           try {
-            const canvas = await prepare(photo.file,false);
-            const candidates = [];
-            // Orientations belong to a photo, never to the entire product.
-            for (const rotation of [0,90,270,180]) {
-              try {
-                const result = await worker.recognize(rotate(canvas,rotation));
-                candidates.push({familyId: def.id, photoIndex, rotation, variant:'original', items: itemsFrom(result)});
-              } catch(error) {
-                complete=false;
-                state.errors.push({family:def.id,photoIndex,rotation,message:String(error?.message||error)});
+            const photoStarted=Date.now();
+            const canvas=await prepare(photo.file,false);
+            const passes=def.id===PRIMARY.id&&worker.reinitialize
+              ? [{langs:['kor'],psm:'6',canvas:resizeForOcr(canvas,1000),variant:'reduced'},
+                 {langs:['eng'],psm:'11',canvas:resizeForOcr(canvas,1600),variant:'reduced'},
+                 {langs:PRIMARY.langs,psm:'3',canvas,variant:'original'}]
+              : [{langs:def.langs,psm:menuMode?'11':'3',canvas,variant:'original'}];
+            const satisfied=()=>{
+              const p=evaluateProduct({sources:state.sources,profile});
+              const hits=[...p.direct_matches,...p.caution_matches];
+              return !menuMode&&((profile.allergens||[]).length||(profile.custom_avoid||[]).length)
+                &&(profile.allergens||[]).every(id=>hits.some(h=>h.allergen_id===id))
+                &&(profile.custom_avoid||[]).every(term=>hits.some(h=>h.allergen_id==='custom'&&h.term.toLowerCase()===term.toLowerCase()));
+            };
+            for(const pass of passes){
+              if(worker.closed||Date.now()-photoStarted>=maxPhotoMs){complete=false;break}
+              if(worker.reinitialize)await worker.reinitialize(pass.langs,1);
+              if(worker.setParameters)await worker.setParameters({tessedit_pageseg_mode:pass.psm});
+              const candidates=[];
+              for(const rotation of [0,90,270,180]){
+                if(Date.now()-photoStarted>=maxPhotoMs){complete=false;state.errors.push({family:def.id,photoIndex,message:'OCR photo time budget reached'});break}
+                try{
+                  const r=await worker.recognize(rotate(pass.canvas,rotation),{timeoutMs:Math.max(1,maxPhotoMs-(Date.now()-photoStarted))});
+                  const candidate={familyId:def.id,photoIndex,rotation,variant:pass.variant,model_languages:pass.langs,segmentation:pass.psm,items:itemsFrom(r)};
+                  candidates.push(candidate);
+                  // A real positive must not be discarded because unrelated
+                  // words/rotations have a better average confidence.
+                  const evidence=evaluateProduct({sources:[candidate],profile});
+                  if(evidence.direct_matches.length||evidence.caution_matches.length)state.sources.push(candidate);
+                  if(satisfied())break;
+                }catch(error){
+                  complete=false;state.errors.push({family:def.id,photoIndex,rotation,phase:pass.variant,message:String(error?.message||error)});
+                  if(worker.closed||/OCR timeout|OCR worker is closed/u.test(String(error?.message||error)))break;
+                }
               }
+              const selected=menuMode?[...candidates].sort((a,b)=>sourceQuality(b)-sourceQuality(a)).slice(0,1):selectCandidates(candidates);
+              for(const source of selected)if(!state.sources.includes(source))state.sources.push(source);
+              if(satisfied())break;
             }
-            const selected=selectCandidates(candidates);
-            state.sources.push(...selected);
-            if(def.id===PRIMARY.id && selected.length && !['conflict','caution'].includes(evaluateProduct({sources:state.sources,profile}).status)) {
-              // One bounded contrast/upscale retry before downloading unrelated
-              // language models. Never discard the original evidence.
-              const best=selected.find(hasPanel)||selected[0];
-              onProgress('Improving small label text…');
-              try {
+            const relevant=state.sources.filter(source=>source.photoIndex===photoIndex&&source.familyId===def.id);
+            const best=relevant.find(hasPanel);
+            const unresolved=evaluateProduct({sources:relevant,profile}).mention_matches.some(hit=>hit.score>=.45);
+            if(!menuMode&&!satisfied()&&def.id===PRIMARY.id&&!worker.closed&&worker.reinitialize&&best&&unresolved&&Date.now()-photoStarted<maxPhotoMs-8000){
+              try{
+                await worker.reinitialize(PRIMARY.langs,1);await worker.setParameters({tessedit_pageseg_mode:'3'});
                 const enhanced=await prepare(photo.file,true);
-                const result=await worker.recognize(rotate(enhanced,best.rotation));
-                state.sources.push({familyId:def.id,photoIndex,rotation:best.rotation,variant:'enhanced',items:itemsFrom(result)});
-              } catch(error) {
-                state.errors.push({family:def.id,photoIndex,phase:'enhanced',message:String(error?.message||error)});
-              }
+                const r=await worker.recognize(rotate(enhanced,best.rotation),{timeoutMs:Math.max(1,maxPhotoMs-(Date.now()-photoStarted))});
+                state.sources.push({familyId:def.id,photoIndex,rotation:best.rotation,variant:'enhanced',model_languages:PRIMARY.langs,segmentation:'3',items:itemsFrom(r)});
+              }catch(error){complete=false;state.errors.push({family:def.id,photoIndex,phase:'enhanced',message:String(error?.message||error)})}
             }
+
           } catch (error) {
             complete = false;
             state.errors.push({family: def.id, photoIndex, message: String(error?.message || error)});
@@ -119,11 +175,12 @@ export async function analyzeProducts(products, profile, options = {}) {
   const textOf = state => state.sources.flatMap(s => s.items.map(x => x.text)).join(' ');
   const evaluate = state => evaluateProduct({sources: state.sources, profile, familyStatus: state.familyStatus, requiredFamilies: Object.keys(state.familyStatus)});
   const extras = customRequiredFamilies(profile.custom_avoid || []).map(id => ({id, langs: EXTRA[id]}));
-  for (const def of [...FALLBACKS, ...extras]) {
+  for (const def of menuMode?[]:[...FALLBACKS, ...extras]) {
     const jobs = states.filter(state => {
-      const text=textOf(state),noIngredients=!containsAny(text,MARKERS.ingredient_headings);
-      const nutritionOnly=noIngredients&&containsAny(text,MARKERS.nutrition_headings);
-      return evaluate(state).status!=='conflict' && (extras.includes(def)||def.hint?.test(text)||noIngredients&&!nutritionOnly);
+      const text=textOf(state);
+      // An unreadable English/Korean label is not evidence of Arabic, Hindi,
+      // Thai, etc. Avoid unrelated downloads; retain unverified + retake advice.
+      return evaluate(state).status!=='conflict' && (extras.includes(def)||def.hint?.test(text));
     });
     if (jobs.length) await run(def,jobs);
   }

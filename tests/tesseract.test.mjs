@@ -25,7 +25,7 @@ function harness({text='INGREDIENTS: milk, sugar', failPhoto, noWords=false}={})
 
 test('real adapter retains word evidence and attempts 180 degrees per photo', async () => {
   const h=harness();
-  const result=await analyzeProducts([{id:1,photos:[photo('front'),photo('back')]}],{allergens:['milk']},h.options);
+  const result=await analyzeProducts([{id:1,photos:[photo('front'),photo('back')]}],{allergens:['milk','egg']},h.options);
   assert.equal(result.products[0].status,'conflict');
   for(const name of ['front','back']) assert.ok(h.rotations.some(([n,r]) => n===name && r===180));
   assert.ok(h.terminated);
@@ -70,18 +70,17 @@ test('readable marketing does not discard a rotated ingredient panel',async()=>{
   assert.ok(p.ingredients.some(i=>/^milk\s+powder$/u.test(i.original)));
 });
 
-test('bounded enhanced retry can recover a panel without creating a new corroborating family',async()=>{
-  const prepared=[];
-  const h=harness();
-  h.options.prepare=async(file,enhanced)=>{prepared.push(enhanced);return enhanced};
-  h.options.rotate=file=>file;
-  h.options.createWorker=async()=>({terminate:async()=>{},recognize:async enhanced=>({data:{words:(enhanced?'INGREDIENTS: milk powder, sugar':'Store in a cool place').split(' ').map(text=>({text,confidence:95}))}})});
+test('sparse language passes retain original confidence and stay one OCR family',async()=>{
+  const h=harness();let active;
+  h.options.createWorker=async()=>({
+    reinitialize:async langs=>{active=langs[0]},setParameters:async p=>assert.ok(['3','6','11'].includes(p.tessedit_pageseg_mode)),terminate:async()=>{},
+    recognize:async()=>({data:{words:(active==='kor'?'INGREDIENTS: milk powder, sugar':'Store in a cool place').split(' ').map(text=>({text,confidence:95}))}})
+  });
   const p=(await analyzeProducts([{photos:[photo('back')]}],{allergens:['milk']},h.options)).products[0];
-  assert.equal(p.status,'conflict');assert.deepEqual(prepared,[false,true]);
+  assert.equal(p.status,'conflict');assert.ok(p.sources.some(s=>s.model_languages[0]==='kor'));
   assert.deepEqual([...new Set(p.sources.map(s=>s.familyId))],['korean']);
-  const weak=harness({text:'INGREDIENTS: milk'});
-  weak.options.createWorker=async()=>({terminate:async()=>{},recognize:async()=>({data:{words:[{text:'INGREDIENTS:',confidence:99},{text:'milk',confidence:50}]}})});
-  assert.equal((await analyzeProducts([{photos:[photo('back')]}],{allergens:['milk']},weak.options)).products[0].status,'unverified');
+  h.options.createWorker=async()=>({reinitialize:async()=>{},setParameters:async()=>{},terminate:async()=>{},recognize:async()=>({data:{words:[{text:'INGREDIENTS:',confidence:99},{text:'milk',confidence:50}]}})});
+  assert.equal((await analyzeProducts([{photos:[photo('back')]}],{allergens:['milk']},h.options)).products[0].status,'unverified');
 });
 
 test('a failed rotation preserves successful positive evidence and reports failure',async()=>{
@@ -90,7 +89,7 @@ test('a failed rotation preserves successful positive evidence and reports failu
     if(r===90)throw new Error('rotation failed');
     return {data:{words:[{text:'INGREDIENTS:',confidence:95},{text:'milk',confidence:95}]}};
   }});
-  const p=(await analyzeProducts([{photos:[photo('back')]}],{allergens:['milk']},h.options)).products[0];
+  const p=(await analyzeProducts([{photos:[photo('back')]}],{allergens:['milk','egg']},h.options)).products[0];
   assert.equal(p.status,'conflict');assert.ok(p.errors.some(e=>e.rotation===90));
 });
 
@@ -112,4 +111,38 @@ test('nutrition-only pictures abstain without requesting unrelated script models
   const h=harness({text:'영양정보 나트륨 100 mg 탄수화물 20 g'});
   const p=(await analyzeProducts([{photos:[photo('nutrition')]}],{allergens:['milk']},h.options)).products[0];
   assert.equal(p.status,'unverified');assert.deepEqual(h.workers,[['kor','eng','fra']]);
+});
+test('one automatic-layout retry can recover context without raising old word confidence',async()=>{
+ const h=harness();let mode;
+ h.options.createWorker=async()=>({reinitialize:async()=>{},setParameters:async p=>{mode=p.tessedit_pageseg_mode},terminate:async()=>{},recognize:async()=>({data:{words:mode==='3'
+  ?[{text:'INGREDIENTS:',confidence:95,line_num:1},{text:'milk',confidence:95,line_num:1}]
+  :[{text:'WHEY',confidence:70,line_num:1},{text:'CONTAINS:',confidence:95,line_num:2},{text:'EGG',confidence:95,line_num:2},{text:'MILK',confidence:31,line_num:2}]}})});
+ const p=(await analyzeProducts([{photos:[photo('back')]}],{allergens:['milk']},h.options)).products[0];
+ assert.equal(p.status,'conflict');assert.ok(p.sources.some(s=>s.segmentation==='3'));
+ assert.ok(p.sources.some(s=>s.items.some(w=>w.text==='MILK'&&w.score===.31)));
+ assert.deepEqual([...new Set(p.sources.map(s=>s.familyId))],['korean']);
+});
+test('an OCR deadline retains earlier positive evidence and marks coverage failed',async()=>{
+ const h=harness();let calls=0,closed=false;
+ h.options.createWorker=async()=>({get closed(){return closed},terminate:async()=>{},recognize:async()=>{
+  if(calls++){closed=true;throw Error('OCR timeout: recognize')}
+  return {data:{words:[{text:'INGREDIENTS:',confidence:95},{text:'milk',confidence:95}]}}}});
+ const p=(await analyzeProducts([{photos:[photo('back')]}],{allergens:['milk','egg']},h.options)).products[0];
+ assert.equal(p.status,'conflict');assert.ok(p.coverage.failures.includes('korean'));assert.equal(p.coverage.complete,false);
+ assert.ok(p.errors.some(e=>e.message.includes('timeout')));
+});
+test('shopping can stop after every selected risk is found while menus still scan other entries',async()=>{
+ const shopping=harness(),menu=harness();
+ const p=(await analyzeProducts([{photos:[photo('back')]}],{allergens:['milk']},shopping.options)).products[0];
+ await analyzeProducts([{photos:[photo('back')]}],{allergens:['milk']},{...menu.options,purpose:'menu'});
+ assert.equal(p.status,'conflict');assert.equal(p.coverage.complete,false);
+ assert.deepEqual(shopping.rotations.map(([,r])=>r),[0]);
+ assert.deepEqual(menu.rotations.map(([,r])=>r),[0,90,270,180]);
+});
+test('sparse Korean syllables regain a physical declaration row without borrowing confidence',()=>{
+ const words=['대','두','함','유'].map((text,i)=>({text,confidence:i===1?40:95,line_num:i,bbox:{x0:i*24,y0:10,x1:i*24+20,y1:32}}));
+ const items=itemsFrom({data:{words}});
+ assert.equal(new Set(items.map(i=>i.lineId)).size,1);assert.equal(items[1].score,.4);
+ const columns=itemsFrom({data:{words:[words[0],{...words[1],bbox:{x0:500,y0:10,x1:520,y1:32}}]}});
+ assert.notEqual(columns[0].lineId,columns[1].lineId);
 });

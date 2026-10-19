@@ -79,6 +79,11 @@ def context_events(text):
         ("direct", MARKERS["ingredient_headings"]), ("direct", MARKERS["direct_markers"]),
         ("caution", MARKERS["caution_markers"]), ("mention", STOP_HEADINGS)
     ] for term in terms for start, end in match_spans(text, term)]
+    for subject in ["이 제품은", "본 제품은"]:
+        for start, end in match_spans(text, subject):
+            following = re.split(r"[.!?。]", "\n".join(text[end:end+350].split("\n")[:5]))[0]
+            if SUFFIX_CAUTION.search(following):
+                events.append((start, end, "caution"))
     return sorted([e for e in events if not any(other != e and other[0] <= e[0] and other[1] >= e[1]
                    and (other[1]-other[0] > e[1]-e[0] or other[2] == "caution" and e[2] != "caution") for other in events)])
 

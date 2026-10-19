@@ -1094,6 +1094,97 @@
       "status": "unverified",
       "direct": [],
       "caution": []
+    },
+    {
+      "name": "bonito_is_fish",
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "INGREDIENTS: sesame seed, bonito, sugar.",
+              "score": 0.95
+            }
+          ]
+        }
+      ],
+      "profile": {
+        "allergens": [
+          "fish"
+        ]
+      },
+      "status": "conflict",
+      "direct": [
+        "fish"
+      ],
+      "caution": []
+    },
+    {
+      "name": "korean_bonito_is_fish",
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "원료명: 가다랑어분말, 설탕",
+              "score": 0.95
+            }
+          ]
+        }
+      ],
+      "profile": {
+        "allergens": [
+          "fish"
+        ]
+      },
+      "status": "conflict",
+      "direct": [
+        "fish"
+      ],
+      "caution": []
+    },
+    {
+      "name": "wrapped Korean facility warning preserves earlier direct ingredient",
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "원재료명: 우유, 설탕",
+              "score": 0.95
+            },
+            {
+              "text": "이 제품은 땅콩, 달걀,",
+              "score": 0.95
+            },
+            {
+              "text": "호두를 사용한 제품과 같은 제조시설에서",
+              "score": 0.95
+            },
+            {
+              "text": "제조하고 있습니다.",
+              "score": 0.95
+            }
+          ]
+        }
+      ],
+      "profile": {
+        "allergens": [
+          "milk",
+          "peanut",
+          "egg",
+          "tree_nuts"
+        ]
+      },
+      "status": "conflict",
+      "direct": [
+        "milk"
+      ],
+      "caution": [
+        "egg",
+        "peanut",
+        "tree_nuts"
+      ]
     }
   ]
 }

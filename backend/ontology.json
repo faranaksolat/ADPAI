@@ -1018,7 +1018,10 @@
           "sardine",
           "mackerel",
           "anchovies",
-          "sardines"
+          "sardines",
+          "bonito",
+          "skipjack",
+          "skipjack tuna"
         ],
         "ko": [
           "어류",
@@ -1028,7 +1031,11 @@
           "연어",
           "대구",
           "정어리",
-          "고등어"
+          "고등어",
+          "가다랑어",
+          "가다랑어분말",
+          "가다랑어포",
+          "가쓰오부시"
         ],
         "fr": [
           "poisson",

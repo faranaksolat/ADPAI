@@ -4,6 +4,11 @@ Real photographs collected locally are unreviewed; counts and source limitations
 are in [the collection report](BULK-STATUS-2026-10-18.md). No real-package accuracy
 claim is established. Text regression fixtures are not an OCR benchmark.
 
+The [19 October real-photo diagnostic](REAL-PHOTO-DIAGNOSTIC-2026-10-19.md)
+records16 model-visual development captures, remaining misses, implementation
+hashes and reproduction steps. It is separate from independently reviewed
+human-reference evaluation and does not certify accuracy.
+
 The executable Korean collection, annotation and evaluation workflow is in
 [KOREAN-DATASET.md](KOREAN-DATASET.md). Its synthetic debug fixtures do not
 replace this real-package protocol.

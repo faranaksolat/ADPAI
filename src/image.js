@@ -37,3 +37,11 @@ export function rotateCanvas(src,deg){
  ctx.drawImage(src,-src.width/2,-src.height/2);
  return c
 }
+
+// Focused reads use a smaller canvas; retain the larger original reading too.
+export function resizeForOcr(src,limit){
+ if(!Number.isFinite(src?.width)||!Number.isFinite(src?.height)||Math.max(src.width,src.height)<=limit)return src;
+ const scale=limit/Math.max(src.width,src.height),c=document.createElement('canvas');
+ c.width=Math.max(1,Math.round(src.width*scale));c.height=Math.max(1,Math.round(src.height*scale));
+ const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(src,0,0,c.width,c.height);return c;
+}
