@@ -1,0 +1,682 @@
+{
+  "report_date_seoul": "2026-10-19",
+  "dataset": {
+    "downloaded_candidates": 6,
+    "retained_real_menu_photos": 3,
+    "distinct_venues": 2,
+    "bilingual_ko_en_photos": 3,
+    "human_reviewed_references": 0,
+    "known_titles": 38,
+    "known_positive_dish_allergen_pairs": 20,
+    "excluded": [
+      {
+        "source_id": "commons-83772465",
+        "reason": "prepared-food photograph, not printed menu; deferred recipe inference excluded"
+      },
+      {
+        "source_id": "commons-70278964",
+        "reason": "prepared-food photograph, not printed menu; deferred recipe inference excluded"
+      },
+      {
+        "source_id": "commons-70278965",
+        "reason": "prepared-food photograph, not printed menu; deferred recipe inference excluded"
+      }
+    ],
+    "limitations": "Small historical convenience pilot, correlated pages from one restaurant, mostly English dish titles and Korean ingredient descriptions; not independent EN-only/KO-only coverage. Model-visual development evidence, not human reference."
+  },
+  "collection": {
+    "started_utc": "2026-10-19T05:26:02.264547+00:00",
+    "requested_limit": 24,
+    "downloaded_original_images": 6,
+    "independently_reviewed_references": 0,
+    "scored_real_menus": 0,
+    "status": "unreviewed_candidates",
+    "queries": [
+      "intitle:menu Seoul",
+      "intitle:menu Busan",
+      "intitle:menu \"South Korea\"",
+      "intitle:메뉴판",
+      "intitle:menu Jeju",
+      "intitle:menu Incheon"
+    ],
+    "exclusions": [],
+    "limitations": "Discovery only; verify actual menu, restaurant in Korea, visible languages and printed ingredients before annotation. No source hints are ground truth.",
+    "finished_utc": "2026-10-19T05:26:17.676554+00:00"
+  },
+  "summary": {
+    "validity": "exploratory_real_menu_model_visual_development_NOT_human_reference_NOT_release_accuracy",
+    "capture_count": 3,
+    "restaurant_count": 2,
+    "known_dish_allergen_pairs": 20,
+    "detected_known_pairs": 0,
+    "missed_known_pairs": 20,
+    "observed_known_pair_fraction": 0,
+    "human_reviewed_references": 0,
+    "ocr_cer": null,
+    "ocr_wer": null,
+    "precision": null,
+    "false_positive_rate": null,
+    "unsafe_outputs": 0,
+    "failed_captures": [],
+    "desktop_returned_latency_ms": {
+      "count": 3,
+      "p50": 66444.40000000596,
+      "p95": 68682.59999999404
+    },
+    "limitations": "Partial model-visual references, exact normalized dish-title association; unlisted ingredients/dishes are unknown, no recipe inference or food-safety negatives. Bilingual captures are correlated. Not phone/camera timing. No independent human/menu holdout validation.",
+    "cases": [
+      {
+        "capture_id": "commons-129112720",
+        "languages": [
+          "ko",
+          "en"
+        ],
+        "status": "unverified",
+        "error": null,
+        "known_dish_allergen_pairs": [
+          {
+            "dish": "어린이용 주스, 우유",
+            "allergen": "milk"
+          }
+        ],
+        "detected": [],
+        "missed": [
+          {
+            "dish": "어린이용 주스, 우유",
+            "allergen": "milk"
+          }
+        ],
+        "additional_associations_needing_review": [],
+        "exact_known_titles_found": 0,
+        "known_title_count": 5,
+        "unassigned_evidence": [],
+        "forbidden_safe_output": false,
+        "latency_ms": 51820.60000000894,
+        "elapsed_until_failure_ms": null,
+        "ocr_errors": []
+      },
+      {
+        "capture_id": "commons-63594394",
+        "languages": [
+          "ko",
+          "en"
+        ],
+        "status": "potential_risk",
+        "error": null,
+        "known_dish_allergen_pairs": [
+          {
+            "dish": "Black Pasta",
+            "allergen": "shellfish"
+          },
+          {
+            "dish": "Black Pasta",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Cream Basil Pesto Pasta",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Pumpkin Shrimp Pasta",
+            "allergen": "shellfish"
+          },
+          {
+            "dish": "Gorgonzola Bacon Pasta",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Gorgonzola Manzo Pasta",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Rossi Seafood Pasta",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Cream Chicken Risotto",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Rossi Chicken Risotto",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Seafood Risotto",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Black Risotto",
+            "allergen": "shellfish"
+          },
+          {
+            "dish": "Pumpkin Shrimp Risotto",
+            "allergen": "shellfish"
+          }
+        ],
+        "detected": [],
+        "missed": [
+          {
+            "dish": "Black Pasta",
+            "allergen": "shellfish"
+          },
+          {
+            "dish": "Black Pasta",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Cream Basil Pesto Pasta",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Pumpkin Shrimp Pasta",
+            "allergen": "shellfish"
+          },
+          {
+            "dish": "Gorgonzola Bacon Pasta",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Gorgonzola Manzo Pasta",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Rossi Seafood Pasta",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Cream Chicken Risotto",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Rossi Chicken Risotto",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Seafood Risotto",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Black Risotto",
+            "allergen": "shellfish"
+          },
+          {
+            "dish": "Pumpkin Shrimp Risotto",
+            "allergen": "shellfish"
+          }
+        ],
+        "additional_associations_needing_review": [
+          {
+            "dish": "Cream Chicken Risotto .  €",
+            "allergen": "milk"
+          }
+        ],
+        "exact_known_titles_found": 0,
+        "known_title_count": 14,
+        "unassigned_evidence": [],
+        "forbidden_safe_output": false,
+        "latency_ms": 66444.40000000596,
+        "elapsed_until_failure_ms": null,
+        "ocr_errors": []
+      },
+      {
+        "capture_id": "commons-63594393",
+        "languages": [
+          "ko",
+          "en"
+        ],
+        "status": "potential_risk",
+        "error": null,
+        "known_dish_allergen_pairs": [
+          {
+            "dish": "Margherita Pizza",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Al Mais Pizza",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Bacon & Potato Pizza",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Seafood Pizza",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Gorgonzola Pizza",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Black Gorgonzola Pizza",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Cream Cheese Pizza",
+            "allergen": "milk"
+          }
+        ],
+        "detected": [],
+        "missed": [
+          {
+            "dish": "Margherita Pizza",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Al Mais Pizza",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Bacon & Potato Pizza",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Seafood Pizza",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Gorgonzola Pizza",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Black Gorgonzola Pizza",
+            "allergen": "milk"
+          },
+          {
+            "dish": "Cream Cheese Pizza",
+            "allergen": "milk"
+          }
+        ],
+        "additional_associations_needing_review": [],
+        "exact_known_titles_found": 0,
+        "known_title_count": 19,
+        "unassigned_evidence": [],
+        "forbidden_safe_output": false,
+        "latency_ms": 68682.59999999404,
+        "elapsed_until_failure_ms": null,
+        "ocr_errors": [
+          {
+            "family": "korean",
+            "photoIndex": 0,
+            "rotation": 270,
+            "phase": "original",
+            "message": "OCR timeout: recognize"
+          }
+        ]
+      }
+    ],
+    "by_split": {
+      "development": {
+        "validity": "exploratory_real_menu_model_visual_development_NOT_human_reference_NOT_release_accuracy",
+        "capture_count": 3,
+        "restaurant_count": 2,
+        "known_dish_allergen_pairs": 20,
+        "detected_known_pairs": 0,
+        "missed_known_pairs": 20,
+        "observed_known_pair_fraction": 0,
+        "human_reviewed_references": 0,
+        "ocr_cer": null,
+        "ocr_wer": null,
+        "precision": null,
+        "false_positive_rate": null,
+        "unsafe_outputs": 0,
+        "failed_captures": [],
+        "desktop_returned_latency_ms": {
+          "count": 3,
+          "p50": 66444.40000000596,
+          "p95": 68682.59999999404
+        },
+        "limitations": "Partial model-visual references, exact normalized dish-title association; unlisted ingredients/dishes are unknown, no recipe inference or food-safety negatives. Bilingual captures are correlated. Not phone/camera timing. No independent human/menu holdout validation.",
+        "cases": [
+          {
+            "capture_id": "commons-129112720",
+            "languages": [
+              "ko",
+              "en"
+            ],
+            "status": "unverified",
+            "error": null,
+            "known_dish_allergen_pairs": [
+              {
+                "dish": "어린이용 주스, 우유",
+                "allergen": "milk"
+              }
+            ],
+            "detected": [],
+            "missed": [
+              {
+                "dish": "어린이용 주스, 우유",
+                "allergen": "milk"
+              }
+            ],
+            "additional_associations_needing_review": [],
+            "exact_known_titles_found": 0,
+            "known_title_count": 5,
+            "unassigned_evidence": [],
+            "forbidden_safe_output": false,
+            "latency_ms": 51820.60000000894,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": []
+          },
+          {
+            "capture_id": "commons-63594394",
+            "languages": [
+              "ko",
+              "en"
+            ],
+            "status": "potential_risk",
+            "error": null,
+            "known_dish_allergen_pairs": [
+              {
+                "dish": "Black Pasta",
+                "allergen": "shellfish"
+              },
+              {
+                "dish": "Black Pasta",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Cream Basil Pesto Pasta",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Pumpkin Shrimp Pasta",
+                "allergen": "shellfish"
+              },
+              {
+                "dish": "Gorgonzola Bacon Pasta",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Gorgonzola Manzo Pasta",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Rossi Seafood Pasta",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Cream Chicken Risotto",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Rossi Chicken Risotto",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Seafood Risotto",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Black Risotto",
+                "allergen": "shellfish"
+              },
+              {
+                "dish": "Pumpkin Shrimp Risotto",
+                "allergen": "shellfish"
+              }
+            ],
+            "detected": [],
+            "missed": [
+              {
+                "dish": "Black Pasta",
+                "allergen": "shellfish"
+              },
+              {
+                "dish": "Black Pasta",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Cream Basil Pesto Pasta",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Pumpkin Shrimp Pasta",
+                "allergen": "shellfish"
+              },
+              {
+                "dish": "Gorgonzola Bacon Pasta",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Gorgonzola Manzo Pasta",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Rossi Seafood Pasta",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Cream Chicken Risotto",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Rossi Chicken Risotto",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Seafood Risotto",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Black Risotto",
+                "allergen": "shellfish"
+              },
+              {
+                "dish": "Pumpkin Shrimp Risotto",
+                "allergen": "shellfish"
+              }
+            ],
+            "additional_associations_needing_review": [
+              {
+                "dish": "Cream Chicken Risotto .  €",
+                "allergen": "milk"
+              }
+            ],
+            "exact_known_titles_found": 0,
+            "known_title_count": 14,
+            "unassigned_evidence": [],
+            "forbidden_safe_output": false,
+            "latency_ms": 66444.40000000596,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": []
+          },
+          {
+            "capture_id": "commons-63594393",
+            "languages": [
+              "ko",
+              "en"
+            ],
+            "status": "potential_risk",
+            "error": null,
+            "known_dish_allergen_pairs": [
+              {
+                "dish": "Margherita Pizza",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Al Mais Pizza",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Bacon & Potato Pizza",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Seafood Pizza",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Gorgonzola Pizza",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Black Gorgonzola Pizza",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Cream Cheese Pizza",
+                "allergen": "milk"
+              }
+            ],
+            "detected": [],
+            "missed": [
+              {
+                "dish": "Margherita Pizza",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Al Mais Pizza",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Bacon & Potato Pizza",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Seafood Pizza",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Gorgonzola Pizza",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Black Gorgonzola Pizza",
+                "allergen": "milk"
+              },
+              {
+                "dish": "Cream Cheese Pizza",
+                "allergen": "milk"
+              }
+            ],
+            "additional_associations_needing_review": [],
+            "exact_known_titles_found": 0,
+            "known_title_count": 19,
+            "unassigned_evidence": [],
+            "forbidden_safe_output": false,
+            "latency_ms": 68682.59999999404,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "rotation": 270,
+                "phase": "original",
+                "message": "OCR timeout: recognize"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "metadata": {
+    "started_utc": "2026-10-19T05:38:48.639Z",
+    "finished_utc": "2026-10-19T05:41:57.492Z",
+    "commit": "78de0f2d8a9f927bd036b057e15f7b2f76e23364",
+    "execution_repository_commit": "78de0f2d8a9f927bd036b057e15f7b2f76e23364",
+    "working_tree_dirty": true,
+    "app_root": "/workspace/ALLER-AI/benchmarks/results/candidate-source-1.6.3-r4",
+    "reference_method": "model_visual_not_independent_human",
+    "source_snapshot": {
+      "commit": null,
+      "base_commit": "c553592f6b674302f02dd2fa57f27b770337f7b8",
+      "description": "Final1.6.3 development candidate R4: preserve positives across Korean block/English sparse/original automatic readings, bounded worker and photo budget, geometric rows and facility scope, printed-menu mode. Frozen before full16-case run. No human references or holdout.",
+      "frozen_utc": "2026-10-18T06:58:43.853146+00:00",
+      "sha256": {
+        "src/ingredient-glossary.js": "905ecc9e6b17b74bccf3b276adc18d56eb013c2238344afd99e31732b21974c5",
+        "src/ingredients.js": "c2c8555d42c2d103e977c4310aa923c5be8ddfd0e3f40189971c7453022f9685",
+        "src/image.js": "24c90a6f1f954dbceef89e6be4647b9cbb388ff0b6ef2ed870d87dcd952a32a3",
+        "src/ontology.js": "72fd38ee9f52d1a6c749700e108bf82a03ae4618db0ca4fb922dab774d863ee5",
+        "src/engine.js": "243f6ca1c80102498149500f60f48dda9f936485ca81fc7ca5f7102c82d08f7c",
+        "src/tesseract.js": "5142a400af70fc1c52400e7058278e904587ae8669155af07c7c74cbafb7f3ec",
+        "src/learning.js": "ac374449df44626ae5b1fd3424b350946670f654375b245d6859f6e6445a381d",
+        "src/app.js": "dfbd086e33bbd7d43a8faa40358f3d82e4bb792cca03e2256f453a6b9561ea68",
+        "src/ocr-worker.js": "9d3a1c5abbbb3c3d581fb78a4ffbf02148495f442ca24891ed2f0ae3e4f6f3f9",
+        "src/browser.js": "a2b3b1a1b7dccd1417e8f3ad8307b605497b2e5b1e81553c8672b73be0217975",
+        "src/label-pattern.js": "8c6b1700ecbf21b1600891d9bcd491a9d7021cce3936842ca20a5f3e1fe9dc6e",
+        "src/menu.js": "1eaf376545436f86c0f3fc215ece158f69d985d328020b346555e306f028c870",
+        "src/crop.js": "e42138526c896391b368291fa4180c8f4cbdb9194ae39e5d5b2560d5e155f1f8",
+        "src/ocr.js": "75ee6b3b7b64918be6dbd5182b852e62d191137ac56fb3a577d378cb88f3866f",
+        "src/pwa.js": "ccdd680e194df221e7b5d1d64fd5eead9450faf8f7dbac2e9e4b68dc12763f6f",
+        "shared/non-dairy.json": "c821554a7596184c975e3fddebaaf2edfa4b4f1c28ec966e29a5caf9011cca90",
+        "shared/regressions.json": "af8b7d4a53cf027674abc3d2efe52d43f165cf226d8923a17a9409e87b473ba2",
+        "package.json": "3c8e1cb9579de5e1a35c977e6c9c7df7f349c2707dc00ed584533bb37698373d",
+        "package-lock.json": "361bcb706f228484c8b9c29d1490d842450da92ec6ec420f44431467615f8aed"
+      }
+    },
+    "app_version": "1.6.3",
+    "dataset_sha256": "dd2882d3c4d2e2a3bb7780ee66a384964d18d4c8df272c0726f050cb2c10c5d1",
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/154.0.8037.57",
+      "revision": "@73c14f6228d7cd537c855007e8f88678969cc0eb",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+      "jsVersion": "15.4.80.11"
+    },
+    "platform": "linux",
+    "architecture": "x64",
+    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "logical_cpus": 5,
+    "total_memory_bytes": 35843637248,
+    "implementation": "shipped analyzeProducts(purpose:menu) + evaluateMenu with bundled official models; no camera/UI timing",
+    "profile": {
+      "allergens": [
+        "milk",
+        "egg",
+        "peanut",
+        "tree_nuts",
+        "soy",
+        "wheat",
+        "sesame",
+        "fish",
+        "shellfish"
+      ]
+    },
+    "network": "external HTTPS blocked; experimental fallback downloads may fail and are recorded",
+    "latency": "one menu capture per call; includes preprocessing, worker/model initialization, rotations and retries; excludes image loading, camera and model downloads; desktop timings are not phone timings",
+    "timeout_ms": 90000,
+    "sha256": {
+      "src/app.js": "dfbd086e33bbd7d43a8faa40358f3d82e4bb792cca03e2256f453a6b9561ea68",
+      "src/browser.js": "a2b3b1a1b7dccd1417e8f3ad8307b605497b2e5b1e81553c8672b73be0217975",
+      "src/crop.js": "e42138526c896391b368291fa4180c8f4cbdb9194ae39e5d5b2560d5e155f1f8",
+      "src/engine.js": "243f6ca1c80102498149500f60f48dda9f936485ca81fc7ca5f7102c82d08f7c",
+      "src/image.js": "24c90a6f1f954dbceef89e6be4647b9cbb388ff0b6ef2ed870d87dcd952a32a3",
+      "src/ingredient-glossary.js": "905ecc9e6b17b74bccf3b276adc18d56eb013c2238344afd99e31732b21974c5",
+      "src/ingredients.js": "c2c8555d42c2d103e977c4310aa923c5be8ddfd0e3f40189971c7453022f9685",
+      "src/label-pattern.js": "8c6b1700ecbf21b1600891d9bcd491a9d7021cce3936842ca20a5f3e1fe9dc6e",
+      "src/learning.js": "ac374449df44626ae5b1fd3424b350946670f654375b245d6859f6e6445a381d",
+      "src/menu.js": "1eaf376545436f86c0f3fc215ece158f69d985d328020b346555e306f028c870",
+      "src/ocr-worker.js": "9d3a1c5abbbb3c3d581fb78a4ffbf02148495f442ca24891ed2f0ae3e4f6f3f9",
+      "src/ocr.js": "75ee6b3b7b64918be6dbd5182b852e62d191137ac56fb3a577d378cb88f3866f",
+      "src/ontology.js": "72fd38ee9f52d1a6c749700e108bf82a03ae4618db0ca4fb922dab774d863ee5",
+      "src/pwa.js": "ccdd680e194df221e7b5d1d64fd5eead9450faf8f7dbac2e9e4b68dc12763f6f",
+      "src/tesseract.js": "5142a400af70fc1c52400e7058278e904587ae8669155af07c7c74cbafb7f3ec",
+      "package-lock.json": "361bcb706f228484c8b9c29d1490d842450da92ec6ec420f44431467615f8aed",
+      "benchmarks/diagnose-menu.mjs": "d1eaef70a3df626fb01fe429540400e317a25ea5f1856e360a312f1afd3addfa",
+      "benchmarks/menu-evidence.mjs": "8d215a43e27220d4f4f9d3fb74014b867dc82de42cc6fa6f087b489121c528fd",
+      "benchmarks/evaluate.mjs": "7c1c597db512bdd0927295b477f2c027d13d3dbaf392cc51391644040f2037c6",
+      "dist/vendor/tesseract/tesseract.min.js": "a8e29918d098b2b06e1012bdaeffb4aec0445c5d5654709023e0bd1f442a80e8",
+      "dist/vendor/tesseract/worker.min.js": "aca1229639fc9907d86f96e825955a2b7c5716d17f3bc3acd71f9c7ab66181fc",
+      "dist/vendor/tessdata/kor.traineddata": "ec1749377d49ac38fb3d3cd05dd5e2a53359d329f359762bc638a81132109992",
+      "dist/vendor/tessdata/eng.traineddata": "5dc5d8d640a212c9d6184921ba103b186f50e0fed9ee716c53e6b312b400d747",
+      "dist/vendor/tessdata/fra.traineddata": "bf83833fa957ff0076f6aa93f69e3bdf7b014dea829ea0c0d6be6b48a3ceef6d"
+    }
+  },
+  "raw_predictions_sha256": "992f8db73e66953ca4489af5ce0bbd6142efd06aa8d877b58624e1888709e395",
+  "live_app_commit": "9682746b3065e298a45c7cb8c86b8d453d5610e5",
+  "app_behavior_changed_in_this_step": false,
+  "training_performed": false,
+  "verification": {
+    "javascript_tests_passed": 93,
+    "python_tests_passed": 32,
+    "real_menu_captures_completed": 3,
+    "physical_phone_tested": false
+  },
+  "posthoc_model_visual_observations_NOT_rescored": {
+    "strict_matching": "The retained title 'Cream Chicken Risotto .  €' visibly resembles the reference title, but currency noise prevents exact normalized match. Strict score is0/20, not proof that no allergen words were read. No labels or metric code were changed after predictions.",
+    "dish_grouping": "Starbucks:0 entries; pasta page:1 noisy title +3 unassigned quotes; pizza page:4 garbled titles +1 unassigned cream-cheese quote. No safe output.",
+    "future_metric_design": "Pre-register bilingual title aliases and currency/noise normalization before a new frozen run; separate title recognition, geometry association and token recognition. Do not tune a held-out scorer retrospectively."
+  }
+}
