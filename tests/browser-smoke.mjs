@@ -51,7 +51,8 @@ try {
   });
   const errors=[];
   listeners.set('Runtime.exceptionThrown',[event=>errors.push(event.exceptionDetails.text+': '+(event.exceptionDetails.exception?.description||''))]);
-  const stub=`globalThis.Tesseract={createWorker:async()=>({recognize:async()=>{if(globalThis.testOcrDelay)await new Promise(r=>setTimeout(r,globalThis.testOcrDelay));return {data:{words:(globalThis.testOcrText||'INGREDIENTS: milk, sugar').split(' ').map((text,i)=>({text,confidence:95,bbox:{x0:i*40,y0:0,x1:i*40+38,y1:24}}))}}},terminate:async()=>{}})};`;
+  const stub=`globalThis.Tesseract={createWorker:async()=>({recognize:async()=>{if(globalThis.testOcrDelay)await new Promise(r=>setTimeout(r,globalThis.testOcrDelay));return {data:{words:(globalThis.testOcrText||'INGREDIENTS: milk, sugar').split('\\n').flatMap((line,line_num)=>line.split(' ').map((text,i)=>({text,confidence:95,block_num:0,par_num:0,line_num,bbox:{x0:i*40,y0:line_num*40,x1:i*40+38,y1:line_num*40+24}})))}}},terminate:async()=>{}})};globalThis.ADPAI_CREATE_OCR_WORKER=(...args)=>globalThis.Tesseract.createWorker(...args);`;
+
   listeners.set('Fetch.requestPaused',[event=>{
     (realOcr ? send('Fetch.failRequest',{requestId:event.requestId,errorReason:'InternetDisconnected'})
       : send('Fetch.fulfillRequest',{requestId:event.requestId,responseCode:200,responseHeaders:[{name:'Content-Type',value:'text/javascript'}],body:Buffer.from(stub).toString('base64')})).catch(e=>errors.push(e.message));
@@ -71,6 +72,11 @@ try {
     return result.result.value;
   };
   assert.equal(await evaluate(`document.documentElement.scrollWidth<=window.innerWidth`),true,'phone layout overflows horizontally');
+  assert.equal(await evaluate(`document.querySelector('#workflow').hidden`),true);
+  if(process.env.HOME_SCREENSHOT){const {data}=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await fs.writeFile(process.env.HOME_SCREENSHOT,Buffer.from(data,'base64'))}
+  assert.equal(await evaluate(`document.querySelectorAll('#modeSelection button').length`),2);
+  await evaluate(`document.querySelector('#shoppingMode').click()`);
+  assert.equal(await evaluate(`document.querySelector('#workflow').hidden`),false);
   if(!mobileWeb) {
     await evaluate(`document.querySelector('#installHelp').click()`);
     assert.equal(await evaluate(`document.querySelector('#installDialog').open`),true);
@@ -162,11 +168,40 @@ try {
     assert.equal(await evaluate(`document.querySelector('#result').classList.contains('show')`),false);
     await evaluate(`delete globalThis.ADPAI_NATIVE;document.querySelector('#lang').value='en';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
   }
+  // Mode-scoped photographs/results, menu disclaimer and ingredient-only risk.
+  await evaluate(`document.querySelector('#lang').value='en';document.querySelector('#lang').dispatchEvent(new Event('change'));document.querySelector('#restaurantMode').click()`);
+  assert.equal(await evaluate(`document.querySelector('#menuWarning').hidden`),false);
+  assert.equal(await evaluate(`document.querySelector('#addProduct').hidden`),true);
+  assert.equal(await evaluate(`document.querySelector('#result').classList.contains('show')`),false);
+  assert.ok((await evaluate(`document.querySelector('#menuWarning').textContent`)).includes('ADPAI may make mistakes'));
+  await evaluate(`(async()=>{
+    const canvas=document.createElement('canvas');canvas.width=1600;canvas.height=520;
+    const ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,1600,520);ctx.fillStyle='black';ctx.font='42px sans-serif';
+    ctx.fillText('Peanut noodles: peanut, wheat',30,100);ctx.fillText('Tomato soup: cream, tomato',30,240);ctx.fillText('Garden salad: lettuce, tomato',30,380);
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve));const files=new DataTransfer();files.items.add(new File([blob],'menu.png',{type:'image/png'}));
+    const input=document.querySelector('#products input[type=file]');input.files=files.files;input.dispatchEvent(new Event('change',{bubbles:true}));
+    for(const id of ['milk','peanut']){const c=document.querySelector('#chips input[value='+id+']');c.checked=true;c.dispatchEvent(new Event('change',{bubbles:true}))}
+    globalThis.testOcrText='Peanut noodles: peanut, wheat\\nTomato soup: cream, tomato\\nGarden salad: lettuce, tomato';
+    document.querySelector('#analyze').click();const end=Date.now()+${realOcr?180000:20000};while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw Error('menu analysis timeout');await new Promise(r=>setTimeout(r,25))}
+  })()`);
+  assert.equal(await evaluate(`document.querySelector('#rtitle').textContent`),'Menu review');
+  const menuCards=await evaluate(`[...document.querySelectorAll('.presult')].map(e=>({name:e.querySelector('.prtitle').textContent,message:e.querySelector('.prmsg').textContent}))`);
+  assert.ok(menuCards.some(c=>/Tomato/i.test(c.name)&&c.message.includes('Potential risk')));
+  assert.ok(menuCards.every(c=>!/(?:verified safe|no listed conflict)/i.test(c.message)));
+  if(process.env.MENU_SCREENSHOT){const {data}=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await fs.writeFile(process.env.MENU_SCREENSHOT,Buffer.from(data,'base64'))}
+  if(!realOcr){assert.equal(menuCards.length,3);assert.ok(menuCards.find(c=>c.name==='Garden salad').message.includes('Ingredients incomplete'))}
+  await evaluate(`document.querySelector('#lang').value='ko';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
+  assert.ok((await evaluate(`document.querySelector('#menuWarning').textContent`)).includes('오류'));
+  await evaluate(`document.querySelector('#backHome').click()`);
+  assert.equal(await evaluate(`document.querySelector('#workflow').hidden`),true);
+  assert.equal(await evaluate(`document.querySelector('#result').classList.contains('show')`),false);
+  await evaluate(`document.querySelector('#shoppingMode').click();document.querySelector('#lang').value='en';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
+  assert.equal(await evaluate(`document.querySelector('#menuWarning').hidden`),true);
   if(!mobileWeb) {
     await evaluate(`(async()=>{await navigator.serviceWorker.ready;const end=Date.now()+15000;while(!navigator.serviceWorker.controller){if(Date.now()>end)throw new Error('service worker did not claim page');await new Promise(r=>setTimeout(r,25))}})()`);
     const cache=await evaluate(`(async()=>({scope:(await navigator.serviceWorker.ready).scope,urls:(await Promise.all((await caches.keys()).map(async key=>(await (await caches.open(key)).keys()).map(r=>r.url)))).flat()}))()`);
     assert.ok(cache.scope.endsWith(prefix));
-    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.6.1')));
+    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.6.3')));
     assert.ok(cache.urls.every(url=>url.startsWith(cache.scope) && !/blob:|api\/|label\.png|profile/iu.test(url)));
     await send('Fetch.disable');
     await send('Network.enable');
@@ -180,7 +215,7 @@ try {
     assert.equal(await evaluate(`document.querySelector('#analyze').disabled`),true);
     assert.equal(await evaluate(`(async()=>(await fetch('./privacy.html')).ok)()`),true);
     // An offline shell is usable even when the CDN runtime is unavailable.
-    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.6.1');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
+    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.6.3');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
     assert.equal(offlineStatus,'unverified');
   }
   assert.deepEqual(errors,[]);

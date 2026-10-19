@@ -1,0 +1,597 @@
+{
+  "scope": "SYNTHETIC DEVELOPMENT FIXTURES ONLY. Zero real package photos; no holdout, model training or release certification.",
+  "dataset_sha256": "4b49eed461e7c6db6af08a8d03a6141cd8863fee841c74d4c615bcacfbcd8650",
+  "synthetic_templates": 9,
+  "synthetic_captures": 18,
+  "real_package_photos": 0,
+  "training_performed": false,
+  "runs": {
+    "baseline_1_6_1": {
+      "metadata": {
+        "started_utc": "2026-10-17T10:27:43.879Z",
+        "finished_utc": "2026-10-17T10:30:05.745Z",
+        "commit": "6ca8e0ce29e72feab753405fa7527f3f4692d71e",
+        "working_tree_dirty": true,
+        "app_version": "1.6.1",
+        "dataset_sha256": "4b49eed461e7c6db6af08a8d03a6141cd8863fee841c74d4c615bcacfbcd8650",
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/154.0.8037.57",
+          "revision": "@73c14f6228d7cd537c855007e8f88678969cc0eb",
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+          "jsVersion": "15.4.80.11"
+        },
+        "platform": "linux",
+        "architecture": "x64",
+        "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+        "logical_cpus": 5,
+        "total_memory_bytes": 35843661824,
+        "implementation": "shipped analyzeProducts source adapter with bundled official models; no camera/UI timing",
+        "profile": {
+          "allergens": [
+            "milk",
+            "egg",
+            "peanut",
+            "tree_nuts",
+            "soy",
+            "wheat",
+            "sesame",
+            "fish",
+            "shellfish"
+          ]
+        },
+        "network": "external HTTPS blocked; experimental fallback downloads may fail and are recorded",
+        "latency": "one product per call; includes preprocessing, worker/model initialization, rotations and retries; excludes image loading, camera and model downloads; desktop timings are not phone timings",
+        "timeout_ms": 15000,
+        "sha256": {
+          "src/tesseract.js": "550c4de211f95f25e6d9521cb6d0e6ecf45b5af68f94c538a00bfaceffd0ef93",
+          "src/image.js": "85414cef7538188462bcc459a8d191ef126fd2a5e6ccd84e47f25c228ec3a757",
+          "src/engine.js": "57afac02c4281893c97c78a54ada11b6f56dbcdd55316f3233ef5131bb1ef100",
+          "src/ontology.js": "c27436f342e8f0db59a0c2de941fcdf505b38ecd5a953ab4267f6eeaa0f99811",
+          "src/ingredients.js": "3901b89b7be626b0be8192fa49f636fdaf14994214a0b709e43bd8506ab35bc5",
+          "src/ingredient-glossary.js": "905ecc9e6b17b74bccf3b276adc18d56eb013c2238344afd99e31732b21974c5",
+          "package-lock.json": "165907030172285a980d25e9cbc6ee3e17564dc8e0b48e9bd511c5e7a4076610",
+          "dist/vendor/tessdata/kor.traineddata": "ec1749377d49ac38fb3d3cd05dd5e2a53359d329f359762bc638a81132109992",
+          "dist/vendor/tessdata/eng.traineddata": "5dc5d8d640a212c9d6184921ba103b186f50e0fed9ee716c53e6b312b400d747",
+          "dist/vendor/tessdata/fra.traineddata": "bf83833fa957ff0076f6aa93f69e3bdf7b014dea829ea0c0d6be6b48a3ceef6d"
+        }
+      },
+      "predictions_sha256": "b02aa618be624e43cf48043041b01c9450145de13e28497d9cac1c55b7543d6e",
+      "summary": {
+        "validity": "synthetic_or_mixed_not_real_package_validation",
+        "capture_count": 18,
+        "product_count": 9,
+        "real_package_capture_count": 0,
+        "synthetic_capture_count": 18,
+        "ocr": {
+          "character_edits": 368,
+          "reference_characters": 718,
+          "cer": 0.5125348189415042,
+          "space_ignored_character_edits": 200,
+          "space_ignored_reference_characters": 556,
+          "space_ignored_cer": 0.3597122302158273,
+          "word_edits": 228,
+          "reference_words": 180,
+          "wer": 1.2666666666666666
+        },
+        "allergens": {
+          "direct": {
+            "tp": 12,
+            "fp": 8,
+            "fn": 2,
+            "tn": 140,
+            "precision": 0.6,
+            "recall": 0.8571428571428571,
+            "false_negative_rate": 0.14285714285714285,
+            "false_positive_rate": 0.05405405405405406,
+            "f1": 0.7058823529411764
+          },
+          "caution": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 12,
+            "tn": 150,
+            "precision": null,
+            "recall": 0,
+            "false_negative_rate": 1,
+            "false_positive_rate": 0,
+            "f1": 0
+          },
+          "any": {
+            "tp": 20,
+            "fp": 0,
+            "fn": 6,
+            "tn": 136,
+            "precision": 1,
+            "recall": 0.7692307692307693,
+            "false_negative_rate": 0.23076923076923078,
+            "false_positive_rate": 0,
+            "f1": 0.8695652173913044
+          }
+        },
+        "per_allergen": {
+          "milk": {
+            "tp": 6,
+            "fp": 0,
+            "fn": 2,
+            "tn": 10,
+            "precision": 1,
+            "recall": 0.75,
+            "false_negative_rate": 0.25,
+            "false_positive_rate": 0,
+            "f1": 0.8571428571428571
+          },
+          "egg": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 16,
+            "precision": 1,
+            "recall": 1,
+            "false_negative_rate": 0,
+            "false_positive_rate": 0,
+            "f1": 1
+          },
+          "peanut": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 16,
+            "precision": 1,
+            "recall": 1,
+            "false_negative_rate": 0,
+            "false_positive_rate": 0,
+            "f1": 1
+          },
+          "tree_nuts": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 18,
+            "precision": null,
+            "recall": null,
+            "false_negative_rate": null,
+            "false_positive_rate": 0,
+            "f1": null
+          },
+          "soy": {
+            "tp": 4,
+            "fp": 0,
+            "fn": 2,
+            "tn": 12,
+            "precision": 1,
+            "recall": 0.6666666666666666,
+            "false_negative_rate": 0.3333333333333333,
+            "false_positive_rate": 0,
+            "f1": 0.8
+          },
+          "wheat": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 16,
+            "precision": 1,
+            "recall": 1,
+            "false_negative_rate": 0,
+            "false_positive_rate": 0,
+            "f1": 1
+          },
+          "sesame": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 18,
+            "precision": null,
+            "recall": null,
+            "false_negative_rate": null,
+            "false_positive_rate": 0,
+            "f1": null
+          },
+          "fish": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "tn": 16,
+            "precision": null,
+            "recall": 0,
+            "false_negative_rate": 1,
+            "false_positive_rate": 0,
+            "f1": 0
+          },
+          "shellfish": {
+            "tp": 4,
+            "fp": 0,
+            "fn": 0,
+            "tn": 14,
+            "precision": 1,
+            "recall": 1,
+            "false_negative_rate": 0,
+            "false_positive_rate": 0,
+            "f1": 1
+          }
+        },
+        "ingredients_exact_rows": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 48,
+          "precision": null,
+          "recall": 0,
+          "false_negative_rate": 1,
+          "false_positive_rate": null,
+          "f1": 0
+        },
+        "missed_positive_pairs": 6,
+        "missed_positive_captures": [
+          {
+            "capture_id": "fish-shrimp-clear",
+            "allergens": [
+              "fish"
+            ],
+            "status": "conflict"
+          },
+          {
+            "capture_id": "fish-shrimp-rotated-soft",
+            "allergens": [
+              "fish"
+            ],
+            "status": "conflict"
+          },
+          {
+            "capture_id": "shared-facility-clear",
+            "allergens": [
+              "milk",
+              "soy"
+            ],
+            "status": "unverified"
+          },
+          {
+            "capture_id": "shared-facility-rotated-soft",
+            "allergens": [
+              "milk",
+              "soy"
+            ],
+            "status": "unverified"
+          }
+        ],
+        "unsafe_negative_captures": 0,
+        "reassuring_negative_captures": 0,
+        "abstention_count": 10,
+        "abstention_rate": 0.5555555555555556,
+        "missing_predictions": 0,
+        "failed_captures": [
+          {
+            "capture_id": "perilla-clear",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+          },
+          {
+            "capture_id": "perilla-rotated-soft",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+          },
+          {
+            "capture_id": "nutrition-only-clear",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+          },
+          {
+            "capture_id": "nutrition-only-rotated-soft",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+          }
+        ],
+        "captures_with_ocr_errors": 0,
+        "successful_latency_ms": {
+          "count": 14,
+          "p50": 5289.79999999702,
+          "p95": 8007.5
+        },
+        "reference_text_semantics": {
+          "allergens": {
+            "direct": {
+              "tp": 14,
+              "fp": 6,
+              "fn": 0,
+              "precision": 0.7,
+              "recall": 1,
+              "f1": 0.8235294117647058
+            },
+            "caution": {
+              "tp": 12,
+              "fp": 0,
+              "fn": 0,
+              "precision": 1,
+              "recall": 1,
+              "f1": 1
+            },
+            "any": {
+              "tp": 26,
+              "fp": 6,
+              "fn": 0,
+              "precision": 0.8125,
+              "recall": 1,
+              "f1": 0.896551724137931
+            }
+          },
+          "missed_positive_captures": [],
+          "unsafe_negative_captures": 0
+        }
+      }
+    },
+    "candidate_1_6_2": {
+      "metadata": {
+        "started_utc": "2026-10-18T00:05:18.976Z",
+        "finished_utc": "2026-10-18T00:06:32.743Z",
+        "commit": "6ca8e0ce29e72feab753405fa7527f3f4692d71e",
+        "working_tree_dirty": true,
+        "app_version": "1.6.2",
+        "dataset_sha256": "4b49eed461e7c6db6af08a8d03a6141cd8863fee841c74d4c615bcacfbcd8650",
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/154.0.8037.57",
+          "revision": "@73c14f6228d7cd537c855007e8f88678969cc0eb",
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+          "jsVersion": "15.4.80.11"
+        },
+        "platform": "linux",
+        "architecture": "x64",
+        "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+        "logical_cpus": 5,
+        "total_memory_bytes": 35843637248,
+        "implementation": "shipped analyzeProducts source adapter with bundled official models; no camera/UI timing",
+        "profile": {
+          "allergens": [
+            "milk",
+            "egg",
+            "peanut",
+            "tree_nuts",
+            "soy",
+            "wheat",
+            "sesame",
+            "fish",
+            "shellfish"
+          ]
+        },
+        "network": "external HTTPS blocked; experimental fallback downloads may fail and are recorded",
+        "latency": "one product per call; includes preprocessing, worker/model initialization, rotations and retries; excludes image loading, camera and model downloads; desktop timings are not phone timings",
+        "timeout_ms": 15000,
+        "sha256": {
+          "src/tesseract.js": "f899c357cb3971e46a4047cf8d054b7033ff8bfb83420fe2b451aa70e69a5fd0",
+          "src/image.js": "85414cef7538188462bcc459a8d191ef126fd2a5e6ccd84e47f25c228ec3a757",
+          "src/engine.js": "5490888a7420b57d9e7c292695123ece5d7c8ff1ff51a4bf6b803ede035f0a95",
+          "src/ontology.js": "a455bca92ca16ad2c3c225f4ffb72990addec7ff0fde0464595107e58ca384e7",
+          "src/ingredients.js": "070e47cb6d04ed3f9aa9fc273797833702b252bf66064757b870f45c96e7d5b9",
+          "src/ingredient-glossary.js": "905ecc9e6b17b74bccf3b276adc18d56eb013c2238344afd99e31732b21974c5",
+          "src/label-pattern.js": "8c6b1700ecbf21b1600891d9bcd491a9d7021cce3936842ca20a5f3e1fe9dc6e",
+          "package-lock.json": "5c86d1ce7b01e7185eb93383e434000981ab5e4aa1a065d67ce249998b7b3e25",
+          "benchmarks/run.mjs": "24329375aebfc664bbb4857acb29cd7fa024569d8b9525cfb0cdea085100a184",
+          "benchmarks/evaluate.mjs": "7c1c597db512bdd0927295b477f2c027d13d3dbaf392cc51391644040f2037c6",
+          "dist/vendor/tessdata/kor.traineddata": "ec1749377d49ac38fb3d3cd05dd5e2a53359d329f359762bc638a81132109992",
+          "dist/vendor/tessdata/eng.traineddata": "5dc5d8d640a212c9d6184921ba103b186f50e0fed9ee716c53e6b312b400d747",
+          "dist/vendor/tessdata/fra.traineddata": "bf83833fa957ff0076f6aa93f69e3bdf7b014dea829ea0c0d6be6b48a3ceef6d"
+        }
+      },
+      "predictions_sha256": "d587aac30f16abe590fc00d60806184763d2f18f43a299e96a3e8d410bb0a973",
+      "summary": {
+        "validity": "synthetic_or_mixed_not_real_package_validation",
+        "capture_count": 18,
+        "product_count": 9,
+        "real_package_capture_count": 0,
+        "synthetic_capture_count": 18,
+        "ocr": {
+          "character_edits": 156,
+          "reference_characters": 718,
+          "cer": 0.21727019498607242,
+          "space_ignored_character_edits": 13,
+          "space_ignored_reference_characters": 556,
+          "space_ignored_cer": 0.023381294964028777,
+          "word_edits": 205,
+          "reference_words": 180,
+          "wer": 1.1388888888888888
+        },
+        "allergens": {
+          "direct": {
+            "tp": 14,
+            "fp": 2,
+            "fn": 0,
+            "tn": 146,
+            "precision": 0.875,
+            "recall": 1,
+            "false_negative_rate": 0,
+            "false_positive_rate": 0.013513513513513514,
+            "f1": 0.9333333333333333
+          },
+          "caution": {
+            "tp": 12,
+            "fp": 0,
+            "fn": 0,
+            "tn": 150,
+            "precision": 1,
+            "recall": 1,
+            "false_negative_rate": 0,
+            "false_positive_rate": 0,
+            "f1": 1
+          },
+          "any": {
+            "tp": 26,
+            "fp": 2,
+            "fn": 0,
+            "tn": 134,
+            "precision": 0.9285714285714286,
+            "recall": 1,
+            "false_negative_rate": 0,
+            "false_positive_rate": 0.014705882352941176,
+            "f1": 0.962962962962963
+          }
+        },
+        "per_allergen": {
+          "milk": {
+            "tp": 8,
+            "fp": 2,
+            "fn": 0,
+            "tn": 8,
+            "precision": 0.8,
+            "recall": 1,
+            "false_negative_rate": 0,
+            "false_positive_rate": 0.2,
+            "f1": 0.888888888888889
+          },
+          "egg": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 16,
+            "precision": 1,
+            "recall": 1,
+            "false_negative_rate": 0,
+            "false_positive_rate": 0,
+            "f1": 1
+          },
+          "peanut": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 16,
+            "precision": 1,
+            "recall": 1,
+            "false_negative_rate": 0,
+            "false_positive_rate": 0,
+            "f1": 1
+          },
+          "tree_nuts": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 18,
+            "precision": null,
+            "recall": null,
+            "false_negative_rate": null,
+            "false_positive_rate": 0,
+            "f1": null
+          },
+          "soy": {
+            "tp": 6,
+            "fp": 0,
+            "fn": 0,
+            "tn": 12,
+            "precision": 1,
+            "recall": 1,
+            "false_negative_rate": 0,
+            "false_positive_rate": 0,
+            "f1": 1
+          },
+          "wheat": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 16,
+            "precision": 1,
+            "recall": 1,
+            "false_negative_rate": 0,
+            "false_positive_rate": 0,
+            "f1": 1
+          },
+          "sesame": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 18,
+            "precision": null,
+            "recall": null,
+            "false_negative_rate": null,
+            "false_positive_rate": 0,
+            "f1": null
+          },
+          "fish": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 16,
+            "precision": 1,
+            "recall": 1,
+            "false_negative_rate": 0,
+            "false_positive_rate": 0,
+            "f1": 1
+          },
+          "shellfish": {
+            "tp": 4,
+            "fp": 0,
+            "fn": 0,
+            "tn": 14,
+            "precision": 1,
+            "recall": 1,
+            "false_negative_rate": 0,
+            "false_positive_rate": 0,
+            "f1": 1
+          }
+        },
+        "ingredients_exact_rows": {
+          "tp": 20,
+          "fp": 28,
+          "fn": 28,
+          "precision": 0.4166666666666667,
+          "recall": 0.4166666666666667,
+          "false_negative_rate": 0.5833333333333334,
+          "false_positive_rate": null,
+          "f1": 0.4166666666666667
+        },
+        "missed_positive_pairs": 0,
+        "missed_positive_captures": [],
+        "unsafe_negative_captures": 0,
+        "reassuring_negative_captures": 0,
+        "abstention_count": 6,
+        "abstention_rate": 0.3333333333333333,
+        "missing_predictions": 0,
+        "failed_captures": [],
+        "captures_with_ocr_errors": 0,
+        "successful_latency_ms": {
+          "count": 18,
+          "p50": 3226.9000000003725,
+          "p95": 5876.299999998882
+        },
+        "reference_text_semantics": {
+          "allergens": {
+            "direct": {
+              "tp": 14,
+              "fp": 0,
+              "fn": 0,
+              "tn": 148,
+              "precision": 1,
+              "recall": 1,
+              "false_negative_rate": 0,
+              "false_positive_rate": 0,
+              "f1": 1
+            },
+            "caution": {
+              "tp": 12,
+              "fp": 0,
+              "fn": 0,
+              "tn": 150,
+              "precision": 1,
+              "recall": 1,
+              "false_negative_rate": 0,
+              "false_positive_rate": 0,
+              "f1": 1
+            },
+            "any": {
+              "tp": 26,
+              "fp": 0,
+              "fn": 0,
+              "tn": 136,
+              "precision": 1,
+              "recall": 1,
+              "false_negative_rate": 0,
+              "false_positive_rate": 0,
+              "f1": 1
+            }
+          },
+          "missed_positive_captures": [],
+          "unsafe_negative_captures": 0
+        }
+      }
+    }
+  },
+  "notes": [
+    "Both archived predictions are scored with the current evaluator. Original source/model hashes remain in each run metadata.",
+    "Baseline app source hashes were verified against commit 6ca8e0ce29e72feab753405fa7527f3f4692d71e.",
+    "Two coconut-cream views remain false-positive milk detections; do not mask OCR misspellings to improve scores.",
+    "Tree nuts and sesame have no positive references here; recall is undefined for those categories.",
+    "Desktop latency excludes camera/CDN retrieval. Baseline has four timeouts; do not infer phone latency or a controlled speed gain."
+  ]
+}

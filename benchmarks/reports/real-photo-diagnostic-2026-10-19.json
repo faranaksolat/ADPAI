@@ -1,0 +1,3064 @@
+{
+  "report_date_seoul": "2026-10-19",
+  "validity": "exploratory_model_visual_development_NOT_human_reference_NOT_release_accuracy",
+  "human_reviewed_references": 0,
+  "training_performed": false,
+  "runs": {
+    "released_1_6_1": {
+      "summary": {
+        "validity": "exploratory_model_visual_development_NOT_human_reference_NOT_release_accuracy",
+        "capture_count": 16,
+        "known_positive_pairs": 39,
+        "detected_known_positive_pairs": 12,
+        "missed_known_positive_pairs": 27,
+        "observed_visible_evidence_detection_fraction": 0.3076923076923077,
+        "human_reviewed_references": 0,
+        "ocr_cer": null,
+        "ocr_wer": null,
+        "precision": null,
+        "false_positive_rate": null,
+        "limitations": "Partial model-read excerpts are not independent human ground truth; unlisted allergens are unknown, so extra predictions require review. Convenience/source-OCR-screened sample; no population accuracy or phone latency claim.",
+        "status_counts": {
+          "conflict": 5,
+          "caution": 0,
+          "unverified": 11
+        },
+        "failed_captures": [
+          {
+            "capture_id": "off-0010300343257-en",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+          },
+          {
+            "capture_id": "off-0011110014467-en",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+          },
+          {
+            "capture_id": "off-0011110806178-en",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+          },
+          {
+            "capture_id": "off-0011110824325-en",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+          },
+          {
+            "capture_id": "off-2000000021345-ko",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+          },
+          {
+            "capture_id": "off-8801043020756-ko",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+          },
+          {
+            "capture_id": "off-8809120440763-ko",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+          },
+          {
+            "capture_id": "off-8801037002782-ko",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+          },
+          {
+            "capture_id": "off-8802043002575-ko",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+          },
+          {
+            "capture_id": "off-8801056241506-ko",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+          },
+          {
+            "capture_id": "off-8801033784491-ko",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+          }
+        ],
+        "reassuring_negative_captures": 0,
+        "desktop_successful_latency_ms": {
+          "count": 5,
+          "p50": 24660.89999999851,
+          "p95": 41973.89999999851
+        },
+        "cases": [
+          {
+            "capture_id": "off-0010300343257-en",
+            "language": "en",
+            "status": "unverified",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+            "known_positive_allergens": [
+              "tree_nuts"
+            ],
+            "detected_known": [],
+            "missed_known": [
+              "tree_nuts"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": null,
+            "elapsed_until_failure_ms": 60201,
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-0011110014467-en",
+            "language": "en",
+            "status": "unverified",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+            "known_positive_allergens": [
+              "milk"
+            ],
+            "detected_known": [],
+            "missed_known": [
+              "milk"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": null,
+            "elapsed_until_failure_ms": 60071,
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-0011110507181-en",
+            "language": "en",
+            "status": "conflict",
+            "error": null,
+            "known_positive_allergens": [
+              "milk",
+              "egg"
+            ],
+            "detected_known": [
+              "milk",
+              "egg"
+            ],
+            "missed_known": [],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 24660.89999999851,
+            "elapsed_until_failure_ms": null,
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-0011110791559-en",
+            "language": "en",
+            "status": "conflict",
+            "error": null,
+            "known_positive_allergens": [
+              "peanut"
+            ],
+            "detected_known": [
+              "peanut"
+            ],
+            "missed_known": [],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 7348.0999999940395,
+            "elapsed_until_failure_ms": null,
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-0011110806178-en",
+            "language": "en",
+            "status": "unverified",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+            "known_positive_allergens": [
+              "milk",
+              "tree_nuts",
+              "wheat",
+              "soy",
+              "peanut"
+            ],
+            "detected_known": [],
+            "missed_known": [
+              "milk",
+              "tree_nuts",
+              "wheat",
+              "soy",
+              "peanut"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": null,
+            "elapsed_until_failure_ms": 60018,
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-0011110824325-en",
+            "language": "en",
+            "status": "unverified",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+            "known_positive_allergens": [],
+            "detected_known": [],
+            "missed_known": [],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": null,
+            "elapsed_until_failure_ms": 60105,
+            "expected_abstention_for_negative": true,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-0011110904225-en",
+            "language": "en",
+            "status": "conflict",
+            "error": null,
+            "known_positive_allergens": [
+              "wheat",
+              "soy",
+              "milk"
+            ],
+            "detected_known": [
+              "wheat",
+              "soy",
+              "milk"
+            ],
+            "missed_known": [],
+            "context_mismatches": [
+              {
+                "allergen": "soy",
+                "context": "caution",
+                "quote": "MAY CONTAIN: SOY, MILK."
+              }
+            ],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 41973.89999999851,
+            "elapsed_until_failure_ms": null,
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-0011152174754-en",
+            "language": "en",
+            "status": "conflict",
+            "error": null,
+            "known_positive_allergens": [
+              "sesame",
+              "fish",
+              "milk",
+              "egg",
+              "soy",
+              "wheat"
+            ],
+            "detected_known": [
+              "sesame",
+              "milk",
+              "egg",
+              "soy",
+              "wheat"
+            ],
+            "missed_known": [
+              "fish"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 26161.29999999702,
+            "elapsed_until_failure_ms": null,
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-2000000021345-ko",
+            "language": "ko",
+            "status": "unverified",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+            "known_positive_allergens": [
+              "wheat",
+              "soy",
+              "egg"
+            ],
+            "detected_known": [],
+            "missed_known": [
+              "wheat",
+              "soy",
+              "egg"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": null,
+            "elapsed_until_failure_ms": 60266,
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-8801043020756-ko",
+            "language": "ko",
+            "status": "unverified",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+            "known_positive_allergens": [
+              "wheat",
+              "soy",
+              "milk",
+              "peanut"
+            ],
+            "detected_known": [],
+            "missed_known": [
+              "wheat",
+              "soy",
+              "milk",
+              "peanut"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": null,
+            "elapsed_until_failure_ms": 60212,
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-8809120440763-ko",
+            "language": "ko",
+            "status": "unverified",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+            "known_positive_allergens": [
+              "tree_nuts",
+              "wheat"
+            ],
+            "detected_known": [],
+            "missed_known": [
+              "tree_nuts",
+              "wheat"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": null,
+            "elapsed_until_failure_ms": 60211,
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-8801037002782-ko",
+            "language": "ko",
+            "status": "unverified",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+            "known_positive_allergens": [
+              "wheat",
+              "soy",
+              "milk",
+              "tree_nuts",
+              "peanut",
+              "egg"
+            ],
+            "detected_known": [],
+            "missed_known": [
+              "wheat",
+              "soy",
+              "milk",
+              "tree_nuts",
+              "peanut",
+              "egg"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": null,
+            "elapsed_until_failure_ms": 60144,
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-8802043002575-ko",
+            "language": "ko",
+            "status": "unverified",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+            "known_positive_allergens": [
+              "soy"
+            ],
+            "detected_known": [],
+            "missed_known": [
+              "soy"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": null,
+            "elapsed_until_failure_ms": 60134,
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-4901033140175-ko",
+            "language": "ko",
+            "status": "conflict",
+            "error": null,
+            "known_positive_allergens": [
+              "soy",
+              "fish"
+            ],
+            "detected_known": [
+              "soy"
+            ],
+            "missed_known": [
+              "fish"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 22007.20000000298,
+            "elapsed_until_failure_ms": null,
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-8801056241506-ko",
+            "language": "ko",
+            "status": "unverified",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+            "known_positive_allergens": [],
+            "detected_known": [],
+            "missed_known": [],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": null,
+            "elapsed_until_failure_ms": 60033,
+            "expected_abstention_for_negative": true,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-8801033784491-ko",
+            "language": "ko",
+            "status": "unverified",
+            "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+            "known_positive_allergens": [
+              "soy",
+              "sesame"
+            ],
+            "detected_known": [],
+            "missed_known": [
+              "soy",
+              "sesame"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": null,
+            "elapsed_until_failure_ms": 60174,
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          }
+        ],
+        "by_split": {
+          "development": {
+            "validity": "exploratory_model_visual_development_NOT_human_reference_NOT_release_accuracy",
+            "capture_count": 16,
+            "known_positive_pairs": 39,
+            "detected_known_positive_pairs": 12,
+            "missed_known_positive_pairs": 27,
+            "observed_visible_evidence_detection_fraction": 0.3076923076923077,
+            "human_reviewed_references": 0,
+            "ocr_cer": null,
+            "ocr_wer": null,
+            "precision": null,
+            "false_positive_rate": null,
+            "limitations": "Partial model-read excerpts are not independent human ground truth; unlisted allergens are unknown, so extra predictions require review. Convenience/source-OCR-screened sample; no population accuracy or phone latency claim.",
+            "status_counts": {
+              "conflict": 5,
+              "caution": 0,
+              "unverified": 11
+            },
+            "failed_captures": [
+              {
+                "capture_id": "off-0010300343257-en",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+              },
+              {
+                "capture_id": "off-0011110014467-en",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+              },
+              {
+                "capture_id": "off-0011110806178-en",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+              },
+              {
+                "capture_id": "off-0011110824325-en",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+              },
+              {
+                "capture_id": "off-2000000021345-ko",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+              },
+              {
+                "capture_id": "off-8801043020756-ko",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+              },
+              {
+                "capture_id": "off-8809120440763-ko",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+              },
+              {
+                "capture_id": "off-8801037002782-ko",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+              },
+              {
+                "capture_id": "off-8802043002575-ko",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+              },
+              {
+                "capture_id": "off-8801056241506-ko",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+              },
+              {
+                "capture_id": "off-8801033784491-ko",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220"
+              }
+            ],
+            "reassuring_negative_captures": 0,
+            "desktop_successful_latency_ms": {
+              "count": 5,
+              "p50": 24660.89999999851,
+              "p95": 41973.89999999851
+            },
+            "cases": [
+              {
+                "capture_id": "off-0010300343257-en",
+                "language": "en",
+                "status": "unverified",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+                "known_positive_allergens": [
+                  "tree_nuts"
+                ],
+                "detected_known": [],
+                "missed_known": [
+                  "tree_nuts"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": null,
+                "elapsed_until_failure_ms": 60201,
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-0011110014467-en",
+                "language": "en",
+                "status": "unverified",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+                "known_positive_allergens": [
+                  "milk"
+                ],
+                "detected_known": [],
+                "missed_known": [
+                  "milk"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": null,
+                "elapsed_until_failure_ms": 60071,
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-0011110507181-en",
+                "language": "en",
+                "status": "conflict",
+                "error": null,
+                "known_positive_allergens": [
+                  "milk",
+                  "egg"
+                ],
+                "detected_known": [
+                  "milk",
+                  "egg"
+                ],
+                "missed_known": [],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 24660.89999999851,
+                "elapsed_until_failure_ms": null,
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-0011110791559-en",
+                "language": "en",
+                "status": "conflict",
+                "error": null,
+                "known_positive_allergens": [
+                  "peanut"
+                ],
+                "detected_known": [
+                  "peanut"
+                ],
+                "missed_known": [],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 7348.0999999940395,
+                "elapsed_until_failure_ms": null,
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-0011110806178-en",
+                "language": "en",
+                "status": "unverified",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+                "known_positive_allergens": [
+                  "milk",
+                  "tree_nuts",
+                  "wheat",
+                  "soy",
+                  "peanut"
+                ],
+                "detected_known": [],
+                "missed_known": [
+                  "milk",
+                  "tree_nuts",
+                  "wheat",
+                  "soy",
+                  "peanut"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": null,
+                "elapsed_until_failure_ms": 60018,
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-0011110824325-en",
+                "language": "en",
+                "status": "unverified",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+                "known_positive_allergens": [],
+                "detected_known": [],
+                "missed_known": [],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": null,
+                "elapsed_until_failure_ms": 60105,
+                "expected_abstention_for_negative": true,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-0011110904225-en",
+                "language": "en",
+                "status": "conflict",
+                "error": null,
+                "known_positive_allergens": [
+                  "wheat",
+                  "soy",
+                  "milk"
+                ],
+                "detected_known": [
+                  "wheat",
+                  "soy",
+                  "milk"
+                ],
+                "missed_known": [],
+                "context_mismatches": [
+                  {
+                    "allergen": "soy",
+                    "context": "caution",
+                    "quote": "MAY CONTAIN: SOY, MILK."
+                  }
+                ],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 41973.89999999851,
+                "elapsed_until_failure_ms": null,
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-0011152174754-en",
+                "language": "en",
+                "status": "conflict",
+                "error": null,
+                "known_positive_allergens": [
+                  "sesame",
+                  "fish",
+                  "milk",
+                  "egg",
+                  "soy",
+                  "wheat"
+                ],
+                "detected_known": [
+                  "sesame",
+                  "milk",
+                  "egg",
+                  "soy",
+                  "wheat"
+                ],
+                "missed_known": [
+                  "fish"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 26161.29999999702,
+                "elapsed_until_failure_ms": null,
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-2000000021345-ko",
+                "language": "ko",
+                "status": "unverified",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+                "known_positive_allergens": [
+                  "wheat",
+                  "soy",
+                  "egg"
+                ],
+                "detected_known": [],
+                "missed_known": [
+                  "wheat",
+                  "soy",
+                  "egg"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": null,
+                "elapsed_until_failure_ms": 60266,
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-8801043020756-ko",
+                "language": "ko",
+                "status": "unverified",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+                "known_positive_allergens": [
+                  "wheat",
+                  "soy",
+                  "milk",
+                  "peanut"
+                ],
+                "detected_known": [],
+                "missed_known": [
+                  "wheat",
+                  "soy",
+                  "milk",
+                  "peanut"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": null,
+                "elapsed_until_failure_ms": 60212,
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-8809120440763-ko",
+                "language": "ko",
+                "status": "unverified",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+                "known_positive_allergens": [
+                  "tree_nuts",
+                  "wheat"
+                ],
+                "detected_known": [],
+                "missed_known": [
+                  "tree_nuts",
+                  "wheat"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": null,
+                "elapsed_until_failure_ms": 60211,
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-8801037002782-ko",
+                "language": "ko",
+                "status": "unverified",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+                "known_positive_allergens": [
+                  "wheat",
+                  "soy",
+                  "milk",
+                  "tree_nuts",
+                  "peanut",
+                  "egg"
+                ],
+                "detected_known": [],
+                "missed_known": [
+                  "wheat",
+                  "soy",
+                  "milk",
+                  "tree_nuts",
+                  "peanut",
+                  "egg"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": null,
+                "elapsed_until_failure_ms": 60144,
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-8802043002575-ko",
+                "language": "ko",
+                "status": "unverified",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+                "known_positive_allergens": [
+                  "soy"
+                ],
+                "detected_known": [],
+                "missed_known": [
+                  "soy"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": null,
+                "elapsed_until_failure_ms": 60134,
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-4901033140175-ko",
+                "language": "ko",
+                "status": "conflict",
+                "error": null,
+                "known_positive_allergens": [
+                  "soy",
+                  "fish"
+                ],
+                "detected_known": [
+                  "soy"
+                ],
+                "missed_known": [
+                  "fish"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 22007.20000000298,
+                "elapsed_until_failure_ms": null,
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-8801056241506-ko",
+                "language": "ko",
+                "status": "unverified",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+                "known_positive_allergens": [],
+                "detected_known": [],
+                "missed_known": [],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": null,
+                "elapsed_until_failure_ms": 60033,
+                "expected_abstention_for_negative": true,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-8801033784491-ko",
+                "language": "ko",
+                "status": "unverified",
+                "error": "Error: analysis_timeout\n    at <anonymous>:11:220",
+                "known_positive_allergens": [
+                  "soy",
+                  "sesame"
+                ],
+                "detected_known": [],
+                "missed_known": [
+                  "soy",
+                  "sesame"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": null,
+                "elapsed_until_failure_ms": 60174,
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              }
+            ]
+          }
+        },
+        "model_visual_excerpt_semantics": {
+          "validity": "exploratory_model_visual_development_NOT_human_reference_NOT_release_accuracy",
+          "capture_count": 16,
+          "known_positive_pairs": 39,
+          "detected_known_positive_pairs": 37,
+          "missed_known_positive_pairs": 2,
+          "observed_visible_evidence_detection_fraction": 0.9487179487179487,
+          "human_reviewed_references": 0,
+          "ocr_cer": null,
+          "ocr_wer": null,
+          "precision": null,
+          "false_positive_rate": null,
+          "limitations": "Partial model-read excerpts are not independent human ground truth; unlisted allergens are unknown, so extra predictions require review. Convenience/source-OCR-screened sample; no population accuracy or phone latency claim.",
+          "status_counts": {
+            "conflict": 14,
+            "caution": 0,
+            "unverified": 2
+          },
+          "failed_captures": [],
+          "reassuring_negative_captures": 0,
+          "desktop_successful_latency_ms": {
+            "count": 0,
+            "p50": null,
+            "p95": null
+          },
+          "cases": [
+            {
+              "capture_id": "off-0010300343257-en",
+              "language": "en",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "tree_nuts"
+              ],
+              "detected_known": [
+                "tree_nuts"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-0011110014467-en",
+              "language": "en",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "milk"
+              ],
+              "detected_known": [
+                "milk"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-0011110507181-en",
+              "language": "en",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "milk",
+                "egg"
+              ],
+              "detected_known": [
+                "milk",
+                "egg"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-0011110791559-en",
+              "language": "en",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "peanut"
+              ],
+              "detected_known": [
+                "peanut"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-0011110806178-en",
+              "language": "en",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "milk",
+                "tree_nuts",
+                "wheat",
+                "soy",
+                "peanut"
+              ],
+              "detected_known": [
+                "milk",
+                "tree_nuts",
+                "wheat",
+                "soy",
+                "peanut"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-0011110824325-en",
+              "language": "en",
+              "status": "unverified",
+              "error": null,
+              "known_positive_allergens": [],
+              "detected_known": [],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "expected_abstention_for_negative": true,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-0011110904225-en",
+              "language": "en",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "wheat",
+                "soy",
+                "milk"
+              ],
+              "detected_known": [
+                "wheat",
+                "soy",
+                "milk"
+              ],
+              "missed_known": [],
+              "context_mismatches": [
+                {
+                  "allergen": "soy",
+                  "context": "caution",
+                  "quote": "MAY CONTAIN: SOY, MILK."
+                }
+              ],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-0011152174754-en",
+              "language": "en",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "sesame",
+                "fish",
+                "milk",
+                "egg",
+                "soy",
+                "wheat"
+              ],
+              "detected_known": [
+                "sesame",
+                "milk",
+                "egg",
+                "soy",
+                "wheat"
+              ],
+              "missed_known": [
+                "fish"
+              ],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-2000000021345-ko",
+              "language": "ko",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "wheat",
+                "soy",
+                "egg"
+              ],
+              "detected_known": [
+                "wheat",
+                "soy",
+                "egg"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-8801043020756-ko",
+              "language": "ko",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "wheat",
+                "soy",
+                "milk",
+                "peanut"
+              ],
+              "detected_known": [
+                "wheat",
+                "soy",
+                "milk",
+                "peanut"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-8809120440763-ko",
+              "language": "ko",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "tree_nuts",
+                "wheat"
+              ],
+              "detected_known": [
+                "tree_nuts",
+                "wheat"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-8801037002782-ko",
+              "language": "ko",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "wheat",
+                "soy",
+                "milk",
+                "tree_nuts",
+                "peanut",
+                "egg"
+              ],
+              "detected_known": [
+                "wheat",
+                "soy",
+                "milk",
+                "tree_nuts",
+                "peanut",
+                "egg"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-8802043002575-ko",
+              "language": "ko",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "soy"
+              ],
+              "detected_known": [
+                "soy"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-4901033140175-ko",
+              "language": "ko",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "soy",
+                "fish"
+              ],
+              "detected_known": [
+                "soy"
+              ],
+              "missed_known": [
+                "fish"
+              ],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-8801056241506-ko",
+              "language": "ko",
+              "status": "unverified",
+              "error": null,
+              "known_positive_allergens": [],
+              "detected_known": [],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "expected_abstention_for_negative": true,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-8801033784491-ko",
+              "language": "ko",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "soy",
+                "sesame"
+              ],
+              "detected_known": [
+                "soy",
+                "sesame"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            }
+          ]
+        }
+      },
+      "metadata": {
+        "started_utc": "2026-10-18T06:07:07.957Z",
+        "finished_utc": "2026-10-18T06:20:16.660Z",
+        "commit": "6ca8e0ce29e72feab753405fa7527f3f4692d71e",
+        "execution_repository_commit": "c553592f6b674302f02dd2fa57f27b770337f7b8",
+        "working_tree_dirty": true,
+        "app_root": "/workspace/ALLER-AI/benchmarks/results/released-source-6ca8e0c",
+        "reference_method": "model_visual_not_independent_human",
+        "source_snapshot": {
+          "commit": "6ca8e0ce29e72feab753405fa7527f3f4692d71e",
+          "sha256": {
+            "package-lock.json": "165907030172285a980d25e9cbc6ee3e17564dc8e0b48e9bd511c5e7a4076610",
+            "package.json": "b893efb4242cb4846c4879207a437c2ea7d04e6cbcd25b37d053c9ccb8208a93",
+            "shared/non-dairy.json": "907db3caddc66d6cf3e57463bbfbdf99324feca485f639ef556dca34120ee2b6",
+            "shared/regressions.json": "b1da7c622180c564478171e1cac8311075e8f543a52d04b8ac1a630c4692d697",
+            "src/app.js": "9f7f4fecf7ddd0691bac39f43afb4ba351f67cfccc87564e9071ea9ab2c31a70",
+            "src/browser.js": "34fbf8a017fc5e020bd42406724e244c76751fdab0f8dce9c268ee2223609ee0",
+            "src/crop.js": "e42138526c896391b368291fa4180c8f4cbdb9194ae39e5d5b2560d5e155f1f8",
+            "src/engine.js": "57afac02c4281893c97c78a54ada11b6f56dbcdd55316f3233ef5131bb1ef100",
+            "src/image.js": "85414cef7538188462bcc459a8d191ef126fd2a5e6ccd84e47f25c228ec3a757",
+            "src/ingredient-glossary.js": "905ecc9e6b17b74bccf3b276adc18d56eb013c2238344afd99e31732b21974c5",
+            "src/ingredients.js": "3901b89b7be626b0be8192fa49f636fdaf14994214a0b709e43bd8506ab35bc5",
+            "src/learning.js": "ac374449df44626ae5b1fd3424b350946670f654375b245d6859f6e6445a381d",
+            "src/ocr.js": "0b3e555e393885a9450b2a66c229e08d280692014ae0fe2c254852b14fe63b4b",
+            "src/ontology.js": "c27436f342e8f0db59a0c2de941fcdf505b38ecd5a953ab4267f6eeaa0f99811",
+            "src/pwa.js": "ccdd680e194df221e7b5d1d64fd5eead9450faf8f7dbac2e9e4b68dc12763f6f",
+            "src/tesseract.js": "550c4de211f95f25e6d9521cb6d0e6ecf45b5af68f94c538a00bfaceffd0ef93"
+          }
+        },
+        "app_version": "1.6.1",
+        "dataset_sha256": "cd33066214d392d7dbb9c34cd3281101a72d609dd739aa358ba4bdb699540ffb",
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/154.0.8037.57",
+          "revision": "@73c14f6228d7cd537c855007e8f88678969cc0eb",
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+          "jsVersion": "15.4.80.11"
+        },
+        "platform": "linux",
+        "architecture": "x64",
+        "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+        "logical_cpus": 5,
+        "total_memory_bytes": 35843637248,
+        "implementation": "shipped analyzeProducts source adapter with bundled official models; no camera/UI timing",
+        "profile": {
+          "allergens": [
+            "milk",
+            "egg",
+            "peanut",
+            "tree_nuts",
+            "soy",
+            "wheat",
+            "sesame",
+            "fish",
+            "shellfish"
+          ]
+        },
+        "network": "external HTTPS blocked; experimental fallback downloads may fail and are recorded",
+        "latency": "one product per call; includes preprocessing, worker/model initialization, rotations and retries; excludes image loading, camera and model downloads; desktop timings are not phone timings",
+        "timeout_ms": 60000,
+        "sha256": {
+          "src/app.js": "9f7f4fecf7ddd0691bac39f43afb4ba351f67cfccc87564e9071ea9ab2c31a70",
+          "src/browser.js": "34fbf8a017fc5e020bd42406724e244c76751fdab0f8dce9c268ee2223609ee0",
+          "src/crop.js": "e42138526c896391b368291fa4180c8f4cbdb9194ae39e5d5b2560d5e155f1f8",
+          "src/engine.js": "57afac02c4281893c97c78a54ada11b6f56dbcdd55316f3233ef5131bb1ef100",
+          "src/image.js": "85414cef7538188462bcc459a8d191ef126fd2a5e6ccd84e47f25c228ec3a757",
+          "src/ingredient-glossary.js": "905ecc9e6b17b74bccf3b276adc18d56eb013c2238344afd99e31732b21974c5",
+          "src/ingredients.js": "3901b89b7be626b0be8192fa49f636fdaf14994214a0b709e43bd8506ab35bc5",
+          "src/learning.js": "ac374449df44626ae5b1fd3424b350946670f654375b245d6859f6e6445a381d",
+          "src/ocr.js": "0b3e555e393885a9450b2a66c229e08d280692014ae0fe2c254852b14fe63b4b",
+          "src/ontology.js": "c27436f342e8f0db59a0c2de941fcdf505b38ecd5a953ab4267f6eeaa0f99811",
+          "src/pwa.js": "ccdd680e194df221e7b5d1d64fd5eead9450faf8f7dbac2e9e4b68dc12763f6f",
+          "src/tesseract.js": "550c4de211f95f25e6d9521cb6d0e6ecf45b5af68f94c538a00bfaceffd0ef93",
+          "package-lock.json": "165907030172285a980d25e9cbc6ee3e17564dc8e0b48e9bd511c5e7a4076610",
+          "benchmarks/diagnose-real.mjs": "c75775486b54ba89c8c738dbd57f302f792872a1465694cbbf5b75d15cd9edce",
+          "benchmarks/diagnostic-evidence.mjs": "8ae7f7289c9279d31c10d4211ba7eef6a244cc02c4e8b533ce8a64f589714e1f",
+          "benchmarks/evaluate.mjs": "7c1c597db512bdd0927295b477f2c027d13d3dbaf392cc51391644040f2037c6",
+          "dist/vendor/tessdata/kor.traineddata": "ec1749377d49ac38fb3d3cd05dd5e2a53359d329f359762bc638a81132109992",
+          "dist/vendor/tessdata/eng.traineddata": "5dc5d8d640a212c9d6184921ba103b186f50e0fed9ee716c53e6b312b400d747",
+          "dist/vendor/tessdata/fra.traineddata": "bf83833fa957ff0076f6aa93f69e3bdf7b014dea829ea0c0d6be6b48a3ceef6d"
+        }
+      },
+      "raw_prediction_sha256": "1790fa7ef447816d4e94d1c84302bcae1dc983774b772a9fa0bb75e250de9ecb",
+      "by_language": {
+        "en": {
+          "captures": 8,
+          "known_positive_pairs": 19,
+          "detected": 11,
+          "missed": 8
+        },
+        "ko": {
+          "captures": 8,
+          "known_positive_pairs": 20,
+          "detected": 1,
+          "missed": 19
+        }
+      }
+    },
+    "candidate_1_6_3_r4": {
+      "summary": {
+        "validity": "exploratory_model_visual_development_NOT_human_reference_NOT_release_accuracy",
+        "capture_count": 16,
+        "known_positive_pairs": 39,
+        "detected_known_positive_pairs": 16,
+        "missed_known_positive_pairs": 23,
+        "observed_visible_evidence_detection_fraction": 0.41025641025641024,
+        "human_reviewed_references": 0,
+        "ocr_cer": null,
+        "ocr_wer": null,
+        "precision": null,
+        "false_positive_rate": null,
+        "limitations": "Partial model-read excerpts are not independent human ground truth; unlisted allergens are unknown, so extra predictions require review. Convenience/source-OCR-screened sample; no population accuracy or phone latency claim.",
+        "status_counts": {
+          "conflict": 8,
+          "caution": 0,
+          "unverified": 8
+        },
+        "failed_captures": [],
+        "captures_with_ocr_errors": [
+          {
+            "capture_id": "off-0011110014467-en",
+            "errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "rotation": 90,
+                "phase": "original",
+                "message": "OCR timeout: recognize"
+              }
+            ]
+          },
+          {
+            "capture_id": "off-0011110904225-en",
+            "errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "rotation": 270,
+                "phase": "original",
+                "message": "OCR timeout: recognize"
+              }
+            ]
+          },
+          {
+            "capture_id": "off-0011152174754-en",
+            "errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "phase": "enhanced",
+                "message": "OCR timeout: recognize"
+              }
+            ]
+          },
+          {
+            "capture_id": "off-2000000021345-ko",
+            "errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "rotation": 0,
+                "phase": "original",
+                "message": "OCR timeout: recognize"
+              }
+            ]
+          },
+          {
+            "capture_id": "off-8801043020756-ko",
+            "errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "message": "OCR photo time budget reached"
+              }
+            ]
+          },
+          {
+            "capture_id": "off-8809120440763-ko",
+            "errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "rotation": 270,
+                "phase": "original",
+                "message": "OCR timeout: recognize"
+              }
+            ]
+          },
+          {
+            "capture_id": "off-8801037002782-ko",
+            "errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "rotation": 180,
+                "phase": "reduced",
+                "message": "OCR timeout: recognize"
+              }
+            ]
+          },
+          {
+            "capture_id": "off-8802043002575-ko",
+            "errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "rotation": 180,
+                "phase": "original",
+                "message": "OCR timeout: recognize"
+              }
+            ]
+          },
+          {
+            "capture_id": "off-8801033784491-ko",
+            "errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "rotation": 90,
+                "phase": "original",
+                "message": "OCR timeout: recognize"
+              }
+            ]
+          }
+        ],
+        "captures_with_deadlines": [
+          "off-0011110014467-en",
+          "off-0011110904225-en",
+          "off-0011152174754-en",
+          "off-2000000021345-ko",
+          "off-8801043020756-ko",
+          "off-8809120440763-ko",
+          "off-8801037002782-ko",
+          "off-8802043002575-ko",
+          "off-8801033784491-ko"
+        ],
+        "reassuring_negative_captures": 0,
+        "desktop_successful_latency_ms": {
+          "count": 16,
+          "p50": 66999.20000000298,
+          "p95": 68520.89999999851
+        },
+        "cases": [
+          {
+            "capture_id": "off-0010300343257-en",
+            "language": "en",
+            "status": "conflict",
+            "error": null,
+            "known_positive_allergens": [
+              "tree_nuts"
+            ],
+            "detected_known": [
+              "tree_nuts"
+            ],
+            "missed_known": [],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 17066.30000000447,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": [],
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-0011110014467-en",
+            "language": "en",
+            "status": "conflict",
+            "error": null,
+            "known_positive_allergens": [
+              "milk"
+            ],
+            "detected_known": [
+              "milk"
+            ],
+            "missed_known": [],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [
+              "soy"
+            ],
+            "latency_ms": 67276.5,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "rotation": 90,
+                "phase": "original",
+                "message": "OCR timeout: recognize"
+              }
+            ],
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-0011110507181-en",
+            "language": "en",
+            "status": "conflict",
+            "error": null,
+            "known_positive_allergens": [
+              "milk",
+              "egg"
+            ],
+            "detected_known": [
+              "milk",
+              "egg"
+            ],
+            "missed_known": [],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 20083.59999999404,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": [],
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-0011110791559-en",
+            "language": "en",
+            "status": "conflict",
+            "error": null,
+            "known_positive_allergens": [
+              "peanut"
+            ],
+            "detected_known": [
+              "peanut"
+            ],
+            "missed_known": [],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 17412.80000000447,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": [],
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-0011110806178-en",
+            "language": "en",
+            "status": "unverified",
+            "error": null,
+            "known_positive_allergens": [
+              "milk",
+              "tree_nuts",
+              "wheat",
+              "soy",
+              "peanut"
+            ],
+            "detected_known": [],
+            "missed_known": [
+              "milk",
+              "tree_nuts",
+              "wheat",
+              "soy",
+              "peanut"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 11017,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": [],
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-0011110824325-en",
+            "language": "en",
+            "status": "unverified",
+            "error": null,
+            "known_positive_allergens": [],
+            "detected_known": [],
+            "missed_known": [],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 17580.70000000298,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": [],
+            "expected_abstention_for_negative": true,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-0011110904225-en",
+            "language": "en",
+            "status": "conflict",
+            "error": null,
+            "known_positive_allergens": [
+              "wheat",
+              "soy",
+              "milk"
+            ],
+            "detected_known": [
+              "wheat",
+              "soy",
+              "milk"
+            ],
+            "missed_known": [],
+            "context_mismatches": [
+              {
+                "allergen": "soy",
+                "context": "caution",
+                "quote": "MAY CONTAIN: SOY, MILK."
+              },
+              {
+                "allergen": "milk",
+                "context": "caution",
+                "quote": "MAY CONTAIN: SOY, MILK."
+              }
+            ],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 67564.39999999851,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "rotation": 270,
+                "phase": "original",
+                "message": "OCR timeout: recognize"
+              }
+            ],
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-0011152174754-en",
+            "language": "en",
+            "status": "conflict",
+            "error": null,
+            "known_positive_allergens": [
+              "sesame",
+              "fish",
+              "milk",
+              "egg",
+              "soy",
+              "wheat"
+            ],
+            "detected_known": [
+              "sesame",
+              "fish",
+              "milk",
+              "egg",
+              "soy",
+              "wheat"
+            ],
+            "missed_known": [],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 68029.5,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "phase": "enhanced",
+                "message": "OCR timeout: recognize"
+              }
+            ],
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-2000000021345-ko",
+            "language": "ko",
+            "status": "unverified",
+            "error": null,
+            "known_positive_allergens": [
+              "wheat",
+              "soy",
+              "egg"
+            ],
+            "detected_known": [],
+            "missed_known": [
+              "wheat",
+              "soy",
+              "egg"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 68125.5,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "rotation": 0,
+                "phase": "original",
+                "message": "OCR timeout: recognize"
+              }
+            ],
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-8801043020756-ko",
+            "language": "ko",
+            "status": "unverified",
+            "error": null,
+            "known_positive_allergens": [
+              "wheat",
+              "soy",
+              "milk",
+              "peanut"
+            ],
+            "detected_known": [],
+            "missed_known": [
+              "wheat",
+              "soy",
+              "milk",
+              "peanut"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 67886.69999999553,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "message": "OCR photo time budget reached"
+              }
+            ],
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-8809120440763-ko",
+            "language": "ko",
+            "status": "conflict",
+            "error": null,
+            "known_positive_allergens": [
+              "tree_nuts",
+              "wheat"
+            ],
+            "detected_known": [
+              "wheat"
+            ],
+            "missed_known": [
+              "tree_nuts"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 67487.10000000149,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "rotation": 270,
+                "phase": "original",
+                "message": "OCR timeout: recognize"
+              }
+            ],
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-8801037002782-ko",
+            "language": "ko",
+            "status": "unverified",
+            "error": null,
+            "known_positive_allergens": [
+              "wheat",
+              "soy",
+              "milk",
+              "tree_nuts",
+              "peanut",
+              "egg"
+            ],
+            "detected_known": [],
+            "missed_known": [
+              "wheat",
+              "soy",
+              "milk",
+              "tree_nuts",
+              "peanut",
+              "egg"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 66999.20000000298,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "rotation": 180,
+                "phase": "reduced",
+                "message": "OCR timeout: recognize"
+              }
+            ],
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-8802043002575-ko",
+            "language": "ko",
+            "status": "unverified",
+            "error": null,
+            "known_positive_allergens": [
+              "soy"
+            ],
+            "detected_known": [],
+            "missed_known": [
+              "soy"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 67124.10000000149,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "rotation": 180,
+                "phase": "original",
+                "message": "OCR timeout: recognize"
+              }
+            ],
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-4901033140175-ko",
+            "language": "ko",
+            "status": "conflict",
+            "error": null,
+            "known_positive_allergens": [
+              "soy",
+              "fish"
+            ],
+            "detected_known": [
+              "soy"
+            ],
+            "missed_known": [
+              "fish"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 39414,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": [],
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-8801056241506-ko",
+            "language": "ko",
+            "status": "unverified",
+            "error": null,
+            "known_positive_allergens": [],
+            "detected_known": [],
+            "missed_known": [],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 54322.79999999702,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": [],
+            "expected_abstention_for_negative": true,
+            "reassuring_negative": false
+          },
+          {
+            "capture_id": "off-8801033784491-ko",
+            "language": "ko",
+            "status": "unverified",
+            "error": null,
+            "known_positive_allergens": [
+              "soy",
+              "sesame"
+            ],
+            "detected_known": [],
+            "missed_known": [
+              "soy",
+              "sesame"
+            ],
+            "context_mismatches": [],
+            "additional_predictions_needing_review": [],
+            "latency_ms": 68520.89999999851,
+            "elapsed_until_failure_ms": null,
+            "ocr_errors": [
+              {
+                "family": "korean",
+                "photoIndex": 0,
+                "rotation": 90,
+                "phase": "original",
+                "message": "OCR timeout: recognize"
+              }
+            ],
+            "expected_abstention_for_negative": false,
+            "reassuring_negative": false
+          }
+        ],
+        "by_split": {
+          "development": {
+            "validity": "exploratory_model_visual_development_NOT_human_reference_NOT_release_accuracy",
+            "capture_count": 16,
+            "known_positive_pairs": 39,
+            "detected_known_positive_pairs": 16,
+            "missed_known_positive_pairs": 23,
+            "observed_visible_evidence_detection_fraction": 0.41025641025641024,
+            "human_reviewed_references": 0,
+            "ocr_cer": null,
+            "ocr_wer": null,
+            "precision": null,
+            "false_positive_rate": null,
+            "limitations": "Partial model-read excerpts are not independent human ground truth; unlisted allergens are unknown, so extra predictions require review. Convenience/source-OCR-screened sample; no population accuracy or phone latency claim.",
+            "status_counts": {
+              "conflict": 8,
+              "caution": 0,
+              "unverified": 8
+            },
+            "failed_captures": [],
+            "captures_with_ocr_errors": [
+              {
+                "capture_id": "off-0011110014467-en",
+                "errors": [
+                  {
+                    "family": "korean",
+                    "photoIndex": 0,
+                    "rotation": 90,
+                    "phase": "original",
+                    "message": "OCR timeout: recognize"
+                  }
+                ]
+              },
+              {
+                "capture_id": "off-0011110904225-en",
+                "errors": [
+                  {
+                    "family": "korean",
+                    "photoIndex": 0,
+                    "rotation": 270,
+                    "phase": "original",
+                    "message": "OCR timeout: recognize"
+                  }
+                ]
+              },
+              {
+                "capture_id": "off-0011152174754-en",
+                "errors": [
+                  {
+                    "family": "korean",
+                    "photoIndex": 0,
+                    "phase": "enhanced",
+                    "message": "OCR timeout: recognize"
+                  }
+                ]
+              },
+              {
+                "capture_id": "off-2000000021345-ko",
+                "errors": [
+                  {
+                    "family": "korean",
+                    "photoIndex": 0,
+                    "rotation": 0,
+                    "phase": "original",
+                    "message": "OCR timeout: recognize"
+                  }
+                ]
+              },
+              {
+                "capture_id": "off-8801043020756-ko",
+                "errors": [
+                  {
+                    "family": "korean",
+                    "photoIndex": 0,
+                    "message": "OCR photo time budget reached"
+                  }
+                ]
+              },
+              {
+                "capture_id": "off-8809120440763-ko",
+                "errors": [
+                  {
+                    "family": "korean",
+                    "photoIndex": 0,
+                    "rotation": 270,
+                    "phase": "original",
+                    "message": "OCR timeout: recognize"
+                  }
+                ]
+              },
+              {
+                "capture_id": "off-8801037002782-ko",
+                "errors": [
+                  {
+                    "family": "korean",
+                    "photoIndex": 0,
+                    "rotation": 180,
+                    "phase": "reduced",
+                    "message": "OCR timeout: recognize"
+                  }
+                ]
+              },
+              {
+                "capture_id": "off-8802043002575-ko",
+                "errors": [
+                  {
+                    "family": "korean",
+                    "photoIndex": 0,
+                    "rotation": 180,
+                    "phase": "original",
+                    "message": "OCR timeout: recognize"
+                  }
+                ]
+              },
+              {
+                "capture_id": "off-8801033784491-ko",
+                "errors": [
+                  {
+                    "family": "korean",
+                    "photoIndex": 0,
+                    "rotation": 90,
+                    "phase": "original",
+                    "message": "OCR timeout: recognize"
+                  }
+                ]
+              }
+            ],
+            "captures_with_deadlines": [
+              "off-0011110014467-en",
+              "off-0011110904225-en",
+              "off-0011152174754-en",
+              "off-2000000021345-ko",
+              "off-8801043020756-ko",
+              "off-8809120440763-ko",
+              "off-8801037002782-ko",
+              "off-8802043002575-ko",
+              "off-8801033784491-ko"
+            ],
+            "reassuring_negative_captures": 0,
+            "desktop_successful_latency_ms": {
+              "count": 16,
+              "p50": 66999.20000000298,
+              "p95": 68520.89999999851
+            },
+            "cases": [
+              {
+                "capture_id": "off-0010300343257-en",
+                "language": "en",
+                "status": "conflict",
+                "error": null,
+                "known_positive_allergens": [
+                  "tree_nuts"
+                ],
+                "detected_known": [
+                  "tree_nuts"
+                ],
+                "missed_known": [],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 17066.30000000447,
+                "elapsed_until_failure_ms": null,
+                "ocr_errors": [],
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-0011110014467-en",
+                "language": "en",
+                "status": "conflict",
+                "error": null,
+                "known_positive_allergens": [
+                  "milk"
+                ],
+                "detected_known": [
+                  "milk"
+                ],
+                "missed_known": [],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [
+                  "soy"
+                ],
+                "latency_ms": 67276.5,
+                "elapsed_until_failure_ms": null,
+                "ocr_errors": [
+                  {
+                    "family": "korean",
+                    "photoIndex": 0,
+                    "rotation": 90,
+                    "phase": "original",
+                    "message": "OCR timeout: recognize"
+                  }
+                ],
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-0011110507181-en",
+                "language": "en",
+                "status": "conflict",
+                "error": null,
+                "known_positive_allergens": [
+                  "milk",
+                  "egg"
+                ],
+                "detected_known": [
+                  "milk",
+                  "egg"
+                ],
+                "missed_known": [],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 20083.59999999404,
+                "elapsed_until_failure_ms": null,
+                "ocr_errors": [],
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-0011110791559-en",
+                "language": "en",
+                "status": "conflict",
+                "error": null,
+                "known_positive_allergens": [
+                  "peanut"
+                ],
+                "detected_known": [
+                  "peanut"
+                ],
+                "missed_known": [],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 17412.80000000447,
+                "elapsed_until_failure_ms": null,
+                "ocr_errors": [],
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-0011110806178-en",
+                "language": "en",
+                "status": "unverified",
+                "error": null,
+                "known_positive_allergens": [
+                  "milk",
+                  "tree_nuts",
+                  "wheat",
+                  "soy",
+                  "peanut"
+                ],
+                "detected_known": [],
+                "missed_known": [
+                  "milk",
+                  "tree_nuts",
+                  "wheat",
+                  "soy",
+                  "peanut"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 11017,
+                "elapsed_until_failure_ms": null,
+                "ocr_errors": [],
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-0011110824325-en",
+                "language": "en",
+                "status": "unverified",
+                "error": null,
+                "known_positive_allergens": [],
+                "detected_known": [],
+                "missed_known": [],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 17580.70000000298,
+                "elapsed_until_failure_ms": null,
+                "ocr_errors": [],
+                "expected_abstention_for_negative": true,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-0011110904225-en",
+                "language": "en",
+                "status": "conflict",
+                "error": null,
+                "known_positive_allergens": [
+                  "wheat",
+                  "soy",
+                  "milk"
+                ],
+                "detected_known": [
+                  "wheat",
+                  "soy",
+                  "milk"
+                ],
+                "missed_known": [],
+                "context_mismatches": [
+                  {
+                    "allergen": "soy",
+                    "context": "caution",
+                    "quote": "MAY CONTAIN: SOY, MILK."
+                  },
+                  {
+                    "allergen": "milk",
+                    "context": "caution",
+                    "quote": "MAY CONTAIN: SOY, MILK."
+                  }
+                ],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 67564.39999999851,
+                "elapsed_until_failure_ms": null,
+                "ocr_errors": [
+                  {
+                    "family": "korean",
+                    "photoIndex": 0,
+                    "rotation": 270,
+                    "phase": "original",
+                    "message": "OCR timeout: recognize"
+                  }
+                ],
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-0011152174754-en",
+                "language": "en",
+                "status": "conflict",
+                "error": null,
+                "known_positive_allergens": [
+                  "sesame",
+                  "fish",
+                  "milk",
+                  "egg",
+                  "soy",
+                  "wheat"
+                ],
+                "detected_known": [
+                  "sesame",
+                  "fish",
+                  "milk",
+                  "egg",
+                  "soy",
+                  "wheat"
+                ],
+                "missed_known": [],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 68029.5,
+                "elapsed_until_failure_ms": null,
+                "ocr_errors": [
+                  {
+                    "family": "korean",
+                    "photoIndex": 0,
+                    "phase": "enhanced",
+                    "message": "OCR timeout: recognize"
+                  }
+                ],
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-2000000021345-ko",
+                "language": "ko",
+                "status": "unverified",
+                "error": null,
+                "known_positive_allergens": [
+                  "wheat",
+                  "soy",
+                  "egg"
+                ],
+                "detected_known": [],
+                "missed_known": [
+                  "wheat",
+                  "soy",
+                  "egg"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 68125.5,
+                "elapsed_until_failure_ms": null,
+                "ocr_errors": [
+                  {
+                    "family": "korean",
+                    "photoIndex": 0,
+                    "rotation": 0,
+                    "phase": "original",
+                    "message": "OCR timeout: recognize"
+                  }
+                ],
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-8801043020756-ko",
+                "language": "ko",
+                "status": "unverified",
+                "error": null,
+                "known_positive_allergens": [
+                  "wheat",
+                  "soy",
+                  "milk",
+                  "peanut"
+                ],
+                "detected_known": [],
+                "missed_known": [
+                  "wheat",
+                  "soy",
+                  "milk",
+                  "peanut"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 67886.69999999553,
+                "elapsed_until_failure_ms": null,
+                "ocr_errors": [
+                  {
+                    "family": "korean",
+                    "photoIndex": 0,
+                    "message": "OCR photo time budget reached"
+                  }
+                ],
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-8809120440763-ko",
+                "language": "ko",
+                "status": "conflict",
+                "error": null,
+                "known_positive_allergens": [
+                  "tree_nuts",
+                  "wheat"
+                ],
+                "detected_known": [
+                  "wheat"
+                ],
+                "missed_known": [
+                  "tree_nuts"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 67487.10000000149,
+                "elapsed_until_failure_ms": null,
+                "ocr_errors": [
+                  {
+                    "family": "korean",
+                    "photoIndex": 0,
+                    "rotation": 270,
+                    "phase": "original",
+                    "message": "OCR timeout: recognize"
+                  }
+                ],
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-8801037002782-ko",
+                "language": "ko",
+                "status": "unverified",
+                "error": null,
+                "known_positive_allergens": [
+                  "wheat",
+                  "soy",
+                  "milk",
+                  "tree_nuts",
+                  "peanut",
+                  "egg"
+                ],
+                "detected_known": [],
+                "missed_known": [
+                  "wheat",
+                  "soy",
+                  "milk",
+                  "tree_nuts",
+                  "peanut",
+                  "egg"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 66999.20000000298,
+                "elapsed_until_failure_ms": null,
+                "ocr_errors": [
+                  {
+                    "family": "korean",
+                    "photoIndex": 0,
+                    "rotation": 180,
+                    "phase": "reduced",
+                    "message": "OCR timeout: recognize"
+                  }
+                ],
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-8802043002575-ko",
+                "language": "ko",
+                "status": "unverified",
+                "error": null,
+                "known_positive_allergens": [
+                  "soy"
+                ],
+                "detected_known": [],
+                "missed_known": [
+                  "soy"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 67124.10000000149,
+                "elapsed_until_failure_ms": null,
+                "ocr_errors": [
+                  {
+                    "family": "korean",
+                    "photoIndex": 0,
+                    "rotation": 180,
+                    "phase": "original",
+                    "message": "OCR timeout: recognize"
+                  }
+                ],
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-4901033140175-ko",
+                "language": "ko",
+                "status": "conflict",
+                "error": null,
+                "known_positive_allergens": [
+                  "soy",
+                  "fish"
+                ],
+                "detected_known": [
+                  "soy"
+                ],
+                "missed_known": [
+                  "fish"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 39414,
+                "elapsed_until_failure_ms": null,
+                "ocr_errors": [],
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-8801056241506-ko",
+                "language": "ko",
+                "status": "unverified",
+                "error": null,
+                "known_positive_allergens": [],
+                "detected_known": [],
+                "missed_known": [],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 54322.79999999702,
+                "elapsed_until_failure_ms": null,
+                "ocr_errors": [],
+                "expected_abstention_for_negative": true,
+                "reassuring_negative": false
+              },
+              {
+                "capture_id": "off-8801033784491-ko",
+                "language": "ko",
+                "status": "unverified",
+                "error": null,
+                "known_positive_allergens": [
+                  "soy",
+                  "sesame"
+                ],
+                "detected_known": [],
+                "missed_known": [
+                  "soy",
+                  "sesame"
+                ],
+                "context_mismatches": [],
+                "additional_predictions_needing_review": [],
+                "latency_ms": 68520.89999999851,
+                "elapsed_until_failure_ms": null,
+                "ocr_errors": [
+                  {
+                    "family": "korean",
+                    "photoIndex": 0,
+                    "rotation": 90,
+                    "phase": "original",
+                    "message": "OCR timeout: recognize"
+                  }
+                ],
+                "expected_abstention_for_negative": false,
+                "reassuring_negative": false
+              }
+            ]
+          }
+        },
+        "model_visual_excerpt_semantics": {
+          "validity": "exploratory_model_visual_development_NOT_human_reference_NOT_release_accuracy",
+          "capture_count": 16,
+          "known_positive_pairs": 39,
+          "detected_known_positive_pairs": 38,
+          "missed_known_positive_pairs": 1,
+          "observed_visible_evidence_detection_fraction": 0.9743589743589743,
+          "human_reviewed_references": 0,
+          "ocr_cer": null,
+          "ocr_wer": null,
+          "precision": null,
+          "false_positive_rate": null,
+          "limitations": "Partial model-read excerpts are not independent human ground truth; unlisted allergens are unknown, so extra predictions require review. Convenience/source-OCR-screened sample; no population accuracy or phone latency claim.",
+          "status_counts": {
+            "conflict": 14,
+            "caution": 0,
+            "unverified": 2
+          },
+          "failed_captures": [],
+          "captures_with_ocr_errors": [],
+          "captures_with_deadlines": [],
+          "reassuring_negative_captures": 0,
+          "desktop_successful_latency_ms": {
+            "count": 0,
+            "p50": null,
+            "p95": null
+          },
+          "cases": [
+            {
+              "capture_id": "off-0010300343257-en",
+              "language": "en",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "tree_nuts"
+              ],
+              "detected_known": [
+                "tree_nuts"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "ocr_errors": [],
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-0011110014467-en",
+              "language": "en",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "milk"
+              ],
+              "detected_known": [
+                "milk"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "ocr_errors": [],
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-0011110507181-en",
+              "language": "en",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "milk",
+                "egg"
+              ],
+              "detected_known": [
+                "milk",
+                "egg"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "ocr_errors": [],
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-0011110791559-en",
+              "language": "en",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "peanut"
+              ],
+              "detected_known": [
+                "peanut"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "ocr_errors": [],
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-0011110806178-en",
+              "language": "en",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "milk",
+                "tree_nuts",
+                "wheat",
+                "soy",
+                "peanut"
+              ],
+              "detected_known": [
+                "milk",
+                "tree_nuts",
+                "wheat",
+                "soy",
+                "peanut"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "ocr_errors": [],
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-0011110824325-en",
+              "language": "en",
+              "status": "unverified",
+              "error": null,
+              "known_positive_allergens": [],
+              "detected_known": [],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "ocr_errors": [],
+              "expected_abstention_for_negative": true,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-0011110904225-en",
+              "language": "en",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "wheat",
+                "soy",
+                "milk"
+              ],
+              "detected_known": [
+                "wheat",
+                "soy",
+                "milk"
+              ],
+              "missed_known": [],
+              "context_mismatches": [
+                {
+                  "allergen": "soy",
+                  "context": "caution",
+                  "quote": "MAY CONTAIN: SOY, MILK."
+                }
+              ],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "ocr_errors": [],
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-0011152174754-en",
+              "language": "en",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "sesame",
+                "fish",
+                "milk",
+                "egg",
+                "soy",
+                "wheat"
+              ],
+              "detected_known": [
+                "sesame",
+                "fish",
+                "milk",
+                "egg",
+                "soy",
+                "wheat"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "ocr_errors": [],
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-2000000021345-ko",
+              "language": "ko",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "wheat",
+                "soy",
+                "egg"
+              ],
+              "detected_known": [
+                "wheat",
+                "soy",
+                "egg"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "ocr_errors": [],
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-8801043020756-ko",
+              "language": "ko",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "wheat",
+                "soy",
+                "milk",
+                "peanut"
+              ],
+              "detected_known": [
+                "wheat",
+                "soy",
+                "milk",
+                "peanut"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "ocr_errors": [],
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-8809120440763-ko",
+              "language": "ko",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "tree_nuts",
+                "wheat"
+              ],
+              "detected_known": [
+                "tree_nuts",
+                "wheat"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "ocr_errors": [],
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-8801037002782-ko",
+              "language": "ko",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "wheat",
+                "soy",
+                "milk",
+                "tree_nuts",
+                "peanut",
+                "egg"
+              ],
+              "detected_known": [
+                "wheat",
+                "soy",
+                "milk",
+                "tree_nuts",
+                "peanut",
+                "egg"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "ocr_errors": [],
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-8802043002575-ko",
+              "language": "ko",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "soy"
+              ],
+              "detected_known": [
+                "soy"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "ocr_errors": [],
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-4901033140175-ko",
+              "language": "ko",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "soy",
+                "fish"
+              ],
+              "detected_known": [
+                "soy"
+              ],
+              "missed_known": [
+                "fish"
+              ],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "ocr_errors": [],
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-8801056241506-ko",
+              "language": "ko",
+              "status": "unverified",
+              "error": null,
+              "known_positive_allergens": [],
+              "detected_known": [],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "ocr_errors": [],
+              "expected_abstention_for_negative": true,
+              "reassuring_negative": false
+            },
+            {
+              "capture_id": "off-8801033784491-ko",
+              "language": "ko",
+              "status": "conflict",
+              "error": null,
+              "known_positive_allergens": [
+                "soy",
+                "sesame"
+              ],
+              "detected_known": [
+                "soy",
+                "sesame"
+              ],
+              "missed_known": [],
+              "context_mismatches": [],
+              "additional_predictions_needing_review": [],
+              "latency_ms": null,
+              "elapsed_until_failure_ms": null,
+              "ocr_errors": [],
+              "expected_abstention_for_negative": false,
+              "reassuring_negative": false
+            }
+          ]
+        }
+      },
+      "metadata": {
+        "started_utc": "2026-10-19T02:42:57.089Z",
+        "finished_utc": "2026-10-19T02:56:09.003Z",
+        "commit": "c553592f6b674302f02dd2fa57f27b770337f7b8",
+        "execution_repository_commit": "c553592f6b674302f02dd2fa57f27b770337f7b8",
+        "working_tree_dirty": true,
+        "app_root": "/workspace/ALLER-AI/benchmarks/results/candidate-source-1.6.3-r4",
+        "reference_method": "model_visual_not_independent_human",
+        "source_snapshot": {
+          "commit": null,
+          "base_commit": "c553592f6b674302f02dd2fa57f27b770337f7b8",
+          "description": "Final1.6.3 development candidate R4: preserve positives across Korean block/English sparse/original automatic readings, bounded worker and photo budget, geometric rows and facility scope, printed-menu mode. Frozen before full16-case run. No human references or holdout.",
+          "frozen_utc": "2026-10-18T06:58:43.853146+00:00",
+          "sha256": {
+            "src/ingredient-glossary.js": "905ecc9e6b17b74bccf3b276adc18d56eb013c2238344afd99e31732b21974c5",
+            "src/ingredients.js": "c2c8555d42c2d103e977c4310aa923c5be8ddfd0e3f40189971c7453022f9685",
+            "src/image.js": "24c90a6f1f954dbceef89e6be4647b9cbb388ff0b6ef2ed870d87dcd952a32a3",
+            "src/ontology.js": "72fd38ee9f52d1a6c749700e108bf82a03ae4618db0ca4fb922dab774d863ee5",
+            "src/engine.js": "243f6ca1c80102498149500f60f48dda9f936485ca81fc7ca5f7102c82d08f7c",
+            "src/tesseract.js": "5142a400af70fc1c52400e7058278e904587ae8669155af07c7c74cbafb7f3ec",
+            "src/learning.js": "ac374449df44626ae5b1fd3424b350946670f654375b245d6859f6e6445a381d",
+            "src/app.js": "dfbd086e33bbd7d43a8faa40358f3d82e4bb792cca03e2256f453a6b9561ea68",
+            "src/ocr-worker.js": "9d3a1c5abbbb3c3d581fb78a4ffbf02148495f442ca24891ed2f0ae3e4f6f3f9",
+            "src/browser.js": "a2b3b1a1b7dccd1417e8f3ad8307b605497b2e5b1e81553c8672b73be0217975",
+            "src/label-pattern.js": "8c6b1700ecbf21b1600891d9bcd491a9d7021cce3936842ca20a5f3e1fe9dc6e",
+            "src/menu.js": "1eaf376545436f86c0f3fc215ece158f69d985d328020b346555e306f028c870",
+            "src/crop.js": "e42138526c896391b368291fa4180c8f4cbdb9194ae39e5d5b2560d5e155f1f8",
+            "src/ocr.js": "75ee6b3b7b64918be6dbd5182b852e62d191137ac56fb3a577d378cb88f3866f",
+            "src/pwa.js": "ccdd680e194df221e7b5d1d64fd5eead9450faf8f7dbac2e9e4b68dc12763f6f",
+            "shared/non-dairy.json": "c821554a7596184c975e3fddebaaf2edfa4b4f1c28ec966e29a5caf9011cca90",
+            "shared/regressions.json": "af8b7d4a53cf027674abc3d2efe52d43f165cf226d8923a17a9409e87b473ba2",
+            "package.json": "3c8e1cb9579de5e1a35c977e6c9c7df7f349c2707dc00ed584533bb37698373d",
+            "package-lock.json": "361bcb706f228484c8b9c29d1490d842450da92ec6ec420f44431467615f8aed"
+          }
+        },
+        "app_version": "1.6.3",
+        "dataset_sha256": "cd33066214d392d7dbb9c34cd3281101a72d609dd739aa358ba4bdb699540ffb",
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/154.0.8037.57",
+          "revision": "@73c14f6228d7cd537c855007e8f88678969cc0eb",
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+          "jsVersion": "15.4.80.11"
+        },
+        "platform": "linux",
+        "architecture": "x64",
+        "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+        "logical_cpus": 5,
+        "total_memory_bytes": 35843637248,
+        "implementation": "shipped analyzeProducts source adapter with bundled official models; no camera/UI timing",
+        "profile": {
+          "allergens": [
+            "milk",
+            "egg",
+            "peanut",
+            "tree_nuts",
+            "soy",
+            "wheat",
+            "sesame",
+            "fish",
+            "shellfish"
+          ]
+        },
+        "network": "external HTTPS blocked; experimental fallback downloads may fail and are recorded",
+        "latency": "one product per call; includes preprocessing, worker/model initialization, rotations and retries; excludes image loading, camera and model downloads; desktop timings are not phone timings",
+        "timeout_ms": 90000,
+        "sha256": {
+          "src/app.js": "dfbd086e33bbd7d43a8faa40358f3d82e4bb792cca03e2256f453a6b9561ea68",
+          "src/browser.js": "a2b3b1a1b7dccd1417e8f3ad8307b605497b2e5b1e81553c8672b73be0217975",
+          "src/crop.js": "e42138526c896391b368291fa4180c8f4cbdb9194ae39e5d5b2560d5e155f1f8",
+          "src/engine.js": "243f6ca1c80102498149500f60f48dda9f936485ca81fc7ca5f7102c82d08f7c",
+          "src/image.js": "24c90a6f1f954dbceef89e6be4647b9cbb388ff0b6ef2ed870d87dcd952a32a3",
+          "src/ingredient-glossary.js": "905ecc9e6b17b74bccf3b276adc18d56eb013c2238344afd99e31732b21974c5",
+          "src/ingredients.js": "c2c8555d42c2d103e977c4310aa923c5be8ddfd0e3f40189971c7453022f9685",
+          "src/label-pattern.js": "8c6b1700ecbf21b1600891d9bcd491a9d7021cce3936842ca20a5f3e1fe9dc6e",
+          "src/learning.js": "ac374449df44626ae5b1fd3424b350946670f654375b245d6859f6e6445a381d",
+          "src/menu.js": "1eaf376545436f86c0f3fc215ece158f69d985d328020b346555e306f028c870",
+          "src/ocr-worker.js": "9d3a1c5abbbb3c3d581fb78a4ffbf02148495f442ca24891ed2f0ae3e4f6f3f9",
+          "src/ocr.js": "75ee6b3b7b64918be6dbd5182b852e62d191137ac56fb3a577d378cb88f3866f",
+          "src/ontology.js": "72fd38ee9f52d1a6c749700e108bf82a03ae4618db0ca4fb922dab774d863ee5",
+          "src/pwa.js": "ccdd680e194df221e7b5d1d64fd5eead9450faf8f7dbac2e9e4b68dc12763f6f",
+          "src/tesseract.js": "5142a400af70fc1c52400e7058278e904587ae8669155af07c7c74cbafb7f3ec",
+          "package-lock.json": "361bcb706f228484c8b9c29d1490d842450da92ec6ec420f44431467615f8aed",
+          "benchmarks/diagnose-real.mjs": "a6edff8a9dff35409300c57ce6c30b37f7b154ea502c20d88731b8690d052aa1",
+          "benchmarks/diagnostic-evidence.mjs": "98d6326f72f4e5d90ebfe59452f9240164f94601a1dacdc05d98c99d6875d0e7",
+          "benchmarks/evaluate.mjs": "7c1c597db512bdd0927295b477f2c027d13d3dbaf392cc51391644040f2037c6",
+          "dist/vendor/tesseract/tesseract.min.js": "a8e29918d098b2b06e1012bdaeffb4aec0445c5d5654709023e0bd1f442a80e8",
+          "dist/vendor/tesseract/worker.min.js": "aca1229639fc9907d86f96e825955a2b7c5716d17f3bc3acd71f9c7ab66181fc",
+          "dist/vendor/tessdata/kor.traineddata": "ec1749377d49ac38fb3d3cd05dd5e2a53359d329f359762bc638a81132109992",
+          "dist/vendor/tessdata/eng.traineddata": "5dc5d8d640a212c9d6184921ba103b186f50e0fed9ee716c53e6b312b400d747",
+          "dist/vendor/tessdata/fra.traineddata": "bf83833fa957ff0076f6aa93f69e3bdf7b014dea829ea0c0d6be6b48a3ceef6d"
+        }
+      },
+      "raw_prediction_sha256": "1dbc71704c74237440281800ec68c64435741098276155b3b63ac9e71193302a",
+      "by_language": {
+        "en": {
+          "captures": 8,
+          "known_positive_pairs": 19,
+          "detected": 14,
+          "missed": 5
+        },
+        "ko": {
+          "captures": 8,
+          "known_positive_pairs": 20,
+          "detected": 2,
+          "missed": 18
+        }
+      }
+    }
+  },
+  "unit_checks": {
+    "javascript_passed": 89,
+    "python_passed": 30,
+    "pages_controlled_browser": "passed",
+    "mobile_controlled_browser": "passed",
+    "mobile_local_real_ocr_generated_label_and_menu": "passed",
+    "physical_phone_accuracy": "not_run",
+    "ios_native_build_this_candidate": "not_run",
+    "android_debug_build": "passed offline Gradle assembleDebug",
+    "apk_assets": "34 packaged public assets exactly match dist"
+  },
+  "collection_counts": {
+    "korean_original_photos": 37,
+    "english_original_photos": 320,
+    "goals_met": false
+  },
+  "source_integrity": "Frozen source/model and image/manifest hashes checked before and after each run. Candidate source is uncommitted at evaluation; use source_snapshot.sha256, not parent commit as implementation identity.",
+  "apk": {
+    "file": "ADPAI-1.6.3-debug.apk",
+    "sha256": "562d69fc513f216639aa240b16f4c02d40a16053214801344b2690a187fb57f1",
+    "bytes": 26655284,
+    "distribution": "GitHub test build only; no stores",
+    "physical_device_this_candidate": "not_run"
+  }
+}

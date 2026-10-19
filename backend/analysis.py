@@ -31,18 +31,39 @@ def compact(s):
     return re.sub(r"[\s\u200b\u200c\u200d]+", "", fold(s))
 
 
-SUFFIX_CAUTION = re.compile('|'.join(re.escape(fold(x)) for x in ["혼입가능", "혼입 가능", "함유가능", "함유 가능", "같은 제조시설", "동일 제조시설", "含む可能性", "同一工場", "可能含有"]))
-SUFFIX_DIRECT = re.compile('|'.join(re.escape(fold(x)) for x in ["함유", "含有", "含む"]))
+def label_pattern(term):
+    chars = list(unicodedata.normalize("NFC", fold(term)))
+    hangul = lambda ch: bool(ch and "\uac00" <= ch <= "\ud7a3")
+    out, i = "", 0
+    while i < len(chars):
+        if chars[i].isspace():
+            previous = chars[i-1] if i else ""
+            while i+1 < len(chars) and chars[i+1].isspace():
+                i += 1
+            following = chars[i+1] if i+1 < len(chars) else ""
+            out += r"\s*" if hangul(previous) and hangul(following) else r"\s+"
+        else:
+            out += re.escape(fold(chars[i]))
+            if i+1 < len(chars) and hangul(chars[i]) and hangul(chars[i+1]):
+                out += r"\s*"
+        i += 1
+    return out
+
+
+SUFFIX_CAUTION = re.compile('|'.join(label_pattern(x) for x in ["혼입가능", "혼입 가능", "함유가능", "함유 가능", "같은 제조시설", "동일 제조시설", "含む可能性", "同一工場", "可能含有"]))
+SUFFIX_DIRECT = re.compile('|'.join(label_pattern(x) for x in ["함유", "含有", "含む"]))
 
 
 def match_spans(text, term):
     q = fold(term)
     if not q:
         return []
-    pattern = re.escape(q).replace(r"\ ", r"\s+")
+    pattern = label_pattern(term)
     if re.search(r"[a-z\u0370-\u03ff\u0400-\u052f\u0900-\u097f]", q) or q in [fold(x) for x in ["밀", "깨", "게"]]:
         pattern = r"(?<!\w)" + pattern + r"(?!\w)"
-    return [(m.start(), m.end()) for m in re.finditer(pattern, text)]
+    excluded_terms = ["밀크", "밀크초콜릿", "밀크파우더"] if q == fold("밀") else ["들깨"] if q == fold("깨") else []
+    excluded = [(m.start(), m.end()) for word in excluded_terms for m in re.finditer(r"(?<!\w)"+label_pattern(word)+r"(?!\w)", text)]
+    return [(m.start(), m.end()) for m in re.finditer(pattern, text) if not any(start <= m.start() and end >= m.end() for start, end in excluded)]
 
 
 def contains_term(text, term):
@@ -58,6 +79,11 @@ def context_events(text):
         ("direct", MARKERS["ingredient_headings"]), ("direct", MARKERS["direct_markers"]),
         ("caution", MARKERS["caution_markers"]), ("mention", STOP_HEADINGS)
     ] for term in terms for start, end in match_spans(text, term)]
+    for subject in ["이 제품은", "본 제품은"]:
+        for start, end in match_spans(text, subject):
+            following = re.split(r"[.!?。]", "\n".join(text[end:end+350].split("\n")[:5]))[0]
+            if SUFFIX_CAUTION.search(following):
+                events.append((start, end, "caution"))
     return sorted([e for e in events if not any(other != e and other[0] <= e[0] and other[1] >= e[1]
                    and (other[1]-other[0] > e[1]-e[0] or other[2] == "caution" and e[2] != "caution") for other in events)])
 
@@ -93,8 +119,8 @@ def scan_evidence(source_texts, profile):
         blocks.extend((family, lines) for lines in photos.values())
     for family, raw_lines in blocks:
         lines = [line if isinstance(line, dict) else {"text": line, "score": 1} for line in raw_lines]
-        normalized = [fold(line.get("text", "")) for line in lines]
-        text = "\n".join(normalized)
+        normalized = ["\n".join(fold(part) for part in str(line.get("text", "")).split("\n")) for line in lines]
+        text = "".join(("" if i == 0 else " " if lines[i].get("lineId") is not None and lines[i].get("lineId") == lines[i-1].get("lineId") else "\n") + value for i, value in enumerate(normalized))
         events = context_events(text)
         milk_text = text
         for phrase in NON_DAIRY_PHRASES:
@@ -109,8 +135,14 @@ def scan_evidence(source_texts, profile):
                 while index < len(normalized)-1 and offset+len(normalized[index]) < span[0]:
                     offset += len(normalized[index])+1
                     index += 1
+                cursor, confidence = 0, 1.0
+                for item, value in zip(lines, normalized):
+                    end = cursor+len(value)
+                    if end > span[0] and cursor < span[1] and value:
+                        confidence = min(confidence, float(item.get("score", 0)))
+                    cursor = end+1
                 hits.append(dict(kind=occurrence_kind(text, span, events), allergen_id=key, allergen=label, term=alias,
-                                 language=lang, score=float(lines[index].get("score", 0)), family=family,
+                                 language=lang, score=confidence, family=family,
                                  ocr_family=family, text=lines[index].get("text", "")))
     groups = {}
     for hit in hits:

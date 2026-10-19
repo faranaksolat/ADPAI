@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="./assets/icons/icon-192.png">
 <meta name="description" content="ADPAI helps you check food-package ingredients and selected allergens before you buy. Always verify results against the original label.">
-<!-- ADPAI v1.6.1: explicit tested-language scope + targeted language safety probe -->
+<!-- ADPAI v1.6.3: explicit tested-language scope + targeted language safety probe -->
 <title>ADPAI — Food allergen label checker</title>
 <style>
 :root{--ink:#0b1220;--muted:#667085;--bg:#f7f8fb;--card:#fff;--line:#e7eaf0;--brand:#4169e1;--brand-soft:#eef2ff;--danger:#b42318;--danger-bg:#fff2f0;--warn:#995400;--warn-bg:#fff8e8;--ok:#146c43;--ok-bg:#edf9f2;--shadow:0 16px 50px rgba(16,24,40,.08);--r:26px}
@@ -40,22 +40,24 @@
 .photoWrap{min-width:0}.photoWrap .btn{width:100%;font-size:12px;margin-top:6px;padding:9px 4px;min-height:44px}.photo img{object-fit:contain}
 .cropDialog{width:min(600px,calc(100% - 20px));max-width:none;max-height:95dvh;overflow:auto;padding:16px}.cropDialog h2{font-size:20px;margin:0 0 8px}.cropDialog p{font-size:13px;margin:8px 0}.cropDialog canvas{display:block;max-width:100%;max-height:52dvh;width:auto;height:auto;margin:auto;touch-action:none;cursor:crosshair}.cropActions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:12px}
 .ingredientSection{border-top:1px solid #0001;margin-top:14px;padding-top:12px}.ingredientSection h4{margin:0 0 6px}.ingredientSection>p{font-size:12px;color:#475467;margin:8px 0}.ingredientList{padding:0;list-style:none;margin:10px 0;display:grid;gap:8px}.ingredientList li{background:#ffffffb8;border:1px solid var(--line);border-radius:10px;padding:10px;overflow-wrap:anywhere}.ingredientList strong{font-size:13px;white-space:pre-wrap}.ingredientList small{display:block;color:var(--muted);font-size:10px;margin:3px 0}.ingredientList p{font-size:12px;margin-top:5px}.rawOcr{font-size:12px;margin-top:12px}.rawOcr summary{cursor:pointer;min-height:32px;padding:6px 0}.rawOcr pre{white-space:pre-wrap;overflow-wrap:anywhere;background:white;padding:10px;border-radius:10px;font:12px/1.5 monospace}.rawOcr>p{margin-top:10px;font-size:11px}.ev strong{overflow-wrap:anywhere;min-width:0}
+.modeSelection{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:4px 0 20px}.modeChoice{padding:22px 18px;min-height:128px;text-align:left;background:white;border:1px solid var(--line);border-radius:20px;cursor:pointer;color:var(--ink)}.modeChoice strong{display:block;font-size:19px;margin:8px 0}.modeChoice span{font-size:13px;line-height:1.5;color:var(--muted)}.modeChoice[aria-pressed=true]{border:2px solid var(--brand);background:var(--brand-soft)}.menuWarning{margin:0 0 16px;padding:16px;border-radius:16px;border:1px solid #f3d69a;background:var(--warn-bg);font-size:13px;line-height:1.6}.menuEvidence{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:10px;font-size:13px}.backHome{margin:0 0 14px;min-height:44px}@media(max-width:440px){.modeSelection{grid-template-columns:1fr}.modeChoice{min-height:105px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 </head>
 <body>
 <dialog id="installDialog" aria-labelledby="installTitle"><h2 id="installTitle">ADPAI on your home screen</h2><p id="installBody"></p><button class="btn primary" id="closeInstall">Close</button></dialog>
 <main class="app">
-<header><div class="brand"><div class="mark" aria-label="ADPAI">A</div><div><div class="name">ADPAI <span style="font-size:10px;color:#667085;font-weight:800;vertical-align:middle">v1.6.1</span></div><div class="tag" data-i18n="tag">Check the label before you buy.</div></div></div><select id="lang" aria-label="Interface language"><option value="en">EN</option><option value="ko">한국어</option></select></header>
+<header><div class="brand"><div class="mark" aria-label="ADPAI">A</div><div><div class="name">ADPAI <span style="font-size:10px;color:#667085;font-weight:800;vertical-align:middle">v1.6.3</span></div><div class="tag" data-i18n="tag">Check the label before you buy.</div></div></div><select id="lang" aria-label="Interface language"><option value="en">EN</option><option value="ko">한국어</option></select></header>
 <section class="hero"><h1 data-i18n="hero">Check one product or a whole basket.</h1><p data-i18n="sub">Add several photos of the same product, or create separate product groups. Package language is detected automatically across major writing systems; no language selection is required.</p></section>
 <div id="installPanel" class="installPanel"><button id="installApp" class="btn primary" hidden>Install ADPAI</button><button id="installHelp" class="btn outline">How to install</button></div>
 <p id="offlineNotice" class="offlineNotice" role="status" hidden></p>
-<section class="langscope">
-  <strong>🌐 <span data-i18n="langCoverage">Language coverage</span></strong>
-  <p class="tested" data-i18n="testedScope">Prototype languages: Korean · English · French; accuracy is not yet benchmarked.</p>
-  <p class="experimental" data-i18n="experimentalScope">Under validation: Persian · Arabic · Russian · Chinese/Japanese · Hindi · Thai</p>
-  <p data-i18n="negativeScope">Incomplete or uncertain reads remain unverified; no result certifies absence of allergens.</p>
+<section id="modeSelection" class="modeSelection" aria-label="Choose how to check food">
+  <button id="shoppingMode" class="modeChoice" aria-pressed="false"><span aria-hidden="true">🛒</span><strong data-i18n="shoppingMode">Shopping</strong><span data-i18n="shoppingDescription">Check ingredients and allergy warnings on food packages.</span></button>
+  <button id="restaurantMode" class="modeChoice" aria-pressed="false"><span aria-hidden="true">🍽️</span><strong data-i18n="restaurantMode">Restaurant menu</strong><span data-i18n="restaurantDescription">Photograph a menu and check the ingredients it lists.</span></button>
 </section>
+<div id="workflow" hidden>
+<button id="backHome" class="btn outline backHome" data-i18n="backHome">Back to choices</button>
+<aside id="menuWarning" class="menuWarning" data-i18n="menuWarning" role="note" hidden>ADPAI may make mistakes. Menus may omit ingredients and cross-contact risks. Confirm with restaurant staff; no dish is verified safe.</aside>
 <div class="stack">
 <section class="card">
 <div class="head"><div class="num">1</div><div><h2 data-i18n="profile">What should we watch for?</h2><p data-i18n="profileSub">Choose one or more allergens or ingredients you avoid.</p></div></div>
@@ -75,9 +77,10 @@
 <div class="privacy">🔒 <span data-i18n="privacy">Your selected profile is stored only in this browser.</span></div>
 </section>
 </div>
+</div>
 <footer class="footer" data-i18n="footer">ADPAI may make mistakes. Please verify ingredients and allergens against the original package label. For severe allergies, check with the manufacturer; these results do not guarantee safety.</footer>
 <p class="footer"><a href="./privacy.html">Privacy / 개인정보 처리 안내</a></p>
 </main>
-<script type="module" src="./src/browser.js?v=1.6.1"></script>
+<script type="module" src="./src/browser.js?v=1.6.3"></script>
 </body>
 </html>

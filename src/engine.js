@@ -1,5 +1,6 @@
 
-import { ONTOLOGY, NON_DAIRY_PHRASES } from "./ontology.js?v=1.6.1";
+import { ONTOLOGY, NON_DAIRY_PHRASES } from "./ontology.js?v=1.6.3";
+import { labelPattern } from './label-pattern.js?v=1.6.3';
 
 export const ALLERGENS = ONTOLOGY.allergens;
 export const MARKERS = ONTOLOGY.label_markers;
@@ -146,19 +147,28 @@ function allAliases(id) {
 export function matchSpans(text, term) {
   const q = fold(term);
   if (!q) return [];
-  const pattern = esc(q).replace(/ /g, "\\s+");
+  const pattern = labelPattern(q.normalize('NFC'),fold);
   const boundary = isWordScript(q) || ['밀','깨','게'].map(fold).includes(q);
   const re = new RegExp(boundary ? "(?<![\\p{L}\\p{N}_])" + pattern + "(?![\\p{L}\\p{N}_])" : pattern, "gu");
-  return [...text.matchAll(re)].map(m => ({start: m.index, end: m.index + m[0].length}));
+  const excludedTerms=q===fold('밀')?['밀크','밀크초콜릿','밀크파우더']:q===fold('깨')?['들깨']:[];
+  const exclusions=excludedTerms.flatMap(x=>[...text.matchAll(new RegExp('(?<![\\p{L}\\p{N}_])'+labelPattern(x,fold)+'(?![\\p{L}\\p{N}_])','gu'))].map(m=>({start:m.index,end:m.index+m[0].length})));
+  return [...text.matchAll(re)].map(m => ({start: m.index, end: m.index + m[0].length}))
+    .filter(span=>!exclusions.some(x=>x.start<=span.start&&x.end>=span.end));
 }
 
 const STOP_HEADINGS = [...MARKERS.nutrition_headings, "storage", "best before", "customer service", "barcode", "보관방법", "고객상담실", "保存方法", "保管方法"];
-const SUFFIX_CAUTION = new RegExp(["혼입가능", "혼입 가능", "함유가능", "함유 가능", "같은 제조시설", "동일 제조시설", "含む可能性", "同一工場", "可能含有"].map(fold).map(esc).join('|'), 'u');
-const SUFFIX_DIRECT = new RegExp(["함유", "含有", "含む"].map(fold).map(esc).join('|'), 'u');
+const SUFFIX_CAUTION = new RegExp(["혼입가능", "혼입 가능", "함유가능", "함유 가능", "같은 제조시설", "동일 제조시설", "含む可能性", "同一工場", "可能含有"].map(x=>labelPattern(fold(x).normalize('NFC'),fold)).join('|'), 'u');
+const SUFFIX_DIRECT = new RegExp(["함유", "含有", "含む"].map(x=>labelPattern(fold(x).normalize('NFC'),fold)).join('|'), 'u');
 
 function contextEvents(text) {
   const groups = [["direct", MARKERS.ingredient_headings], ["direct", MARKERS.direct_markers], ["caution", MARKERS.caution_markers], ["mention", STOP_HEADINGS]];
   const events = groups.flatMap(([kind, terms]) => terms.flatMap(term => matchSpans(text, term).map(span => ({...span, kind}))));
+  // Korean shared-facility warnings often wrap before their final marker.
+  // Start their scope at the explicit subject, keeping prior ingredients out.
+  for(const subject of ['이 제품은','본 제품은'])for(const span of matchSpans(text,subject)){
+    const following=text.slice(span.end,span.end+350).split('\n').slice(0,5).join('\n').split(/[.!?。]/u)[0];
+    if(SUFFIX_CAUTION.test(following))events.push({...span,kind:'caution'});
+  }
   // "contains" inside "may contain" and overlapping multilingual markers must
   // not turn a precautionary declaration into a direct declaration.
   return events.filter(e => !events.some(other => other !== e && other.start <= e.start && other.end >= e.end && (other.end - other.start > e.end - e.start || other.kind === "caution" && e.kind !== "caution")))
@@ -196,7 +206,7 @@ function aggregateEvidence(sources, profile, learnedTexts = []) {
   const inputs = [...sources, ...learnedTexts.map(text => ({familyId: "learned-correction", learned: true, items: [{text, score: 1}]}))];
   for (const source of inputs) {
     const lines = source.items || [];
-    const normalized = lines.map(line => fold(line.text));
+    const normalized = lines.map(line => String(line.text||'').split('\n').map(fold).join('\n'));
     const text = normalized.map((line,index) => (index ? lines[index].lineId != null && lines[index].lineId === lines[index-1].lineId ? ' ' : '\n' : '') + line).join('');
     const events = contextEvents(text);
     const milkText = maskNonDairy(text);
@@ -207,10 +217,18 @@ function aggregateEvidence(sources, profile, learnedTexts = []) {
       for (const span of matchSpans(search, alias)) {
         let offset = 0, index = 0;
         while (index < normalized.length-1 && offset + normalized[index].length < span.start) offset += normalized[index++].length + 1;
+        // A multi-word/syllable alias is only as confident as its weakest
+        // constituent word. Matching across OCR spaces must not borrow scores.
+        let cursor=0,confidence=1;
+        for(let i=0;i<normalized.length;i++) {
+          const end=cursor+normalized[i].length;
+          if(end>span.start&&cursor<span.end&&normalized[i])confidence=Math.min(confidence,lineScore(lines[i]));
+          cursor=end+1;
+        }
         let kind = occurrenceKind(text, span, events);
         if (source.learned && kind === "mention") kind = "direct";
         hits.push({kind, allergen_id: id, allergen: label, term: alias, language,
-          score: lineScore(lines[index]), family: source.familyId, photoIndex: source.photoIndex,
+          score: confidence, family: source.familyId, photoIndex: source.photoIndex,
           text: lines[index]?.text || "", learned: !!source.learned});
       }
     }

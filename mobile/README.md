@@ -18,7 +18,9 @@ No account, API key, analytics or photo upload is needed to run it.
 The native camera and gallery actions run only after tapping a button. Camera
 photos are not deliberately saved to the gallery. An abandoned/denied action
 leaves no analysis result. Changing photos clears old results. Input controls
-are locked during inference. At most 3 photos belong to one product.
+are locked during inference. The home screen offers Shopping and Restaurant menu;
+menu photos are separate from shopping photos and recipes are not inferred.
+Menu results never certify a dish safe. At most 3 photos belong to one product.
 
 `npm run build:mobile` creates ignored `dist/` from a public-file allowlist;
 backend files, `.env` and `.git` are excluded. It bundles the pinned Tesseract
@@ -48,7 +50,7 @@ MOBILE_WEB=1 REAL_OCR=1 node tests/browser-smoke.mjs
 
 The browser checks require Chromium (`CHROMIUM_PATH` can override its path).
 The last check blocks external HTTPS and runs the bundled OCR on a generated
-ingredient label. It verifies local assets, worker loading and inference;
+ingredient label and a generated menu. It verifies local assets, worker loading and inference;
 it is **not** evidence of accuracy on real packages or a native-device test.
 The other browser tests use controlled OCR and cover `/ADPAI/` paths, offline
 shell, fail-closed output, stale results, camera cancellation and permission
