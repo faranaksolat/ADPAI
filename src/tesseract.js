@@ -1,7 +1,8 @@
-import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.6.3';
-import { preprocess, rotateCanvas, resizeForOcr } from './image.js?v=1.6.3';
-import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.6.3';
-import {createManagedWorker} from './ocr-worker.js?v=1.6.3';
+import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.6.4';
+import { preprocess, rotateCanvas, resizeForOcr } from './image.js?v=1.6.4';
+import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.6.4';
+import {createManagedWorker} from './ocr-worker.js?v=1.6.4';
+import {readMenuPhoto} from './menu-ocr.js?v=1.6.4';
 
 const PRIMARY = {id: 'korean', langs: ['kor','eng','fra'], label: 'Korean / English / French'};
 const FALLBACKS = [
@@ -106,6 +107,11 @@ export async function analyzeProducts(products, profile, options = {}) {
           try {
             const photoStarted=Date.now();
             const canvas=await prepare(photo.file,false);
+            if(menuMode&&def.id===PRIMARY.id&&worker.reinitialize){
+              const menu=await readMenuPhoto({worker,canvas,photoIndex,familyId:def.id,rotate,itemsFrom,maxPhotoMs});
+              state.sources.push(...menu.sources);state.errors.push(...menu.errors);complete=complete&&menu.complete;
+              continue;
+            }
             const passes=def.id===PRIMARY.id&&worker.reinitialize
               ? [{langs:['kor'],psm:'6',canvas:resizeForOcr(canvas,1000),variant:'reduced'},
                  {langs:['eng'],psm:'11',canvas:resizeForOcr(canvas,1600),variant:'reduced'},

@@ -178,17 +178,29 @@ try {
     const canvas=document.createElement('canvas');canvas.width=1600;canvas.height=520;
     const ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,1600,520);ctx.fillStyle='black';ctx.font='42px sans-serif';
     ctx.fillText('Peanut noodles: peanut, wheat',30,100);ctx.fillText('Tomato soup: cream, tomato',30,240);ctx.fillText('Garden salad: lettuce, tomato',30,380);
-    const blob=await new Promise(resolve=>canvas.toBlob(resolve));const files=new DataTransfer();files.items.add(new File([blob],'menu.png',{type:'image/png'}));
+    if(${realOcr&&process.env.MENU_CARD_OCR==='1'}){
+      // Authored synthetic card menu, not the user's Naver image or a real menu.
+      canvas.width=1000;canvas.height=620;ctx.fillStyle='#193e79';ctx.fillRect(0,0,1000,620);ctx.fillStyle='white';
+      ctx.font='28px sans-serif';ctx.fillText('Tomato soup',45,105);ctx.fillText('Garden salad',535,105);ctx.fillText('굴 라멘',45,350);
+      ctx.font='17px sans-serif';ctx.fillText('Cream and tomato',45,132);ctx.fillText('Lettuce and tomato',535,132);ctx.fillText('통영에서 받은 굴을 사용한',45,380);
+    }
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve));globalThis.testMenuFile=new File([blob],'menu.png',{type:'image/png'});const files=new DataTransfer();files.items.add(globalThis.testMenuFile);
     const input=document.querySelector('#products input[type=file]');input.files=files.files;input.dispatchEvent(new Event('change',{bubbles:true}));
-    for(const id of ['milk','peanut']){const c=document.querySelector('#chips input[value='+id+']');c.checked=true;c.dispatchEvent(new Event('change',{bubbles:true}))}
+    for(const id of ${JSON.stringify(realOcr&&process.env.MENU_CARD_OCR==='1'?['milk','peanut','shellfish']:['milk','peanut'])}){const c=document.querySelector('#chips input[value='+id+']');c.checked=true;c.dispatchEvent(new Event('change',{bubbles:true}))}
     globalThis.testOcrText='Peanut noodles: peanut, wheat\\nTomato soup: cream, tomato\\nGarden salad: lettuce, tomato';
     document.querySelector('#analyze').click();const end=Date.now()+${realOcr?180000:20000};while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw Error('menu analysis timeout');await new Promise(r=>setTimeout(r,25))}
   })()`);
+  if(process.env.GENERATED_MENU_IMAGE){
+    const data=await evaluate(`(async()=>{return await new Promise(resolve=>{const r=new FileReader();r.onload=()=>resolve(r.result.split(',')[1]);r.readAsDataURL(globalThis.testMenuFile)})})()`);
+    await fs.writeFile(process.env.GENERATED_MENU_IMAGE,Buffer.from(data,'base64'));
+  }
   assert.equal(await evaluate(`document.querySelector('#rtitle').textContent`),'Menu review');
   const menuCards=await evaluate(`[...document.querySelectorAll('.presult')].map(e=>({name:e.querySelector('.prtitle').textContent,message:e.querySelector('.prmsg').textContent}))`);
-  assert.ok(menuCards.some(c=>/Tomato/i.test(c.name)&&c.message.includes('Potential risk')));
-  assert.ok(menuCards.every(c=>!/(?:verified safe|no listed conflict)/i.test(c.message)));
+  if(process.env.MENU_DIAGNOSTICS)await fs.writeFile(process.env.MENU_DIAGNOSTICS,JSON.stringify({cards:menuCards,body:await evaluate(`document.querySelector('#result').textContent`)},null,2)+'\n');
   if(process.env.MENU_SCREENSHOT){const {data}=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await fs.writeFile(process.env.MENU_SCREENSHOT,Buffer.from(data,'base64'))}
+  assert.ok(menuCards.some(c=>/Tomato/i.test(c.name)&&c.message.includes('Potential risk')));
+  if(realOcr&&process.env.MENU_CARD_OCR==='1')assert.ok(menuCards.some(c=>/굴/u.test(c.name)&&c.message.includes('Potential risk')),'printed Korean oyster must be read and associated');
+  assert.ok(menuCards.every(c=>!/(?:verified safe|no listed conflict)/i.test(c.message)));
   if(!realOcr){assert.equal(menuCards.length,3);assert.ok(menuCards.find(c=>c.name==='Garden salad').message.includes('Ingredients incomplete'))}
   await evaluate(`document.querySelector('#lang').value='ko';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
   assert.ok((await evaluate(`document.querySelector('#menuWarning').textContent`)).includes('오류'));
@@ -201,7 +213,7 @@ try {
     await evaluate(`(async()=>{await navigator.serviceWorker.ready;const end=Date.now()+15000;while(!navigator.serviceWorker.controller){if(Date.now()>end)throw new Error('service worker did not claim page');await new Promise(r=>setTimeout(r,25))}})()`);
     const cache=await evaluate(`(async()=>({scope:(await navigator.serviceWorker.ready).scope,urls:(await Promise.all((await caches.keys()).map(async key=>(await (await caches.open(key)).keys()).map(r=>r.url)))).flat()}))()`);
     assert.ok(cache.scope.endsWith(prefix));
-    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.6.3')));
+    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.6.4')));
     assert.ok(cache.urls.every(url=>url.startsWith(cache.scope) && !/blob:|api\/|label\.png|profile/iu.test(url)));
     await send('Fetch.disable');
     await send('Network.enable');
@@ -215,7 +227,7 @@ try {
     assert.equal(await evaluate(`document.querySelector('#analyze').disabled`),true);
     assert.equal(await evaluate(`(async()=>(await fetch('./privacy.html')).ok)()`),true);
     // An offline shell is usable even when the CDN runtime is unavailable.
-    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.6.3');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
+    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.6.4');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
     assert.equal(offlineStatus,'unverified');
   }
   assert.deepEqual(errors,[]);

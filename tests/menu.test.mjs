@@ -43,3 +43,75 @@ test('merged menu columns cannot attach another dish ingredient to the first dis
  assert.equal(result.items.length,0);assert.equal(result.unassigned.length,1);
  assert.equal(result.unassigned[0].association_verified,false);
 });
+test('larger Korean card titles need no price or ingredients prefix and keep adjacent columns apart',()=>{
+ const s={photoIndex:0,items:[
+  {text:'굴 라멘',score:.95,lineId:0,box:{x0:20,y0:100,x1:110,y1:120}},
+  {text:'채소 라멘',score:.95,lineId:1,box:{x0:320,y0:100,x1:420,y1:120}},
+  {text:'통영에서 받은 굴을',score:.95,lineId:2,box:{x0:5,y0:127,x1:130,y1:139}},
+  {text:'신선한 채소를 사용한',score:.95,lineId:3,box:{x0:305,y0:127,x1:435,y1:139}},
+  {text:'사용한 계절 메뉴',score:.95,lineId:4,box:{x0:10,y0:142,x1:125,y1:154}},
+ ]};
+ const r=evaluateMenu({sources:[s],profile:{allergens:['shellfish','milk','egg','wheat']}});
+ assert.equal(r.items.length,2);assert.deepEqual(r.items.find(i=>i.name==='굴 라멘').matches.map(m=>m.allergen_id),['shellfish']);
+ assert.equal(r.items.find(i=>i.name==='채소 라멘').status,'unverified');assert.deepEqual(r.safe_items,[]);
+});
+test('a Korean alias row does not cut a priced English dish off from its printed ingredients',()=>{
+ const s={photoIndex:0,items:[
+  {text:'Black Pasta 12,000원',score:.95,lineId:0,box:{x0:10,y0:0,x1:230,y1:20}},
+  {text:'오징어 먹물 파스타',score:.95,lineId:1,box:{x0:10,y0:25,x1:170,y1:42}},
+  {text:'오징어와 크림 소스',score:.95,lineId:2,box:{x0:10,y0:48,x1:180,y1:59}},
+ ]};
+ const r=evaluateMenu({sources:[s],profile:{allergens:['shellfish','milk']}});
+ assert.equal(r.items[0].name,'Black Pasta');assert.deepEqual(r.items[0].matches.map(m=>m.allergen_id).sort(),['milk','shellfish']);
+});
+test('a different layout reading cannot erase useful text or invent independent confidence',()=>{
+ const a=source(['Soup: milk']);a.items[0].score=.4;
+ const b=source(['Soup: milk']);b.items[0].score=.4;
+ const noise=source(['An unrelated restaurant notice with many confident words']);noise.items[0].score=.99;
+ const r=evaluateMenu({sources:[a,b,noise],profile});
+ assert.equal(r.items.length,1);assert.equal(r.items[0].matches[0].score,.4);assert.equal(r.items[0].matches[0].uncertain,true);
+});
+test('equal dish names in distant columns do not borrow each other ingredients',()=>{
+ const a=source(['Soup: milk','Soup: soy']);a.items[1].box={x0:700,y0:0,x1:1000,y1:20};
+ const r=evaluateMenu({sources:[a],profile});assert.equal(r.items.length,2);
+ assert.deepEqual(r.items.map(i=>i.matches.map(m=>m.allergen_id)),[['milk'],['soy']]);
+});
+test('one tall Korean glyph cannot hide the larger heading typography',()=>{
+ const s={photoIndex:0,items:[
+  {text:'굴',score:.93,lineId:0,box:{x0:46,y0:327,x1:70,y1:352}},
+  {text:'라멘',score:.97,lineId:0,box:{x0:80,y0:326,x1:128,y1:353}},
+  {text:'통영에서',score:.95,lineId:1,box:{x0:46,y0:365,x1:106,y1:382}},
+  {text:'받은',score:.93,lineId:1,box:{x0:113,y0:365,x1:143,y1:382}},
+  {text:'굴',score:.93,lineId:1,box:{x0:149,y0:366,x1:179,y1:382}},
+  {text:'을',score:.97,lineId:1,box:{x0:166,y0:363,x1:177,y1:389}},
+  {text:'사용한',score:.97,lineId:1,box:{x0:185,y0:365,x1:230,y1:382}},
+ ]};
+ const r=evaluateMenu({sources:[s],profile:{allergens:['shellfish']}});
+ assert.equal(r.items[0].name,'굴 라멘');assert.equal(r.items[0].matches[0].allergen_id,'shellfish');
+});
+test('a clipped crop-edge title stays unassigned instead of inventing a dish',()=>{
+ const s=source(['Soup: milk']);s.frame={x:10,cropWidth:390,width:1000};
+ const r=evaluateMenu({sources:[s],profile});assert.equal(r.items.length,0);assert.equal(r.unassigned[0].matches[0].allergen_id,'milk');
+});
+test('separately detected prices associate only with their closest title on the same row',()=>{
+ const s={photoIndex:0,items:[
+  {text:'Soup',score:.95,lineId:0,box:{x0:10,y0:0,x1:70,y1:20}},
+  {text:'12,000원',score:.95,lineId:1,box:{x0:150,y0:0,x1:230,y1:20}},
+  {text:'Ingredients: milk',score:.95,lineId:2,box:{x0:10,y0:26,x1:200,y1:42}},
+  {text:'Salad',score:.95,lineId:3,box:{x0:400,y0:0,x1:460,y1:20}},
+  {text:'9,000원',score:.95,lineId:4,box:{x0:530,y0:0,x1:610,y1:20}},
+  {text:'Ingredients: lettuce',score:.95,lineId:5,box:{x0:400,y0:26,x1:600,y1:42}},
+ ]};
+ const r=evaluateMenu({sources:[s],profile});assert.equal(r.items.length,2);
+ assert.equal(r.items.find(i=>i.name==='Soup').matches[0].allergen_id,'milk');assert.equal(r.items.find(i=>i.name==='Salad').status,'unverified');
+});
+test('two readings of one physical title do not invent duplicate dishes or raise confidence',()=>{
+ const a=source(['굴 라멘: 굴']),b=source(['= 라멘: 굴']);
+ a.items[0].score=.4;b.items[0].score=.4;
+ const r=evaluateMenu({sources:[a,b],profile:{allergens:['shellfish']}});
+ assert.equal(r.items.length,1);assert.equal(r.items[0].name,'굴 라멘');assert.equal(r.items[0].matches[0].score,.4);
+});
+test('conflicting complete names cannot merge their ingredient evidence merely from overlapping boxes',()=>{
+ const r=evaluateMenu({sources:[source(['Soup: milk']),source(['Salad: soy'])],profile});
+ assert.equal(r.items.length,2);assert.deepEqual(r.items.map(i=>i.matches.map(m=>m.allergen_id)),[['milk'],['soy']]);
+});

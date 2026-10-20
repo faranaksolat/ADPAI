@@ -1185,6 +1185,76 @@
         "peanut",
         "tree_nuts"
       ]
+    },
+    {
+      "name": "Korean explicit oysters and clams",
+      "profile": {
+        "allergens": [
+          "shellfish"
+        ]
+      },
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "원재료명: 굴, 바지락",
+              "score": 0.95
+            }
+          ]
+        }
+      ],
+      "status": "conflict",
+      "direct": [
+        "shellfish"
+      ],
+      "caution": []
+    },
+    {
+      "name": "Korean oyster particle",
+      "profile": {
+        "allergens": [
+          "shellfish"
+        ]
+      },
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "원재료명: 굴을 사용한 소스",
+              "score": 0.95
+            }
+          ]
+        }
+      ],
+      "status": "conflict",
+      "direct": [
+        "shellfish"
+      ],
+      "caution": []
+    },
+    {
+      "name": "Korean oyster syllable is not a face or rolled dumpling",
+      "profile": {
+        "allergens": [
+          "shellfish"
+        ]
+      },
+      "sources": [
+        {
+          "familyId": "korean",
+          "items": [
+            {
+              "text": "원재료명: 얼굴 모양 굴림만두",
+              "score": 0.95
+            }
+          ]
+        }
+      ],
+      "status": "unverified",
+      "direct": [],
+      "caution": []
     }
   ]
 }

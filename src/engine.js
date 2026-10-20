@@ -1,6 +1,6 @@
 
-import { ONTOLOGY, NON_DAIRY_PHRASES } from "./ontology.js?v=1.6.3";
-import { labelPattern } from './label-pattern.js?v=1.6.3';
+import { ONTOLOGY, NON_DAIRY_PHRASES } from "./ontology.js?v=1.6.4";
+import { labelPattern } from './label-pattern.js?v=1.6.4';
 
 export const ALLERGENS = ONTOLOGY.allergens;
 export const MARKERS = ONTOLOGY.label_markers;
@@ -144,12 +144,17 @@ function allAliases(id) {
 
 // Match each occurrence in its own declaration/ingredient scope. Keep offsets so
 // confidence belongs to the line containing the term, never an adjacent line.
+const OYSTER_SUFFIX=['을','은','이','과','의','로','에','도','만','무침','국','전','소스','라멘','우동'].map(x=>labelPattern(x,fold)).join('|');
 export function matchSpans(text, term) {
   const q = fold(term);
   if (!q) return [];
   const pattern = labelPattern(q.normalize('NFC'),fold);
   const boundary = isWordScript(q) || ['밀','깨','게'].map(fold).includes(q);
-  const re = new RegExp(boundary ? "(?<![\\p{L}\\p{N}_])" + pattern + "(?![\\p{L}\\p{N}_])" : pattern, "gu");
+  // 굴 means oyster, but is also a syllable in unrelated words (얼굴, 굴림).
+  // Admit the standalone ingredient, grammatical particles and explicit foods.
+  const source=q===fold('굴')?'(?<![\\p{L}\\p{N}_])'+pattern+'(?=$|[^\\p{L}\\p{N}_]|'+OYSTER_SUFFIX+')'
+    : boundary ? "(?<![\\p{L}\\p{N}_])" + pattern + "(?![\\p{L}\\p{N}_])" : pattern;
+  const re = new RegExp(source, "gu");
   const excludedTerms=q===fold('밀')?['밀크','밀크초콜릿','밀크파우더']:q===fold('깨')?['들깨']:[];
   const exclusions=excludedTerms.flatMap(x=>[...text.matchAll(new RegExp('(?<![\\p{L}\\p{N}_])'+labelPattern(x,fold)+'(?![\\p{L}\\p{N}_])','gu'))].map(m=>({start:m.index,end:m.index+m[0].length})));
   return [...text.matchAll(re)].map(m => ({start: m.index, end: m.index + m[0].length}))

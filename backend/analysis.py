@@ -59,7 +59,10 @@ def match_spans(text, term):
     if not q:
         return []
     pattern = label_pattern(term)
-    if re.search(r"[a-z\u0370-\u03ff\u0400-\u052f\u0900-\u097f]", q) or q in [fold(x) for x in ["밀", "깨", "게"]]:
+    if q == fold("굴"):
+        suffixes = "|".join(label_pattern(x) for x in ["을", "은", "이", "과", "의", "로", "에", "도", "만", "무침", "국", "전", "소스", "라멘", "우동"])
+        pattern = r"(?<!\w)" + pattern + r"(?=$|[^\w]|" + suffixes + ")"
+    elif re.search(r"[a-z\u0370-\u03ff\u0400-\u052f\u0900-\u097f]", q) or q in [fold(x) for x in ["밀", "깨", "게"]]:
         pattern = r"(?<!\w)" + pattern + r"(?!\w)"
     excluded_terms = ["밀크", "밀크초콜릿", "밀크파우더"] if q == fold("밀") else ["들깨"] if q == fold("깨") else []
     excluded = [(m.start(), m.end()) for word in excluded_terms for m in re.finditer(r"(?<!\w)"+label_pattern(word)+r"(?!\w)", text)]

@@ -4,12 +4,18 @@ Food-allergen checking prototype with **Shopping** and **Restaurant menu**
 entry points. GitHub Pages loads `index.html` → `src/browser.js`; photos remain
 on the device. The installed Capacitor app bundles the same modules and models.
 
-Version 1.6.3 adds menu checks against printed ingredient descriptions, visible
-uncertainty/staff-confirmation warnings, bounded worker failures, language/layout
-re-reading, and bonito/가다랑어 fish aliases. Package ingredient names stay visible
+Version 1.6.4 adds menu-card headings without prices, full-detail Korean/English
+readings, contrast/column recovery and printed Korean mollusk aliases. Visible
+uncertainty/staff-confirmation warnings and bounded worker failures remain.
+Package ingredient names stay visible
 with available plain English/Korean explanations. Menu names and photos are not
 used to infer recipes. See [menu behavior and limits](docs/menu-mode.md) and
 [ingredient explanations](docs/ingredient-explanations.md).
+
+Recognition quality remains experimental. See the
+[latest menu diagnosis](benchmarks/MENU-RECOGNITION-2026-10-20.md) and
+[quality-validation plan](benchmarks/QUALITY-GATES.md); synthetic checks and
+small development pilots cannot certify allergen recall or safe food choices.
 
 `backend/main.py` is a separate FastAPI/PaddleOCR API (`POST /api/analyze`). It also serves the current frontend and its modules, but the frontend does **not** automatically upload to or call this API. `src/app.js` / `src/ocr.js` are an experimental browser PaddleOCR path, not the Pages entry point.
 
