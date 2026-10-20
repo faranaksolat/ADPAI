@@ -1,9 +1,9 @@
-import { analyzeProducts } from "./tesseract.js?v=1.6.3";
-import { cropPhoto } from "./crop.js?v=1.6.3";
-import { explainIngredient, sourceTranscript } from "./ingredients.js?v=1.6.3";
-import { initPwa, updateInstallUI } from "./pwa.js?v=1.6.3";
-import { evaluateMenu } from './menu.js?v=1.6.3';
-const APP_VERSION="1.6.3";
+import { analyzeProducts } from "./tesseract.js?v=1.6.4";
+import { cropPhoto } from "./crop.js?v=1.6.4";
+import { explainIngredient, sourceTranscript } from "./ingredients.js?v=1.6.4";
+import { initPwa, updateInstallUI } from "./pwa.js?v=1.6.4";
+import { evaluateMenu } from './menu.js?v=1.6.4';
+const APP_VERSION="1.6.4";
 const MAX_PRODUCTS=6,MAX_PHOTOS=3;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const lang=$("#lang"),productsEl=$("#products"),analyze=$("#analyze"),result=$("#result"),loading=$("#loading"),productResults=$("#productResults");

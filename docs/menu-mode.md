@@ -29,9 +29,23 @@ model errors and recognition deadlines reject and terminate the worker. This
 avoids the library createWorker promise remaining pending after loadLanguage
 failure. Changed layouts/language subsets remain one OCR family and cannot
 corroborate weak confidence as independent models. Source scores are retained.
-Reduced Korean block and English sparse readings supplement the original
-automatic-layout reading. Positive evidence survives later failed passes;
-ambiguous reads and budget failures remain visible.
+Shopping retains its earlier reduced Korean block/English sparse and original
+automatic-layout readings. Menus instead read upright Korean/English in detail,
+then overlapping contrast-normalized columns; rotations are a fallback when
+upright text remains weak. Dark-background variants invert grayscale polarity.
+Individual OCR confidence stays unchanged. Crop boxes map back into the photo;
+titles clipped at artificial crop edges stay unassigned. Readings are evaluated
+separately, with their actual quotes and family provenance retained.
+
+Menu title/description grouping accepts larger headings without a price or an
+ingredients prefix, using the median glyph height rather than a tall outlier.
+Separate same-row prices and nearby Korean aliases can stay with a printed
+English title. Different columns and conflicting complete titles cannot pool
+ingredient evidence. Duplicate readings of compatible names on the same
+physical title can share one result; this does not raise confidence. These are
+layout heuristics, not proof that an ingredient list or menu is complete.
+Positive evidence survives later failed passes; ambiguous reads and budget
+failures remain visible. No images are uploaded to the separate Paddle API.
 
 Recheck the real worker protocol and bundled-model smoke tests before upgrading
 Tesseract. Unit tests cover recipe non-inference, same-column association,
