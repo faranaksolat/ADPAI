@@ -30,7 +30,7 @@ export function menuReadCanvases(src){
     return {canvas,variant,frame:{x,y:0,scale:canvas.width/width,width:src.width,height:src.height,cropWidth:width}};
   };
   return [make(0,src.width,false,'menu-original'),
-    ...[0,.31,.62].map((fraction,i)=>{const x=Math.round(src.width*fraction);return make(x,Math.min(src.width-x,Math.round(src.width*.38)),true,'menu-column-'+i)})];
+    ...[0,.4].map((fraction,i)=>{const x=Math.round(src.width*fraction);return make(x,Math.min(src.width-x,Math.round(src.width*.6)),true,'menu-column-'+i)})];
 }
 export function mapMenuItems(items,frame,rotation=0){
   return items.map(item=>({...item,box:item.box?{

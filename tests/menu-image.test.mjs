@@ -20,5 +20,5 @@ test('upright menu reads cover both languages and preserve earlier evidence on w
   return {data:{words:[{text:'cream',confidence:40}]}};
  }};
  const r=await readMenuPhoto({worker,canvas:{},photoIndex:0,familyId:'korean',rotate:x=>x,itemsFrom:r=>r.data.words.map(w=>({text:w.text,score:w.confidence/100})),maxPhotoMs:1000});
- assert.equal(r.sources[0].items[0].score,.4);assert.equal(r.complete,false);assert.equal(r.errors.length,1);assert.deepEqual(active,['eng']);
+ assert.equal(r.sources[0].items[0].score,.4);assert.equal(r.complete,false);assert.equal(r.errors.length,1);assert.deepEqual(active,['kor']);
 });

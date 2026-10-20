@@ -1,6 +1,6 @@
 
-import { ONTOLOGY, NON_DAIRY_PHRASES } from "./ontology.js?v=1.6.4";
-import { labelPattern } from './label-pattern.js?v=1.6.4';
+import { ONTOLOGY, NON_DAIRY_PHRASES } from "./ontology.js?v=1.7.0";
+import { labelPattern } from './label-pattern.js?v=1.7.0';
 
 export const ALLERGENS = ONTOLOGY.allergens;
 export const MARKERS = ONTOLOGY.label_markers;
@@ -145,19 +145,24 @@ function allAliases(id) {
 // Match each occurrence in its own declaration/ingredient scope. Keep offsets so
 // confidence belongs to the line containing the term, never an adjacent line.
 const OYSTER_SUFFIX=['을','은','이','과','의','로','에','도','만','무침','국','전','소스','라멘','우동'].map(x=>labelPattern(x,fold)).join('|');
-export function matchSpans(text, term) {
-  const q = fold(term);
-  if (!q) return [];
-  const pattern = labelPattern(q.normalize('NFC'),fold);
-  const boundary = isWordScript(q) || ['밀','깨','게'].map(fold).includes(q);
-  // 굴 means oyster, but is also a syllable in unrelated words (얼굴, 굴림).
-  // Admit the standalone ingredient, grammatical particles and explicit foods.
+const TERM_MATCHERS=new Map();
+function termMatcher(term){
+  if(TERM_MATCHERS.has(term))return TERM_MATCHERS.get(term);
+  const q=fold(term);if(!q)return null;
+  const pattern=labelPattern(q.normalize('NFC'),fold);
+  const boundary=isWordScript(q)||['밀','깨','게'].map(fold).includes(q);
   const source=q===fold('굴')?'(?<![\\p{L}\\p{N}_])'+pattern+'(?=$|[^\\p{L}\\p{N}_]|'+OYSTER_SUFFIX+')'
-    : boundary ? "(?<![\\p{L}\\p{N}_])" + pattern + "(?![\\p{L}\\p{N}_])" : pattern;
-  const re = new RegExp(source, "gu");
-  const excludedTerms=q===fold('밀')?['밀크','밀크초콜릿','밀크파우더']:q===fold('깨')?['들깨']:[];
-  const exclusions=excludedTerms.flatMap(x=>[...text.matchAll(new RegExp('(?<![\\p{L}\\p{N}_])'+labelPattern(x,fold)+'(?![\\p{L}\\p{N}_])','gu'))].map(m=>({start:m.index,end:m.index+m[0].length})));
-  return [...text.matchAll(re)].map(m => ({start: m.index, end: m.index + m[0].length}))
+    :boundary?'(?<![\\p{L}\\p{N}_])'+pattern+'(?![\\p{L}\\p{N}_])':pattern;
+  const excluded=q===fold('밀')?['밀크','밀크초콜릿','밀크파우더']:q===fold('깨')?['들깨']:[];
+  const matcher={re:new RegExp(source,'gu'),excluded:excluded.map(x=>new RegExp('(?<![\\p{L}\\p{N}_])'+labelPattern(x,fold)+'(?![\\p{L}\\p{N}_])','gu'))};
+  // Bound retained patterns even when a local custom profile supplies new terms.
+  if(TERM_MATCHERS.size<1024)TERM_MATCHERS.set(term,matcher);
+  return matcher;
+}
+export function matchSpans(text,term){
+  const matcher=termMatcher(term);if(!matcher)return [];
+  const exclusions=matcher.excluded.flatMap(re=>[...text.matchAll(re)].map(m=>({start:m.index,end:m.index+m[0].length})));
+  return [...text.matchAll(matcher.re)].map(m=>({start:m.index,end:m.index+m[0].length}))
     .filter(span=>!exclusions.some(x=>x.start<=span.start&&x.end>=span.end));
 }
 
@@ -343,13 +348,9 @@ function coverageGate(sources, familyStatus, requiredFamilies) {
   };
 }
 
-export function evaluateProduct({
-  sources = [],
-  profile = {},
-  familyStatus = {},
-  requiredFamilies = REQUIRED_BASE_FAMILIES,
-  learnedTexts = [],
-}) {
+// Shared occurrence/context semantics without recomputing package coverage
+// for every small menu block. This never certifies ingredient completeness.
+export function ingredientEvidence({sources=[],profile={},learnedTexts=[]}={}){
   const hits = aggregateEvidence(sources, profile, learnedTexts);
 
   const direct = strongEvidence(hits, "direct");
@@ -362,6 +363,19 @@ export function evaluateProduct({
   const mentions = hits.filter(x => x.kind === "mention" ||
     ![...direct, ...caution].some(h => h.allergen_id === x.allergen_id &&
       (h.allergen_id !== "custom" || fold(h.term) === fold(x.term))));
+
+  return {direct_matches:direct,caution_matches:caution,mention_matches:mentions};
+}
+
+export function evaluateProduct({
+  sources = [],
+  profile = {},
+  familyStatus = {},
+  requiredFamilies = REQUIRED_BASE_FAMILIES,
+  learnedTexts = [],
+}) {
+  const evidence=ingredientEvidence({sources,profile,learnedTexts});
+  const direct=evidence.direct_matches,caution=evidence.caution_matches,mentions=evidence.mention_matches;
 
   const coverage = coverageGate(sources, familyStatus, requiredFamilies);
 

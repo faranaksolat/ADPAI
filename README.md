@@ -2,10 +2,15 @@
 
 Food-allergen checking prototype with **Shopping** and **Restaurant menu**
 entry points. GitHub Pages loads `index.html` → `src/browser.js`; photos remain
-on the device. The installed Capacitor app bundles the same modules and models.
+on the device. The Capacitor app shares the interface and ingredient rules.
+Android 1.7.0 adds a bundled Korean/Latin ML Kit reader through a local native
+bridge; Pages and iOS retain the browser Tesseract path. Native word scores are
+uncalibrated and cannot establish ingredient completeness or food safety.
 
-Version 1.6.4 adds menu-card headings without prices, full-detail Korean/English
-readings, contrast/column recovery and printed Korean mollusk aliases. Visible
+Version 1.7.0 refreshes the mobile interface, keeps technical OCR details behind
+expandable evidence, preserves uncertain ingredient mentions, and improves
+separate-price/bilingual menu grouping. Wide overlapping menu columns are read
+before expensive full-page passes so useful evidence survives later deadlines. Visible
 uncertainty/staff-confirmation warnings and bounded worker failures remain.
 Package ingredient names stay visible
 with available plain English/Korean explanations. Menu names and photos are not
@@ -13,7 +18,7 @@ used to infer recipes. See [menu behavior and limits](docs/menu-mode.md) and
 [ingredient explanations](docs/ingredient-explanations.md).
 
 Recognition quality remains experimental. See the
-[latest menu diagnosis](benchmarks/MENU-RECOGNITION-2026-10-20.md) and
+[1.7.0 development results and limits](benchmarks/MOBILE-RECOGNITION-1.7.0.md) and
 [quality-validation plan](benchmarks/QUALITY-GATES.md); synthetic checks and
 small development pilots cannot certify allergen recall or safe food choices.
 
@@ -83,8 +88,10 @@ or Safari → Share → Add to Home Screen on iPhone. Its offline cache stores
 the application shell, never photos or results; OCR may still require model
 and runtime downloads. See [privacy.html](privacy.html).
 
-Capacitor projects in `android/` and `ios/` reuse the current browser analysis
-path and include the primary OCR engine/models locally. Build with
+Capacitor projects in `android/` and `ios/` share the interface and rules.
+Android attempts its bundled native reader first, with local Tesseract for
+products returning no native text or usable word scores; iOS uses bundled Tesseract. Native recognition
+has compiled but has not yet been validated on a physical device. Build with
 `npm run mobile:sync`; then open Android Studio with `npm run mobile:android`
 or Xcode with `npm run mobile:ios`. See [mobile/README.md](mobile/README.md)
 for prerequisites, debug builds, manual GitHub Actions builds and release

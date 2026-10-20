@@ -1,0 +1,353 @@
+{
+  "app_version": "1.7.0",
+  "report_date_utc": "2026-10-20",
+  "validity": "Development only; partial model-visual references; zero independent human reviewers; repeated tuning on these photos, no holdout, no training.",
+  "dataset": {
+    "captures": 3,
+    "venues": 2,
+    "known_titles": 38,
+    "known_positive_dish_allergen_pairs": 20,
+    "manifest_sha256": "dd2882d3c4d2e2a3bb7780ee66a384964d18d4c8df272c0726f050cb2c10c5d1",
+    "reference_revised_after_predictions": false,
+    "exact_user_naver_image_tested": false
+  },
+  "browser_runs": [
+    {
+      "run": "r1",
+      "detected": 1,
+      "missed": 19,
+      "failed_captures": [
+        {
+          "capture_id": "commons-129112720",
+          "error": "no_text_read"
+        }
+      ],
+      "unsafe_outputs": 0,
+      "desktop_returned_latency_ms": {
+        "count": 2,
+        "p50": 76400.39999997616,
+        "p95": 82770.69999998808
+      },
+      "summary_sha256": "d33d51b7808996ba336a47af3badffc1644cf589bc9b08a5930ef660c5f99b3b",
+      "predictions_sha256": "44b4ca9fce649c6967e7f9747c8e7d996ec6ea16b19e9884cf616efdcc863070",
+      "metadata_sha256": "ec87adbfcf7026b29f2fd01e46fcd741d84a46fe482a74f72ed0afadf18069b0",
+      "source_snapshot": {
+        "commit": null,
+        "base_commit": "fb7cd2c0f67ad208e64f5dee083be98b7698934e",
+        "description": "1.7.0 development candidate: shared mobile interface, guarded menu price/name association, cached unchanged matching semantics, optional bundled Android native word reader. Frozen before new real-menu browser evaluation. No human references/holdout/training.",
+        "frozen_utc": "2026-10-20T09:04:31.553406+00:00",
+        "sha256": {
+          "src/ingredient-glossary.js": "905ecc9e6b17b74bccf3b276adc18d56eb013c2238344afd99e31732b21974c5",
+          "src/ingredients.js": "422fc477da2ef880fbf54f6fe0b3d166c092c39f0a0500ba3149ab35383efefd",
+          "src/image.js": "24c90a6f1f954dbceef89e6be4647b9cbb388ff0b6ef2ed870d87dcd952a32a3",
+          "src/native-ocr.js": "a5420a1e33ac7d48d4a6ff27a096bef9d408030967c5a34009ba00d8fc40c683",
+          "src/ontology.js": "2306cfa5a3108c99cd737adccc97ae8f2eee7948beb78312e9ed638188aa3815",
+          "src/engine.js": "1a0706ff3d5b1a7a73ab91b3dd153dd826a53c660da454833837ffb229e351b5",
+          "src/tesseract.js": "b1f9f88051490b8c28a96f5227aa443c3b5adc493e43e8e8d0b35bd36c6d2f31",
+          "src/learning.js": "ac374449df44626ae5b1fd3424b350946670f654375b245d6859f6e6445a381d",
+          "src/app.js": "a596d9fc190348a888afcbde751c62d00a6769f0c8cbce6e1a6de8134ef413ed",
+          "src/menu-ocr.js": "00817fb2b728d08121a95e1f7551f7595ee31a8961774b6d4bdaa2b08845fbd3",
+          "src/ocr-worker.js": "9d3a1c5abbbb3c3d581fb78a4ffbf02148495f442ca24891ed2f0ae3e4f6f3f9",
+          "src/browser.js": "d8062aaa7d64c39d9b6464d19474cce93cb4bbc9c48bf0d5c74987ce8abcf668",
+          "src/menu-image.js": "6a0a2f46c02aa40d885cfc020144cc103d090e3298844f20038bb8b82aa84f21",
+          "src/label-pattern.js": "8c6b1700ecbf21b1600891d9bcd491a9d7021cce3936842ca20a5f3e1fe9dc6e",
+          "src/menu.js": "a6a4315a7afcb6979d29dd937f22e4b66ecc7e81c32e1b32059b024c9707f2af",
+          "src/crop.js": "e42138526c896391b368291fa4180c8f4cbdb9194ae39e5d5b2560d5e155f1f8",
+          "src/ocr.js": "e1746dcdf1b16e908b2d3c9ec7ba7a053151869a7bb4e3597ed7ef342b55224e",
+          "src/pwa.js": "ccdd680e194df221e7b5d1d64fd5eead9450faf8f7dbac2e9e4b68dc12763f6f",
+          "shared/non-dairy.json": "c821554a7596184c975e3fddebaaf2edfa4b4f1c28ec966e29a5caf9011cca90",
+          "shared/regressions.json": "e4e398e1b9d47196216095459733b9ae7dceac77b595c28f8175483ed7803121",
+          "package.json": "bbe0680bf3c13381fa7939f9b4e0e88a05ec4af724db8051dd0b958c1cd762c1",
+          "package-lock.json": "0da45cfe3b4cb94732de67843693f43b601ac34ef6fd1114d6a9d3c268bf3b25",
+          "index.html": "e36a0bda54a9c23b205745c4ab7cca6590e56fd23da66c8e568336da7ea88580",
+          "sw.js": "edf825b67278a024f2eeaedea7b49734586f8372dee955ea5d2b166d24451693",
+          "assets/app.css": "51c0bd876e565a6fb13435e60aa65aaee95160b2b451cf2d27277e7f68b62857"
+        }
+      },
+      "started_utc": "2026-10-20T09:04:32.325Z",
+      "finished_utc": "2026-10-20T09:08:02.259Z"
+    },
+    {
+      "run": "r2",
+      "detected": 2,
+      "missed": 18,
+      "failed_captures": [
+        {
+          "capture_id": "commons-63594394",
+          "error": "no_text_read"
+        }
+      ],
+      "unsafe_outputs": 0,
+      "desktop_returned_latency_ms": {
+        "count": 2,
+        "p50": 74507,
+        "p95": 75853.5
+      },
+      "summary_sha256": "14cdd88353fa6070caaf2628ee5680bb2890e40aa35a70ac37c221f657feeebd",
+      "predictions_sha256": "6c07d9e1c729491c7c05da2a983179809b6853fadc634dfc0417bd4b10250a35",
+      "metadata_sha256": "c96965f9a5dd1ffd496be695527e73ee36b2763b67f841a55f7111d4e4dc0633",
+      "source_snapshot": {
+        "commit": null,
+        "base_commit": "fb7cd2c0f67ad208e64f5dee083be98b7698934e",
+        "description": "1.7.0 r2: normalized wider overlapping columns before costly whole-page reads. Same word confidence and fail-closed rules. Desktop browser menu diagnostic, not Android native engine.",
+        "frozen_utc": "2026-10-20T09:09:15.887998+00:00",
+        "sha256": {
+          "src/ingredient-glossary.js": "905ecc9e6b17b74bccf3b276adc18d56eb013c2238344afd99e31732b21974c5",
+          "src/ingredients.js": "422fc477da2ef880fbf54f6fe0b3d166c092c39f0a0500ba3149ab35383efefd",
+          "src/image.js": "24c90a6f1f954dbceef89e6be4647b9cbb388ff0b6ef2ed870d87dcd952a32a3",
+          "src/native-ocr.js": "a5420a1e33ac7d48d4a6ff27a096bef9d408030967c5a34009ba00d8fc40c683",
+          "src/ontology.js": "2306cfa5a3108c99cd737adccc97ae8f2eee7948beb78312e9ed638188aa3815",
+          "src/engine.js": "1a0706ff3d5b1a7a73ab91b3dd153dd826a53c660da454833837ffb229e351b5",
+          "src/tesseract.js": "b1f9f88051490b8c28a96f5227aa443c3b5adc493e43e8e8d0b35bd36c6d2f31",
+          "src/learning.js": "ac374449df44626ae5b1fd3424b350946670f654375b245d6859f6e6445a381d",
+          "src/app.js": "a596d9fc190348a888afcbde751c62d00a6769f0c8cbce6e1a6de8134ef413ed",
+          "src/menu-ocr.js": "3f8b5bb074737d2607c55e86d9e70b00b42da17e539efbe3c97233e416b37697",
+          "src/ocr-worker.js": "9d3a1c5abbbb3c3d581fb78a4ffbf02148495f442ca24891ed2f0ae3e4f6f3f9",
+          "src/browser.js": "d8062aaa7d64c39d9b6464d19474cce93cb4bbc9c48bf0d5c74987ce8abcf668",
+          "src/menu-image.js": "3f9504d97c17d53889e7d3da793384455e490dbad73c0c57b7ff98d6af3b4398",
+          "src/label-pattern.js": "8c6b1700ecbf21b1600891d9bcd491a9d7021cce3936842ca20a5f3e1fe9dc6e",
+          "src/menu.js": "a6a4315a7afcb6979d29dd937f22e4b66ecc7e81c32e1b32059b024c9707f2af",
+          "src/crop.js": "e42138526c896391b368291fa4180c8f4cbdb9194ae39e5d5b2560d5e155f1f8",
+          "src/ocr.js": "e1746dcdf1b16e908b2d3c9ec7ba7a053151869a7bb4e3597ed7ef342b55224e",
+          "src/pwa.js": "ccdd680e194df221e7b5d1d64fd5eead9450faf8f7dbac2e9e4b68dc12763f6f",
+          "shared/non-dairy.json": "c821554a7596184c975e3fddebaaf2edfa4b4f1c28ec966e29a5caf9011cca90",
+          "shared/regressions.json": "e4e398e1b9d47196216095459733b9ae7dceac77b595c28f8175483ed7803121",
+          "package.json": "bbe0680bf3c13381fa7939f9b4e0e88a05ec4af724db8051dd0b958c1cd762c1",
+          "package-lock.json": "0da45cfe3b4cb94732de67843693f43b601ac34ef6fd1114d6a9d3c268bf3b25",
+          "index.html": "e36a0bda54a9c23b205745c4ab7cca6590e56fd23da66c8e568336da7ea88580",
+          "sw.js": "edf825b67278a024f2eeaedea7b49734586f8372dee955ea5d2b166d24451693",
+          "assets/app.css": "51c0bd876e565a6fb13435e60aa65aaee95160b2b451cf2d27277e7f68b62857"
+        }
+      },
+      "started_utc": "2026-10-20T09:09:16.550Z",
+      "finished_utc": "2026-10-20T09:12:33.361Z"
+    },
+    {
+      "run": "r3",
+      "detected": 6,
+      "missed": 14,
+      "failed_captures": [
+        {
+          "capture_id": "commons-63594393",
+          "error": "no_text_read"
+        }
+      ],
+      "unsafe_outputs": 0,
+      "desktop_returned_latency_ms": {
+        "count": 2,
+        "p50": 74285.80000001192,
+        "p95": 74310.80000001192
+      },
+      "summary_sha256": "8f68221cfd3443103b7af50adff2ad3df3c21e4c22970b2d7f7203af9cf8119d",
+      "predictions_sha256": "a314ac08951f9d7acffa922d36939030c3b0d3360aa10c4984735228577b56cf",
+      "metadata_sha256": "862b80d73b9fccac3a3dface2b6e9a2c63049b09ae7a7a014ac8acdbe53386d6",
+      "source_snapshot": {
+        "commit": null,
+        "base_commit": "fb7cd2c0f67ad208e64f5dee083be98b7698934e",
+        "description": "1.7.0 r3: bounded 1280px overview before larger detail reads, wide overlapping columns, unchanged scores and fail-closed rules. No native Android reader is active in this browser run.",
+        "frozen_utc": "2026-10-20T09:14:52.592564+00:00",
+        "sha256": {
+          "src/ingredient-glossary.js": "905ecc9e6b17b74bccf3b276adc18d56eb013c2238344afd99e31732b21974c5",
+          "src/ingredients.js": "422fc477da2ef880fbf54f6fe0b3d166c092c39f0a0500ba3149ab35383efefd",
+          "src/image.js": "24c90a6f1f954dbceef89e6be4647b9cbb388ff0b6ef2ed870d87dcd952a32a3",
+          "src/native-ocr.js": "a5420a1e33ac7d48d4a6ff27a096bef9d408030967c5a34009ba00d8fc40c683",
+          "src/ontology.js": "2306cfa5a3108c99cd737adccc97ae8f2eee7948beb78312e9ed638188aa3815",
+          "src/engine.js": "1a0706ff3d5b1a7a73ab91b3dd153dd826a53c660da454833837ffb229e351b5",
+          "src/tesseract.js": "b1f9f88051490b8c28a96f5227aa443c3b5adc493e43e8e8d0b35bd36c6d2f31",
+          "src/learning.js": "ac374449df44626ae5b1fd3424b350946670f654375b245d6859f6e6445a381d",
+          "src/app.js": "a596d9fc190348a888afcbde751c62d00a6769f0c8cbce6e1a6de8134ef413ed",
+          "src/menu-ocr.js": "b5f7736bb12c1fb0cbb1a5bcaf0d12ca17056910ad3c53a233b88b1caf056080",
+          "src/ocr-worker.js": "9d3a1c5abbbb3c3d581fb78a4ffbf02148495f442ca24891ed2f0ae3e4f6f3f9",
+          "src/browser.js": "d8062aaa7d64c39d9b6464d19474cce93cb4bbc9c48bf0d5c74987ce8abcf668",
+          "src/menu-image.js": "3f9504d97c17d53889e7d3da793384455e490dbad73c0c57b7ff98d6af3b4398",
+          "src/label-pattern.js": "8c6b1700ecbf21b1600891d9bcd491a9d7021cce3936842ca20a5f3e1fe9dc6e",
+          "src/menu.js": "a6a4315a7afcb6979d29dd937f22e4b66ecc7e81c32e1b32059b024c9707f2af",
+          "src/crop.js": "e42138526c896391b368291fa4180c8f4cbdb9194ae39e5d5b2560d5e155f1f8",
+          "src/ocr.js": "e1746dcdf1b16e908b2d3c9ec7ba7a053151869a7bb4e3597ed7ef342b55224e",
+          "src/pwa.js": "ccdd680e194df221e7b5d1d64fd5eead9450faf8f7dbac2e9e4b68dc12763f6f",
+          "shared/non-dairy.json": "c821554a7596184c975e3fddebaaf2edfa4b4f1c28ec966e29a5caf9011cca90",
+          "shared/regressions.json": "e4e398e1b9d47196216095459733b9ae7dceac77b595c28f8175483ed7803121",
+          "package.json": "bbe0680bf3c13381fa7939f9b4e0e88a05ec4af724db8051dd0b958c1cd762c1",
+          "package-lock.json": "0da45cfe3b4cb94732de67843693f43b601ac34ef6fd1114d6a9d3c268bf3b25",
+          "index.html": "e36a0bda54a9c23b205745c4ab7cca6590e56fd23da66c8e568336da7ea88580",
+          "sw.js": "edf825b67278a024f2eeaedea7b49734586f8372dee955ea5d2b166d24451693",
+          "assets/app.css": "51c0bd876e565a6fb13435e60aa65aaee95160b2b451cf2d27277e7f68b62857"
+        }
+      },
+      "started_utc": "2026-10-20T09:14:53.441Z",
+      "finished_utc": "2026-10-20T09:18:01.439Z"
+    },
+    {
+      "run": "r4",
+      "detected": 2,
+      "missed": 18,
+      "failed_captures": [
+        {
+          "capture_id": "commons-63594394",
+          "error": "no_text_read"
+        }
+      ],
+      "unsafe_outputs": 0,
+      "desktop_returned_latency_ms": {
+        "count": 2,
+        "p50": 88517.40000000596,
+        "p95": 92919.40000000596
+      },
+      "summary_sha256": "e616bdecafcdf20120141344a1fcfe9f7f9b6bc877ef594c6f37af6bce279a4f",
+      "predictions_sha256": "9b30f497523b499fae530cdd90532017c2e318df1771b52147423e298336e98d",
+      "metadata_sha256": "694e900a199ec40d22e00f30496c035015aabc0574b2bc1de16a8f6e20a69fb2",
+      "source_snapshot": {
+        "commit": null,
+        "base_commit": "fb7cd2c0f67ad208e64f5dee083be98b7698934e",
+        "description": "1.7.0 r4: small Latin overview seeds text before higher-cost Korean/Latin detail reads; native failure fallback retained. No Android native reader active in this browser diagnostic. All earlier timed-out runs retained. No human-reviewed holdout or training.",
+        "frozen_utc": "2026-10-20T09:24:21.566257+00:00",
+        "sha256": {
+          "src/ingredient-glossary.js": "905ecc9e6b17b74bccf3b276adc18d56eb013c2238344afd99e31732b21974c5",
+          "src/ingredients.js": "422fc477da2ef880fbf54f6fe0b3d166c092c39f0a0500ba3149ab35383efefd",
+          "src/image.js": "24c90a6f1f954dbceef89e6be4647b9cbb388ff0b6ef2ed870d87dcd952a32a3",
+          "src/native-ocr.js": "c4895cc4e9c44a68dbed6495d5560df18b7a0fa1fcde63a14f1bd148e076feb1",
+          "src/ontology.js": "2306cfa5a3108c99cd737adccc97ae8f2eee7948beb78312e9ed638188aa3815",
+          "src/engine.js": "1a0706ff3d5b1a7a73ab91b3dd153dd826a53c660da454833837ffb229e351b5",
+          "src/tesseract.js": "3fb04bc46919062d60fa6d05e769a6179a1d9a1f8d986b392ebf1684235ec1f5",
+          "src/learning.js": "ac374449df44626ae5b1fd3424b350946670f654375b245d6859f6e6445a381d",
+          "src/app.js": "a596d9fc190348a888afcbde751c62d00a6769f0c8cbce6e1a6de8134ef413ed",
+          "src/menu-ocr.js": "7d32e6550242558638d20bd145abcb86bad1ab9b38c7a20682796f406bf8c832",
+          "src/ocr-worker.js": "9d3a1c5abbbb3c3d581fb78a4ffbf02148495f442ca24891ed2f0ae3e4f6f3f9",
+          "src/browser.js": "d8062aaa7d64c39d9b6464d19474cce93cb4bbc9c48bf0d5c74987ce8abcf668",
+          "src/menu-image.js": "3f9504d97c17d53889e7d3da793384455e490dbad73c0c57b7ff98d6af3b4398",
+          "src/label-pattern.js": "8c6b1700ecbf21b1600891d9bcd491a9d7021cce3936842ca20a5f3e1fe9dc6e",
+          "src/menu.js": "a6a4315a7afcb6979d29dd937f22e4b66ecc7e81c32e1b32059b024c9707f2af",
+          "src/crop.js": "e42138526c896391b368291fa4180c8f4cbdb9194ae39e5d5b2560d5e155f1f8",
+          "src/ocr.js": "e1746dcdf1b16e908b2d3c9ec7ba7a053151869a7bb4e3597ed7ef342b55224e",
+          "src/pwa.js": "ccdd680e194df221e7b5d1d64fd5eead9450faf8f7dbac2e9e4b68dc12763f6f",
+          "shared/non-dairy.json": "c821554a7596184c975e3fddebaaf2edfa4b4f1c28ec966e29a5caf9011cca90",
+          "shared/regressions.json": "e4e398e1b9d47196216095459733b9ae7dceac77b595c28f8175483ed7803121",
+          "package.json": "bbe0680bf3c13381fa7939f9b4e0e88a05ec4af724db8051dd0b958c1cd762c1",
+          "package-lock.json": "0da45cfe3b4cb94732de67843693f43b601ac34ef6fd1114d6a9d3c268bf3b25",
+          "index.html": "e36a0bda54a9c23b205745c4ab7cca6590e56fd23da66c8e568336da7ea88580",
+          "sw.js": "edf825b67278a024f2eeaedea7b49734586f8372dee955ea5d2b166d24451693",
+          "assets/app.css": "7595125a5fc6048c061cd1a67c2f74da2b4dc2f22a4c2e2081208d68c2a7c04e"
+        }
+      },
+      "started_utc": "2026-10-20T09:24:22.930Z",
+      "finished_utc": "2026-10-20T09:28:21.335Z"
+    },
+    {
+      "run": "r4-isolated",
+      "detected": 8,
+      "missed": 12,
+      "failed_captures": [],
+      "unsafe_outputs": 0,
+      "desktop_returned_latency_ms": {
+        "count": 3,
+        "p50": 78017.5,
+        "p95": 86034.40000000596
+      },
+      "summary_sha256": "521b7ba9e3e59182140ebfbb01684f4d7202eac22b286c309d5bba76460e35ec",
+      "predictions_sha256": "b01eb73dd931cdf3fdd01948b6303f6b1fb0a0d10a74cbe55a8f1f2c197cd1d6",
+      "metadata_sha256": "82d29eb2bb292201109dfb525c0858e0e40390cb19a845e6239cf116a3a7268b",
+      "source_snapshot": {
+        "commit": null,
+        "base_commit": "fb7cd2c0f67ad208e64f5dee083be98b7698934e",
+        "description": "1.7.0 r4: small Latin overview seeds text before higher-cost Korean/Latin detail reads; native failure fallback retained. No Android native reader active in this browser diagnostic. All earlier timed-out runs retained. No human-reviewed holdout or training.",
+        "frozen_utc": "2026-10-20T09:24:21.566257+00:00",
+        "sha256": {
+          "src/ingredient-glossary.js": "905ecc9e6b17b74bccf3b276adc18d56eb013c2238344afd99e31732b21974c5",
+          "src/ingredients.js": "422fc477da2ef880fbf54f6fe0b3d166c092c39f0a0500ba3149ab35383efefd",
+          "src/image.js": "24c90a6f1f954dbceef89e6be4647b9cbb388ff0b6ef2ed870d87dcd952a32a3",
+          "src/native-ocr.js": "c4895cc4e9c44a68dbed6495d5560df18b7a0fa1fcde63a14f1bd148e076feb1",
+          "src/ontology.js": "2306cfa5a3108c99cd737adccc97ae8f2eee7948beb78312e9ed638188aa3815",
+          "src/engine.js": "1a0706ff3d5b1a7a73ab91b3dd153dd826a53c660da454833837ffb229e351b5",
+          "src/tesseract.js": "3fb04bc46919062d60fa6d05e769a6179a1d9a1f8d986b392ebf1684235ec1f5",
+          "src/learning.js": "ac374449df44626ae5b1fd3424b350946670f654375b245d6859f6e6445a381d",
+          "src/app.js": "a596d9fc190348a888afcbde751c62d00a6769f0c8cbce6e1a6de8134ef413ed",
+          "src/menu-ocr.js": "7d32e6550242558638d20bd145abcb86bad1ab9b38c7a20682796f406bf8c832",
+          "src/ocr-worker.js": "9d3a1c5abbbb3c3d581fb78a4ffbf02148495f442ca24891ed2f0ae3e4f6f3f9",
+          "src/browser.js": "d8062aaa7d64c39d9b6464d19474cce93cb4bbc9c48bf0d5c74987ce8abcf668",
+          "src/menu-image.js": "3f9504d97c17d53889e7d3da793384455e490dbad73c0c57b7ff98d6af3b4398",
+          "src/label-pattern.js": "8c6b1700ecbf21b1600891d9bcd491a9d7021cce3936842ca20a5f3e1fe9dc6e",
+          "src/menu.js": "a6a4315a7afcb6979d29dd937f22e4b66ecc7e81c32e1b32059b024c9707f2af",
+          "src/crop.js": "e42138526c896391b368291fa4180c8f4cbdb9194ae39e5d5b2560d5e155f1f8",
+          "src/ocr.js": "e1746dcdf1b16e908b2d3c9ec7ba7a053151869a7bb4e3597ed7ef342b55224e",
+          "src/pwa.js": "ccdd680e194df221e7b5d1d64fd5eead9450faf8f7dbac2e9e4b68dc12763f6f",
+          "shared/non-dairy.json": "c821554a7596184c975e3fddebaaf2edfa4b4f1c28ec966e29a5caf9011cca90",
+          "shared/regressions.json": "e4e398e1b9d47196216095459733b9ae7dceac77b595c28f8175483ed7803121",
+          "package.json": "bbe0680bf3c13381fa7939f9b4e0e88a05ec4af724db8051dd0b958c1cd762c1",
+          "package-lock.json": "0da45cfe3b4cb94732de67843693f43b601ac34ef6fd1114d6a9d3c268bf3b25",
+          "index.html": "e36a0bda54a9c23b205745c4ab7cca6590e56fd23da66c8e568336da7ea88580",
+          "sw.js": "edf825b67278a024f2eeaedea7b49734586f8372dee955ea5d2b166d24451693",
+          "assets/app.css": "7595125a5fc6048c061cd1a67c2f74da2b4dc2f22a4c2e2081208d68c2a7c04e"
+        }
+      },
+      "started_utc": "2026-10-20T09:30:56.354Z",
+      "finished_utc": "2026-10-20T09:35:04.816Z"
+    }
+  ],
+  "final_saved_word_replay": {
+    "kind": "saved-word rule replay; no new OCR, camera, UI or latency measurement",
+    "detected": 8,
+    "missed": 12,
+    "unsafe_outputs": 0,
+    "metadata": {
+      "kind": "saved-word rule replay; no new OCR, camera, UI or latency measurement",
+      "dataset_sha256": "dd2882d3c4d2e2a3bb7780ee66a384964d18d4c8df272c0726f050cb2c10c5d1",
+      "input_path": "/workspace/ALLER-AI/benchmarks/results/korea-real-menu-1.7.0-2026-10-20-r4-isolated/predictions.jsonl",
+      "input_sha256": "b01eb73dd931cdf3fdd01948b6303f6b1fb0a0d10a74cbe55a8f1f2c197cd1d6",
+      "source_sha256": {
+        "src/menu.js": "a6a4315a7afcb6979d29dd937f22e4b66ecc7e81c32e1b32059b024c9707f2af",
+        "src/engine.js": "1a0706ff3d5b1a7a73ab91b3dd153dd826a53c660da454833837ffb229e351b5",
+        "src/ontology.js": "2306cfa5a3108c99cd737adccc97ae8f2eee7948beb78312e9ed638188aa3815",
+        "src/label-pattern.js": "8c6b1700ecbf21b1600891d9bcd491a9d7021cce3936842ca20a5f3e1fe9dc6e",
+        "benchmarks/replay-menu.mjs": "e1566a8f0ded1377673000c2265404754148d8d2fc7af899e2c68ae8bdf49528",
+        "benchmarks/menu-evidence.mjs": "8d215a43e27220d4f4f9d3fb74014b867dc82de42cc6fa6f087b489121c528fd"
+      }
+    }
+  },
+  "final_browser_interpretation": "Isolated r4 returned words in 3/3 captures: 8/20 exact known dish/allergen pairs, 12 misses. Internal pass deadlines remain. r4 loaded used the same source; background emulator CPU load changed. Not a controlled prior-version A/B, phone timing or population recall. All attempts retained.",
+  "ocr_cer": null,
+  "ocr_wer": null,
+  "precision": null,
+  "false_positive_rate": null,
+  "android_native": {
+    "implementation": "bundled Korean/Latin ML Kit 16.0.1; local Capacitor bridge; uncalibrated actual word scores, missing scores zero",
+    "runtime_inference_captures": 0,
+    "physical_device_validated": false,
+    "software_emulator_attempt": "API30/API35 software-only VMs did not complete usable framework boot; no native inference was measured. This was not an app inference failure. VMs stopped.",
+    "prepared_inputs": {
+      "original_manifest_captures": 19,
+      "hashes_verified": true,
+      "note": "16 package +3 menu development captures prepared; first cleanup failed after writing all inputs, fixed driver reran 3 menus successfully. Preparation is not recognition."
+    }
+  },
+  "automated_checks": {
+    "javascript": {
+      "passed": 121,
+      "failed": 0,
+      "skipped": 0
+    },
+    "python": {
+      "passed": 32,
+      "failed": 0
+    },
+    "controlled_mobile_web": "passed; no native engine active",
+    "controlled_pages_phone_desktop": "passed",
+    "generated_real_model_smoke": "PASS on resource-isolated rerun: real bundled local Tesseract, generated label and blue Korean/English menu; cream and oyster warnings, salad unverified. First attempt under concurrent Gradle failed the shopping conflict assertion and returned unverified; retained in archive. This is neither a real-image accuracy benchmark nor native inference.",
+    "android_compile": "PASS: offline :app:assembleDebug :app:assembleDebugAndroidTest. An earlier broader all-modules AndroidTest build failed because unrelated Capacitor test dependencies were not cached; the targeted app/test builds pass.",
+    "apk_assets": "35/35 byte-identical to final dist; delivered APK signature valid and matches previous local 1.6.4 certificate"
+  },
+  "no_store_publication": true,
+  "model_training_performed": false,
+  "next_dataset_protocol": "benchmarks/MENU-DATASET-PROTOCOL.md",
+  "apk": {
+    "sha256": "c84f318253c02acd18589a13eab8024f7a28f4910f9acb98e07875488f218cf6",
+    "bytes": 70728478,
+    "version": "1.7.0",
+    "version_code": 7,
+    "path": "/workspace/ADPAI-artifacts/ADPAI-1.7.0-debug.apk",
+    "debug_only": true,
+    "native_runtime_validated": false,
+    "signer_certificate_sha256": "214c5cb9df9bcb95cd4626d4b92cdfc894222647320cde4bcc5916bb5bb6e09d",
+    "signing": "Re-signed with the preserved previous LOCAL debug key; build default used a new writable Android user directory. Same 35 web assets verified against dist. Hosted-CI debug keys can differ. No private keys distributed.",
+    "original_build_apk_sha256": "f84aa6008d08a73dbc69d35e4331288c81e2a479d98237b48efd19ef6f0c03c7"
+  }
+}

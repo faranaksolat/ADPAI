@@ -13,7 +13,26 @@ application identifier `io.github.faranaksolat.adpai`. Confirm availability
 when registering the app in the stores, before a first release. The app uses
 the **same** `src/browser.js`, `src/tesseract.js` and `src/engine.js` as Pages,
 bundled by `mobile/entry.js`. It does not call the optional FastAPI service.
-No account, API key, analytics or photo upload is needed to run it.
+No ADPAI account, cloud-AI API key or photo-upload service is needed to run it.
+
+Android 1.7.0 registers `AdpaiTextPlugin` from `MainActivity` and bundles
+`com.google.mlkit:text-recognition:16.0.1` and
+`com.google.mlkit:text-recognition-korean:16.0.1`. `mobile/entry.js` exposes that
+local bridge only when available on Android. `src/tesseract.js` routes to
+`src/native-ocr.js`; preprocessing, selected profiles, ingredient explanations
+and fail-closed evaluation remain shared. Korean and Latin readings are one
+OCR family, not independent corroboration. Actual word scores remain
+uncalibrated; absent/invalid scores become zero, never invented confidence.
+Products returning no native words or no usable word scores fall back to bundled
+Tesseract. Earlier native evidence and failures remain in the result.
+Images cross the local Capacitor bridge as bounded PNG data; no photo-upload
+service or API key is added. The plugin bounds input dimensions and time,
+retains a busy guard until an outstanding task actually finishes, and recycles
+bitmaps after completion. Google SDK operational diagnostics are described in
+`privacy.html`. Android model initialization/inference and the full native
+camera/bridge/UI lifecycle require their own runtime checks; compilation alone
+does not prove them. iOS and Pages still use Tesseract. An iOS-native OCR engine
+has not been added by this Android change.
 
 The native camera and gallery actions run only after tapping a button. Camera
 photos are not deliberately saved to the gallery. An abandoned/denied action

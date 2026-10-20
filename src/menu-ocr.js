@@ -1,12 +1,16 @@
-import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.6.4';
+import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.7.0';
+import {resizeForOcr} from './image.js?v=1.7.0';
 
 // Keep menu layout separate from shopping. Read the upright full image and
-// overlapping columns before spending its bounded budget on rotations.
+// overlapping columns first so a slow whole-page pass cannot erase all useful
+// evidence. Wide overlap keeps long names intact across an artificial crop.
 export async function readMenuPhoto({worker,canvas,photoIndex,familyId,rotate,itemsFrom,maxPhotoMs=65000}){
   const sources=[],errors=[],started=Date.now();let complete=true;
   const views=menuReadCanvases(canvas),full=views[0];
-  const passes=[{view:full,langs:['kor'],psm:'11'},{view:full,langs:['eng'],psm:'11'},
-    ...views.slice(1).map(view=>({view,langs:['kor','eng'],psm:'11'}))];
+  const preview=resizeForOcr(full.canvas,1280);
+  const overview=preview===full.canvas?[]:[{view:{canvas:preview,variant:'menu-overview',frame:{...full.frame,scale:full.frame.scale*preview.width/full.canvas.width}},langs:['eng'],psm:'11'}];
+  const passes=[...overview,...views.slice(1).map(view=>({view,langs:['kor','eng'],psm:'11'})),
+    {view:full,langs:['eng'],psm:'11'},{view:full,langs:['kor'],psm:'11'}];
   const read=async(pass,rotation)=>{
     if(worker.closed||Date.now()-started>=maxPhotoMs){complete=false;return false}
     try{

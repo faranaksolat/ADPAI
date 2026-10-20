@@ -21,7 +21,7 @@ class ApiTests(unittest.TestCase):
         self.assertFalse(health['automatic_negative_results'])
         self.assertNotIn('calorie_estimation',health)
         html=self.client.get('/').text
-        self.assertIn('src/browser.js?v=1.6.4',html)
+        self.assertIn('src/browser.js?v=1.7.0',html)
         for path in ['browser.js','tesseract.js','engine.js','ontology.js','image.js','pwa.js','ingredients.js','ingredient-glossary.js','crop.js','label-pattern.js','menu.js','ocr-worker.js','menu-image.js','menu-ocr.js']:
             response=self.client.get('/src/'+path)
             self.assertEqual(response.status_code,200,path)
