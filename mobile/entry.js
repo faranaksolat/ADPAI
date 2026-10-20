@@ -1,4 +1,4 @@
-import { Capacitor } from '@capacitor/core';
+import { Capacitor,registerPlugin } from '@capacitor/core';
 import { Camera, CameraDirection, EncodingType, MediaTypeSelection } from '@capacitor/camera';
 
 async function asFile(media,index=0) {
@@ -12,6 +12,10 @@ async function asFile(media,index=0) {
   return new File([blob],`label-${Date.now()}-${index}`,{type:mime});
 }
 if(Capacitor.isNativePlatform()) {
+  if(Capacitor.getPlatform()==='android'&&Capacitor.isPluginAvailable('AdpaiText')){
+    const reader=registerPlugin('AdpaiText');
+    globalThis.ADPAI_NATIVE_OCR=options=>reader.recognize(options);
+  }
   globalThis.ADPAI_NATIVE={
     takePhoto: async()=>[await asFile(await Camera.takePhoto({quality:100,correctOrientation:true,encodingType:EncodingType.JPEG,saveToGallery:false,cameraDirection:CameraDirection.Rear,includeMetadata:false}))],
     pickPhotos: async limit=>{

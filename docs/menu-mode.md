@@ -31,7 +31,8 @@ failure. Changed layouts/language subsets remain one OCR family and cannot
 corroborate weak confidence as independent models. Source scores are retained.
 Shopping retains its earlier reduced Korean block/English sparse and original
 automatic-layout readings. Menus instead read upright Korean/English in detail,
-then overlapping contrast-normalized columns; rotations are a fallback when
+with wide overlapping contrast-normalized columns first and full-page passes
+afterward; rotations are a fallback when
 upright text remains weak. Dark-background variants invert grayscale polarity.
 Individual OCR confidence stays unchanged. Crop boxes map back into the photo;
 titles clipped at artificial crop edges stay unassigned. Readings are evaluated

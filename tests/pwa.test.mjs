@@ -41,7 +41,7 @@ test('PWA atomically caches the shipped module graph and works offline under a p
     }
   }
   assert.equal(await w.fetch(w.scope,'GET','navigate'),'cached shell');
-  assert.equal(await w.fetch(w.scope+'src/engine.js?v=1.6.4'),'cached shell');
+  assert.equal(await w.fetch(w.scope+'src/engine.js?v=1.7.0'),'cached shell');
   for(const url of [w.scope+'api/analyze',w.scope+'label.png','https://cdn.jsdelivr.net/model.gz',w.scope+'src/engine.js?v=next']) assert.equal(await w.fetch(url),undefined);
   assert.equal(await w.fetch(w.scope,'POST'),undefined);
 });

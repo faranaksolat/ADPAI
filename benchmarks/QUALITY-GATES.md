@@ -22,8 +22,9 @@ these unreviewed samples.
    separately on the same reference text/regions. Better word reading can still
    fail to associate an ingredient with its food. Paddle's optional API path
    does not automatically improve the shipped Tesseract page/APK. Native ML Kit
-   or Apple Vision are candidates requiring actual platform/device validation;
-   they have not been integrated or verified by merely inspecting SDK metadata.
+   is integrated experimentally on Android 1.7.0; compilation and bridge unit
+   tests do not validate its real-image runtime or device accuracy. Apple Vision
+   remains a candidate. Both require actual platform/device validation.
 4. Freeze source/model/scorer/reference hashes and hold out product families
    and restaurant/menu editions before tuning. New photos of the same product
    or two languages on one menu are correlated, not extra independent cases.

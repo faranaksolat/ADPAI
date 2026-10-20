@@ -1,8 +1,9 @@
-import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.6.4';
-import { preprocess, rotateCanvas, resizeForOcr } from './image.js?v=1.6.4';
-import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.6.4';
-import {createManagedWorker} from './ocr-worker.js?v=1.6.4';
-import {readMenuPhoto} from './menu-ocr.js?v=1.6.4';
+import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.7.0';
+import { preprocess, rotateCanvas, resizeForOcr } from './image.js?v=1.7.0';
+import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.7.0';
+import {createManagedWorker} from './ocr-worker.js?v=1.7.0';
+import {readMenuPhoto} from './menu-ocr.js?v=1.7.0';
+import {analyzeNativeProducts} from './native-ocr.js?v=1.7.0';
 
 const PRIMARY = {id: 'korean', langs: ['kor','eng','fra'], label: 'Korean / English / French'};
 const FALLBACKS = [
@@ -90,19 +91,39 @@ function selectCandidates(candidates) {
 }
 
 export async function analyzeProducts(products, profile, options = {}) {
+  const nativeReader=options.nativeReader===undefined?globalThis.ADPAI_NATIVE_OCR:options.nativeReader;
+  if(nativeReader){
+    const native=await analyzeNativeProducts(products,profile,{...options,nativeReader});
+    const unread=native.products.map((product,index)=>({product,index})).filter(({product})=>!product.sources.some(source=>source.items.some(item=>item.score>0)));
+    if(!unread.length)return native;
+    // A missing/broken native model, including unsupported word confidence,
+    // must not disable the existing local reader. Zero scores stay zero.
+    // Preserve its failures; the fallback is still on-device and fail-closed.
+    const fallback=await analyzeProducts(unread.map(({index})=>products[index]),profile,{...options,nativeReader:null});
+    for(const [position,{product,index}] of unread.entries()){
+      const value=fallback.products[position];
+      native.products[index]={...value,label:`Product ${index+1}`,sources:[...product.sources,...value.sources],errors:[...product.errors,...value.errors]};
+    }
+    return native;
+  }
   const menuMode=options.purpose==='menu';
   const maxPhotoMs=options.maxPhotoMs??65000;
   const {onProgress = () => {}, createWorker = globalThis.ADPAI_CREATE_OCR_WORKER||createManagedWorker, prepare = preprocess, rotate = rotateCanvas} = options;
   const states = products.map(product => ({product:{...product,photos:[...product.photos]}, sources: [], familyStatus: {}, errors: []}));
   async function run(def, jobs) {
     let worker;
+    const openWorker=()=>createWorker(def.langs,1,{...globalThis.ADPAI_OCR_OPTIONS?.(def),logger:()=>{}});
     onProgress(`Reading ${def.label || def.id}…`);
     try {
-      worker = await createWorker(def.langs, 1, {...globalThis.ADPAI_OCR_OPTIONS?.(def),logger: () => {}});
+      worker = await openWorker();
       for (const state of jobs) {
         let complete = true;
         for (let photoIndex=0; photoIndex<state.product.photos.length; photoIndex++) {
-          if(worker.closed){complete=false;state.errors.push({family:def.id,photoIndex,message:'OCR worker closed after an earlier failure'});break}
+          // The timed-out worker has already been terminated. A bad front
+          // photo must not disable the back label or every later product.
+          // A failed reinitialization escapes to the outer failure handler;
+          // access/model-load failures are not retried indefinitely.
+          if(worker.closed)worker=await openWorker();
           const photo = state.product.photos[photoIndex];
           try {
             const photoStarted=Date.now();

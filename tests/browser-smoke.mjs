@@ -13,7 +13,7 @@ const mobileWeb=process.env.MOBILE_WEB==='1';
 const root=path.resolve(import.meta.dirname,'..',mobileWeb?'dist':'.');
 const realOcr=process.env.REAL_OCR==='1';
 const prefix='/ADPAI/';
-const mime={'.js':'text/javascript','.html':'text/html','.webmanifest':'application/manifest+json','.png':'image/png','.wasm':'application/wasm'};
+const mime={'.css':'text/css','.js':'text/javascript','.html':'text/html','.webmanifest':'application/manifest+json','.png':'image/png','.wasm':'application/wasm'};
 const server=http.createServer(async(req,res)=>{
   try {
     const pathname=decodeURIComponent(new URL(req.url,'http://local').pathname);
@@ -61,7 +61,7 @@ try {
   if(!realOcr) await send('Fetch.enable',{patterns:[{urlPattern:'https://cdn.jsdelivr.net/*'},{urlPattern:'*vendor/tesseract/tesseract.min.js'}]});
   else if(mobileWeb) await send('Fetch.enable',{patterns:[{urlPattern:'https://*'}]});
   await send('Page.enable');
-  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+  await send('Emulation.setDeviceMetricsOverride',{width:Number(process.env.VIEWPORT_WIDTH||390),height:Number(process.env.VIEWPORT_HEIGHT||844),deviceScaleFactor:1,mobile:true});
   if(mobileWeb)await send('Page.addScriptToEvaluateOnNewDocument',{source:'globalThis.ADPAI_NATIVE={};'});
   const loaded=new Promise(resolve=>listeners.set('Page.loadEventFired',[resolve]));
   await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}${prefix}`});
@@ -71,6 +71,7 @@ try {
     if(result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description||result.exceptionDetails.text);
     return result.result.value;
   };
+  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.mark')).display`),'grid','app stylesheet must load');
   assert.equal(await evaluate(`document.documentElement.scrollWidth<=window.innerWidth`),true,'phone layout overflows horizontally');
   assert.equal(await evaluate(`document.querySelector('#workflow').hidden`),true);
   if(process.env.HOME_SCREENSHOT){const {data}=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await fs.writeFile(process.env.HOME_SCREENSHOT,Buffer.from(data,'base64'))}
@@ -213,7 +214,7 @@ try {
     await evaluate(`(async()=>{await navigator.serviceWorker.ready;const end=Date.now()+15000;while(!navigator.serviceWorker.controller){if(Date.now()>end)throw new Error('service worker did not claim page');await new Promise(r=>setTimeout(r,25))}})()`);
     const cache=await evaluate(`(async()=>({scope:(await navigator.serviceWorker.ready).scope,urls:(await Promise.all((await caches.keys()).map(async key=>(await (await caches.open(key)).keys()).map(r=>r.url)))).flat()}))()`);
     assert.ok(cache.scope.endsWith(prefix));
-    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.6.4')));
+    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.7.0')));
     assert.ok(cache.urls.every(url=>url.startsWith(cache.scope) && !/blob:|api\/|label\.png|profile/iu.test(url)));
     await send('Fetch.disable');
     await send('Network.enable');
@@ -227,7 +228,7 @@ try {
     assert.equal(await evaluate(`document.querySelector('#analyze').disabled`),true);
     assert.equal(await evaluate(`(async()=>(await fetch('./privacy.html')).ok)()`),true);
     // An offline shell is usable even when the CDN runtime is unavailable.
-    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.6.4');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
+    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.7.0');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
     assert.equal(offlineStatus,'unverified');
   }
   assert.deepEqual(errors,[]);

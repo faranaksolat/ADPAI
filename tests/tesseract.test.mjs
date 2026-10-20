@@ -146,3 +146,17 @@ test('sparse Korean syllables regain a physical declaration row without borrowin
  const columns=itemsFrom({data:{words:[words[0],{...words[1],bbox:{x0:500,y0:10,x1:520,y1:32}}]}});
  assert.notEqual(columns[0].lineId,columns[1].lineId);
 });
+for(const sameProduct of [false,true])test(`a terminated worker does not erase ${sameProduct?'the next photo':'a later product'}`,async()=>{
+ let created=0;
+ const options={prepare:async file=>file,rotate:x=>x,nativeReader:null,createWorker:async()=>{
+  const first=created++===0;let closed=false;
+  return {get closed(){return closed},recognize:async()=>{if(first){closed=true;throw Error('OCR timeout: recognize')}return {data:{words:[{text:'INGREDIENTS: milk',confidence:95}]}}},terminate:async()=>{closed=true}};
+ }};
+ const products=sameProduct?[{id:1,photos:[photo('bad-front'),photo('good-back')]}]:[{id:1,photos:[photo('bad-front')]},{id:2,photos:[photo('good-back')]}];
+ const result=await analyzeProducts(products,{allergens:['milk']},options);
+ const recovered=result.products.at(-1);
+ assert.equal(recovered.status,'conflict');assert.ok(recovered.direct_matches.some(m=>m.allergen_id==='milk'));
+ assert.equal(created,2);assert.ok(result.products[0].errors.length);
+ if(sameProduct)assert.ok(recovered.coverage.failures.includes('korean'));
+ else assert.equal(result.products[0].status,'unverified');
+});

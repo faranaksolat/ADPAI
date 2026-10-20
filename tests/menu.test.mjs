@@ -115,3 +115,23 @@ test('conflicting complete names cannot merge their ingredient evidence merely f
  const r=evaluateMenu({sources:[source(['Soup: milk']),source(['Salad: soy'])],profile});
  assert.equal(r.items.length,2);assert.deepEqual(r.items.map(i=>i.matches.map(m=>m.allergen_id)),[['milk'],['soy']]);
 });
+test('a detached thousands-formatted price keeps the printed English title and taller Korean alias together',()=>{
+ const s={photoIndex:0,items:[
+  {text:'Black Pasta',score:.95,lineId:0,box:{x0:10,y0:10,x1:130,y1:23}},
+  {text:'12,0008',score:.7,lineId:1,box:{x0:155,y0:10,x1:220,y1:23}},
+  {text:'오징어 먹물 파스타',score:.95,lineId:2,box:{x0:10,y0:28,x1:180,y1:49}},
+  {text:'오징어와 크림 소스',score:.95,lineId:3,box:{x0:10,y0:54,x1:180,y1:65}},
+ ]};
+ const r=evaluateMenu({sources:[s],profile:{allergens:['shellfish','milk']}});
+ const dish=r.items.find(i=>i.name==='Black Pasta');assert.ok(dish);
+ assert.deepEqual(dish.matches.map(m=>m.allergen_id).sort(),['milk','shellfish']);assert.deepEqual(r.safe_items,[]);
+});
+test('a printed ingredient in a larger final title may warn without an inferred recipe',()=>{
+ const s={photoIndex:0,items:[
+  {text:'Please ask staff for further information',score:.95,lineId:0,box:{x0:10,y0:0,x1:220,y1:10}},
+  {text:'Menu prices may change',score:.95,lineId:1,box:{x0:10,y0:30,x1:160,y1:40}},
+  {text:'Cream Cheese Pizza',score:.95,lineId:2,box:{x0:10,y0:100,x1:200,y1:120}},
+ ]};
+ const r=evaluateMenu({sources:[s],profile:{allergens:['milk','wheat','egg']}});
+ assert.deepEqual(r.items.find(i=>i.name==='Cream Cheese Pizza').matches.map(m=>m.allergen_id),['milk']);assert.deepEqual(r.safe_items,[]);
+});

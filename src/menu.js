@@ -1,8 +1,8 @@
-import { evaluateProduct, containsAny, MARKERS, fold, ALLERGENS, matchSpans } from './engine.js?v=1.6.4';
+import { ingredientEvidence, containsAny, MARKERS, fold, ALLERGENS, matchSpans } from './engine.js?v=1.7.0';
 
 // A menu's printed description is not a complete recipe or a safety certificate.
 // Associate text only on one explicit line, or adjacent lines in one column.
-const PRICE=/(?:[$€£₩]\s*\d[\d,.]*|\d[\d,.]*\s*원|\b\d{1,3}[.,]\d{2}\b)/u;
+const PRICE=/(?:[$€£₩]\s*\d[\d,.]*|\d[\d,.]*\s*원|\b\d{1,3}(?:,\d{3})+(?:원|8)?\b|\b\d{1,3}[.,]\d{2}\b)/u;
 const DESCRIPTION=/^(?:ingredients?|contains?|with|served with|재료|원재료|포함 성분)\s*[:：]?/iu;
 const CAUTION=/may\s+contain|shared\s+(?:equipment|kitchen|facility)|allerg(?:y|ies|ens?)|같은\s*(?:시설|주방)|교차\s*접촉|알레르기/iu;
 const SECTION=/^(?:(?:menu|메뉴|ramen|라멘|bowls?|덮밥|side|사이드|drinks|주류|notice|안내|starters|mains|desserts|음료|디저트|ingredients?|contains?|재료|원재료|allergens?|알레르기)\s*[:：]?\s*)+$/iu;
@@ -90,7 +90,7 @@ export function evaluateMenu({sources=[],profile={},errors=[]}={}){
     const text=fold(lines.map(l=>l.text).join(' '));
     if(!possibleCache.has(text))possibleCache.set(text,terms.some(term=>matchSpans(text,term).length));
     if(!possibleCache.get(text))return [];
-    const p=evaluateProduct({sources:[{familyId:'korean',items:lines.flatMap((l,lineId)=>l.words.map(w=>({...w,lineId})))}],profile,requiredFamilies:[]});
+    const p=ingredientEvidence({sources:[{familyId:'korean',items:lines.flatMap((l,lineId)=>l.words.map(w=>({...w,lineId})))}],profile,requiredFamilies:[]});
     return mergeMatches([],[...p.direct_matches,...p.caution_matches,...p.mention_matches]);
   };
   const addUnassigned=(lines,source)=>{
@@ -102,6 +102,7 @@ export function evaluateMenu({sources=[],profile={},errors=[]}={}){
   // remain one OCR family; scores and quotes are never manufactured/combined.
   for(const source of sources){
     const lines=joinPrintedPrices(linesFrom(source)),blocked=new Set(),titles=new Map();
+    const sizes=lines.map(height).filter(h=>h>0).sort((a,b)=>a-b),bodyHeight=sizes[Math.floor(sizes.length/2)]||0;
     const below=line=>lines.map((l,i)=>({l,i})).filter(({l})=>l!==line&&l.box&&line.box
       &&l.box.y0>line.box.y0+height(line)*.3&&adjacent(line,l)).sort((a,b)=>a.l.box.y0-b.l.box.y0);
     for(let i=0;i<lines.length;i++){
@@ -122,7 +123,10 @@ export function evaluateMenu({sources=[],profile={},errors=[]}={}){
       const marker=next&&DESCRIPTION.test(next.text);
       const typography=next&&height(line)>=height(next)*1.25&&lineScore(line)>=.6
         &&next.text.length>=3&&!SECTION.test(next.text)&&!CAUTION.test(next.text)&&!PRICE.test(next.text);
-      if(PRICE.test(text)||marker||typography)titles.set(i,{name:title,association:PRICE.test(text)||marker?'printed_title_and_adjacent_description':'larger_printed_title_and_adjacent_description'});
+      // A larger printed name such as "Cream Cheese Pizza" can itself supply
+      // a warning even if its description is absent. No recipe is inferred.
+      const namedIngredient=bodyHeight>0&&height(line)>=bodyHeight*1.35&&lineScore(line)>=.75&&matches([line]).length;
+      if(PRICE.test(text)||marker||typography||namedIngredient)titles.set(i,{name:title,association:PRICE.test(text)||marker?'printed_title_and_adjacent_description':'larger_printed_title_and_adjacent_description'});
     }
     // Bilingual names often sit between an English priced title and its
     // smaller Korean description. Keep that printed alias in the same block.
@@ -130,7 +134,10 @@ export function evaluateMenu({sources=[],profile={},errors=[]}={}){
       if(!PRICE.test(lines[i].text))continue;
       const next=below(lines[i])[0];if(!next||blocked.has(next.i)||PRICE.test(next.l.text))continue;
       const differentScripts=/[A-Za-z]/u.test(lines[i].text)&&/[가-힣]/u.test(next.l.text);
-      if(differentScripts&&next.l.text.length<=60&&height(next.l)>=height(lines[i])*.65&&height(next.l)<=height(lines[i])*1.25)titles.delete(next.i);
+      const description=below(next.l)[0]?.l;
+      const aliasWithBody=description&&height(description)<=height(next.l)*.85&&adjacent(next.l,description);
+      if(differentScripts&&next.l.text.length<=60&&height(next.l)>=height(lines[i])*.65
+        &&height(next.l)<=height(lines[i])*(aliasWithBody?1.8:1.25))titles.delete(next.i);
     }
     const used=new Set();
     for(const [i,title] of titles){
