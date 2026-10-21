@@ -1,0 +1,48 @@
+import {reviewRead} from './core.js';
+const $=id=>document.getElementById(id);
+const labels={milk:['Milk','우유'],egg:['Egg','달걀'],peanut:['Peanut','땅콩'],tree_nuts:['Tree nuts','견과류'],soy:['Soy','대두'],wheat:['Wheat','밀'],sesame:['Sesame','참깨'],fish:['Fish','생선'],shellfish:['Shellfish','갑각류·연체류']};
+const copy={en:{title:'Your private PC reader',connectionNotice:'Photos are sent to your PC for processing. If you use the remote tunnel, they pass through Cloudflare. No cloud AI API is used. Keep your PC on. This is an experimental companion, separate from the installed app.',pairTitle:'Connect to your PC',pairHint:'Open the private link shown on your PC, or paste its pairing code here. Keep that link private.',keyLabel:'Private pairing code',pair:'Connect',paired:'Connected to your PC · English and Korean text',shopping:'Shopping',menu:'Restaurant menu',profileTitle:'Ingredients to avoid',customLabel:'Other ingredients, separated by commas',photoTitle:'Add label photos',menuPhotos:'Add menu photos',photoHint:'Use 1–3 photos of one label or the same menu. Include printed ingredients and any cross-contact warnings.',read:'Read on my PC',reading:'Your PC is reading the photos… First use may download local model files.',disconnect:'Disconnect this browser',resultTitle:'Check the text read',resultWarning:'Only recognized text is shown. Text and food associations may be wrong or missing. Nothing here is verified safe.',rawTitle:'View text read',footer:'ADPAI may make mistakes. Check the original label or ask restaurant staff about ingredients and cross-contact. These results do not guarantee safety.',risk:'Potential risk — verify the original',unknown:'Ingredients incomplete — check the original or ask staff',unassigned:'Ingredient mentioned; food association unknown',noMatches:'No selected word was recognized. This does not mean the food is safe.',noEntries:'No menu entries were reliably grouped.',failure:'Reading failed or the PC is unavailable. No result is verified. Keep the PC on and check the private link.',busy:'The PC is still processing another request. Try again after it finishes.',invalidKey:'The pairing code is missing or expired. Open the latest private link from your PC.',select:'Select an ingredient and add 1–3 photos.',tooMany:'Add at most 3 photos.'},ko:{title:'내 PC로 사진 읽기',connectionNotice:'사진을 내 PC로 보내 처리합니다. 외부 접속 터널을 사용하면 Cloudflare를 거칩니다. 클라우드 AI API는 사용하지 않습니다. PC를 켜 두세요. 설치된 앱과 별도인 실험용 화면입니다.',pairTitle:'내 PC에 연결',pairHint:'PC에 표시된 비공개 링크를 열거나 연결 코드를 입력하세요. 링크를 다른 사람에게 공개하지 마세요.',keyLabel:'비공개 연결 코드',pair:'연결',paired:'내 PC에 연결됨 · 한국어와 영어 판독',shopping:'식품 라벨',menu:'식당 메뉴',profileTitle:'피해야 할 성분',customLabel:'기타 성분 (쉼표로 구분)',photoTitle:'라벨 사진 추가',menuPhotos:'메뉴 사진 추가',photoHint:'같은 제품 또는 같은 메뉴 사진을 1~3장 추가하세요. 원재료와 교차접촉 주의 문구를 포함해 주세요.',read:'내 PC에서 읽기',reading:'PC에서 사진을 읽고 있어요… 처음에는 로컬 모델 파일을 내려받을 수 있습니다.',disconnect:'이 브라우저 연결 해제',resultTitle:'인식된 문구 확인',resultWarning:'인식된 문구만 표시합니다. 글자와 음식 연결이 틀리거나 누락될 수 있습니다. 안전이 확인된 결과는 없습니다.',rawTitle:'인식된 원문 보기',footer:'ADPAI는 실수할 수 있습니다. 원본 라벨 또는 식당 직원에게 성분과 교차접촉을 확인하세요. 결과는 안전을 보장하지 않습니다.',risk:'주의 가능성 — 원본 확인',unknown:'재료 정보 불완전 — 원본 또는 직원 확인',unassigned:'성분이 언급됐지만 해당 음식은 확인되지 않음',noMatches:'선택한 단어가 인식되지 않았습니다. 안전하다는 뜻이 아닙니다.',noEntries:'메뉴 항목을 충분히 구분하지 못했습니다.',failure:'판독 실패 또는 PC에 연결할 수 없습니다. 확인된 결과가 없습니다. PC와 최신 비공개 링크를 확인하세요.',busy:'PC가 이전 요청을 처리 중입니다. 완료 후 다시 시도하세요.',invalidKey:'연결 코드가 없거나 만료됐습니다. PC의 최신 비공개 링크를 여세요.',select:'피할 성분을 선택하고 사진 1~3장을 추가하세요.',tooMany:'사진은 최대 3장입니다.'}};
+Object.assign(copy.en,{badPhoto:'The photo could not be decoded. Retake it or choose a JPEG/PNG image.',largePhoto:'The upload is too large. Use up to 3 photos, each below 10 MiB.',slowUpload:'The upload timed out. Check the connection and try a smaller photo.'});
+Object.assign(copy.ko,{badPhoto:'사진을 읽을 수 없습니다. 다시 촬영하거나 JPEG/PNG 사진을 선택하세요.',largePhoto:'사진은 최대 3장, 각 10MiB 미만으로 추가하세요.',slowUpload:'업로드 시간이 초과됐습니다. 연결을 확인하고 작은 사진으로 다시 시도하세요.'});
+let lang='en',mode='shopping',files=[],urls=[],busy=false,revision=0,request;
+const fragment=new URLSearchParams(location.hash.slice(1));
+let token=fragment.get('token')||sessionStorage.getItem('adpai_pc_pairing')||'';
+history.replaceState(null,'',location.pathname);
+const t=key=>copy[lang][key]||key;
+function clearResult(){revision++;$('results').hidden=true;$('cards').replaceChildren();$('raw').textContent='';$('error').textContent=''}
+function profile(){return {allergens:[...$('allergens').querySelectorAll('input:checked')].map(e=>e.value),custom_avoid:$('custom').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,30)}}
+function update(){const p=profile();for(const e of document.querySelectorAll('#scanner input,#scanner button,#language'))e.disabled=busy;$('disconnect').disabled=false;$('read').disabled=busy||!files.length||!(p.allergens.length||p.custom_avoid.length)}
+function language(){lang=$('language').value;document.documentElement.lang=lang;for(const key of Object.keys(copy.en)){const e=$(key);if(e)e.textContent=t(key)}$('photoTitle').textContent=t(mode==='menu'?'menuPhotos':'photoTitle');for(const [id,text] of Object.entries(labels)){$('name-'+id).textContent=text[lang==='ko'?1:0]}clearResult();update()}
+for(const id of Object.keys(labels)){const label=document.createElement('label');label.className='chip';const input=document.createElement('input');input.type='checkbox';input.value=id;const span=document.createElement('span');span.id='name-'+id;label.append(input,span);$('allergens').append(label);input.onchange=()=>{clearResult();update()}}
+function pair(){const valid=/^[a-zA-Z0-9_-]{32,128}$/.test(token);$('pairing').hidden=valid;$('scanner').hidden=!valid;if(valid)sessionStorage.setItem('adpai_pc_pairing',token)}
+$('pair').onclick=()=>{token=$('key').value.trim();$('key').value='';pair();if($('scanner').hidden)$('error').textContent=t('invalidKey')};
+$('disconnect').onclick=()=>{request?.abort();token='';sessionStorage.removeItem('adpai_pc_pairing');files=[];$('photos').value='';urls.forEach(URL.revokeObjectURL);urls=[];$('previews').replaceChildren();clearResult();pair();update()};
+$('language').onchange=language;$('custom').oninput=()=>{clearResult();update()};
+for(const name of ['shopping','menu'])$(name).onclick=()=>{if(busy)return;mode=name;for(const x of ['shopping','menu']){$(x).setAttribute('aria-pressed',String(x===mode));$(x).className='btn '+(x===mode?'primary':'outline')}files=[];$('photos').value='';urls.forEach(URL.revokeObjectURL);urls=[];$('previews').replaceChildren();clearResult();language()};
+$('photos').onchange=()=>{clearResult();urls.forEach(URL.revokeObjectURL);urls=[];$('previews').replaceChildren();files=[...$('photos').files];if(files.length>3){files=[];$('photos').value='';$('error').textContent=t('tooMany')}for(const file of files){const image=document.createElement('img');image.alt=lang==='ko'?'선택한 사진':'Selected photo';image.src=URL.createObjectURL(file);urls.push(image.src);$('previews').append(image)}update()};
+function card(name,hits,text){const box=document.createElement('article');box.className='presult '+(hits.length?'danger':'warn');const heading=document.createElement('strong');heading.textContent=name;const message=document.createElement('p');message.textContent=t(hits.length?'risk':'unknown');const terms=document.createElement('p');terms.textContent=[...new Set(hits.map(h=>h.term))].join(' · ');box.append(heading,message,terms);if(text){const quote=document.createElement('p');quote.textContent=text;box.append(quote)}$('cards').append(box)}
+function responseError(response){if(!response.ok)throw Error(({429:'busy',401:'invalidKey',422:'badPhoto',413:'largePhoto',408:'slowUpload'})[response.status]||'failure')}
+async function remoteRead(){
+ const form=new FormData();for(const file of files)form.append('images',file);
+ const response=await fetch('/api/jobs',{method:'POST',headers:{Authorization:'Bearer '+token},body:form,signal:request.signal,cache:'no-store'});responseError(response);
+ const job=await response.json();if(response.status!==202||!/^[a-zA-Z0-9_-]{32}$/.test(job.job_id||''))throw Error('failure');
+ while(true){
+  const poll=await fetch('/api/jobs/'+job.job_id,{headers:{Authorization:'Bearer '+token},signal:request.signal,cache:'no-store'});responseError(poll);
+  const state=await poll.json();if(state.state==='complete')return state.result;if(state.state!=='running')throw Error('failure');
+  await new Promise(resolve=>setTimeout(resolve,1000));
+ }
+}
+$('read').onclick=async()=>{
+ if(busy)return;clearResult();const active=revision,p=profile();
+ if(!files.length||!(p.allergens.length||p.custom_avoid.length)){$('error').textContent=t('select');return}
+ busy=true;update();$('progress').textContent=t('reading');request=new AbortController();const timer=setTimeout(()=>request.abort(),360000);
+ try{
+  const data=await remoteRead(),result=reviewRead(data,p,mode);if(active!==revision)return;
+  $('raw').textContent=data.sources.map(s=>s.items.map(i=>i.text).join('\n')).join('\n—\n');
+  if(mode==='menu'){for(const item of result.items)card(item.name,item.matches,item.printed_text);for(const item of result.unassigned)card(t('unassigned'),item.matches,item.text);if(!result.items.length&&!result.unassigned.length)card(t('noEntries'),[],'')}
+  else card(t('resultTitle'),result.matches,result.matches.length?'':t('noMatches'));
+  $('results').hidden=false;$('results').scrollIntoView({behavior:'smooth'});
+ }catch(error){if(active===revision)$('error').textContent=t(['busy','invalidKey','badPhoto','largePhoto','slowUpload'].includes(error.message)?error.message:'failure')}
+ finally{clearTimeout(timer);busy=false;$('progress').textContent='';update()}
+};
+language();pair();

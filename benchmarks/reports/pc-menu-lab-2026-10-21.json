@@ -1,0 +1,141 @@
+{
+  "report_date_seoul": "2026-10-21",
+  "base_app_version": "1.7.0",
+  "shipped_pages_apk_processing_changed": false,
+  "pc_server": {
+    "purpose": "private Windows-startable companion; outside-home design uses installed official Cloudflare quick tunnel",
+    "runtime": "local Paddle Korean/Latin; no paid model API",
+    "random_pairing": true,
+    "async_jobs": true,
+    "max_completed_text_results": 2,
+    "result_ttl_seconds": 300,
+    "user_windows_installed_or_tested": false,
+    "physical_phone_tested": false,
+    "external_tunnel_started_or_tested": false,
+    "linux_launcher_start_stop_passed": true,
+    "actual_http_browser_model_generated_label_passed": true,
+    "api_grant_spend_krw": 0,
+    "store_publication": false
+  },
+  "tests": {
+    "javascript_passed": 123,
+    "javascript_failed": 0,
+    "javascript_skipped": 0,
+    "python_passed": 46,
+    "python_failed": 0,
+    "controlled_browser_passed": true
+  },
+  "actual_async_generated": {
+    "kind": "Actual async-job OCR on an authored label; not package/device accuracy.",
+    "http_submit_status": 202,
+    "submit_latency_ms": 29.861425020499155,
+    "linux_inprocess_completion_ms": 17126.860799005954,
+    "milk_read": true,
+    "source_sha256": {
+      "pc_server/main.py": "9c3e3e65b8e88280780131e5d2585a909ef0c068573ab9ca045ff85b405a9293",
+      "pc_server/recognition.py": "fe4cc4bd20f2da265832555cd15d499565d327092c22d403b176b52c3fbcd0c9",
+      "pc_server/static/core.js": "3f7e6426b23d3bec945a245534253f0d8a3274e49be2a51b85bbf3de70de40dc",
+      "pc_server/static/client.js": "517b60589ae895240f46803f92cfb1a7d652b6a84714013194d1bdb7937166d1",
+      "pc_server/smoke.py": "644c982cabc317a3b2cd0fe45d39f89bed9f7ef9cf8dfebdde99fe2c3c11c821",
+      "requirements.txt": "3948722ed87ec27aff9b1441f86fb6ad883ec2057d1d93e4fc33ec69e1378750"
+    },
+    "result_sha256": "c8c536490d91925c98a9508aa722ff8e6928a558c4cf561a8334c58a45b3744b",
+    "limits": "Actual models through background-job API; no Windows, TCP/Cloudflare, camera or physical phone validation. Authored text is not a food-package benchmark."
+  },
+  "actual_real_menu_diagnostic": {
+    "reference": "Frozen partial model-visual development, zero independent human reviewers, repeated prior tuning, no holdout",
+    "capture_count": 3,
+    "venues": 2,
+    "dataset_sha256": "dd2882d3c4d2e2a3bb7780ee66a384964d18d4c8df272c0726f050cb2c10c5d1",
+    "known_pairs": 20,
+    "found": 9,
+    "missed": 11,
+    "unsafe_outputs": 0,
+    "failed_captures": [],
+    "api_inprocess_latency_ms": [
+      53198.33047999418,
+      46950.77663898701,
+      56805.557338986546
+    ],
+    "ocr_cer": null,
+    "ocr_wer": null,
+    "precision": null,
+    "false_positive_rate": null,
+    "recognizer_and_rules_match_final_bytes": true,
+    "transport_qualification": "The 3-menu run used a frozen synchronous API snapshot; async transport added later and verified on generated label/browser, not physical Windows/phone/tunnel. Not a controlled population accuracy A/B.",
+    "metadata": {
+      "kind": "Actual local Paddle through the PC ASGI API; not Windows/tunnel/camera timing.",
+      "reference": "partial model-visual development, zero independent humans, no holdout or training",
+      "dataset_sha256": "dd2882d3c4d2e2a3bb7780ee66a384964d18d4c8df272c0726f050cb2c10c5d1",
+      "source_sha256": {
+        "pc_server/main.py": "c8b8f7f72498bab76542c66f5125a2b785f595b9daf8a43ada74cfb0c8806c6c",
+        "pc_server/recognition.py": "fe4cc4bd20f2da265832555cd15d499565d327092c22d403b176b52c3fbcd0c9",
+        "pc_server/static/core.js": "3f7e6426b23d3bec945a245534253f0d8a3274e49be2a51b85bbf3de70de40dc",
+        "src/menu.js": "a6a4315a7afcb6979d29dd937f22e4b66ecc7e81c32e1b32059b024c9707f2af",
+        "src/engine.js": "1a0706ff3d5b1a7a73ab91b3dd153dd826a53c660da454833837ffb229e351b5",
+        "requirements.txt": "3948722ed87ec27aff9b1441f86fb6ad883ec2057d1d93e4fc33ec69e1378750",
+        "benchmarks/diagnose-pc.py": "549938043c322d573246ea85f40d84c84f381218a0f307f3c902c6b11eb9f01f"
+      },
+      "expected_captures": 3,
+      "returned_captures": 3,
+      "implementation": "TestClient -> real private /api/read -> normalization -> actual local Korean/Latin Paddle; saved-word menu scoring separate",
+      "line_confidence_policy": "raw_line_score retained; word score zero, never manufactured calibration",
+      "versions": {
+        "paddlepaddle": "3.3.1",
+        "paddleocr": "3.7.0",
+        "paddlex": "3.7.2",
+        "fastapi": "0.141.1"
+      },
+      "latency": "Linux in-process API request only; includes decode/model startup. Not phone, Windows, real TCP gateway, Cloudflare or camera latency.",
+      "model_files_sha256": {
+        "PP-OCRv5_mobile_det/inference.pdiparams": "afa1820cb16c1fd0dad589d0f8b389139061c1ef6d68019685fd07be997dda5b",
+        "PP-OCRv5_mobile_det/inference.json": "05feef1acb00aa4cd7362b15f7f501fc4f99d7b1fa73c1c871e0c7b1504b0f5c",
+        "PP-OCRv5_mobile_det/inference.yml": "98069072e1b6b37d727fd9d9f11725faa46d6ea0de012f2ed26caea011c37699",
+        "korean_PP-OCRv5_mobile_rec/inference.pdiparams": "cac3e5f12cf04aaa77f6a5bc704e4e736ef2908476551891d84b41b4e9090462",
+        "korean_PP-OCRv5_mobile_rec/inference.json": "562404e3c590c50c93778d5f0a94df21b47b5ab8f3ea6d47c7f8a7930c3bc844",
+        "korean_PP-OCRv5_mobile_rec/inference.yml": "f757fa1c40e99edcf27e9cce879b93eb2a51fa46f5ef39095689b8c37dd75998",
+        "korean_PP-OCRv5_mobile_rec/.gitattributes": "a3a43406012ee8c7b9b38dfab1b11610f33e8245cd864a9a9302d042616a859e",
+        "korean_PP-OCRv5_mobile_rec/.cache/huggingface/.gitignore": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1",
+        "korean_PP-OCRv5_mobile_rec/.cache/huggingface/download/.gitattributes.metadata": "9b8115680bc1f7a2098b1ffc4cc8c599abf61e1140204ae84640cdc4d05cec0d",
+        "korean_PP-OCRv5_mobile_rec/.cache/huggingface/download/config.json.metadata": "b8abe88ca3dd89bbf7d2fba39289d294e8e04efbdd6584209a15699c9618a738",
+        "korean_PP-OCRv5_mobile_rec/.cache/huggingface/download/config.json.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "korean_PP-OCRv5_mobile_rec/.cache/huggingface/download/inference.yml.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "korean_PP-OCRv5_mobile_rec/.cache/huggingface/download/.gitattributes.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "korean_PP-OCRv5_mobile_rec/.cache/huggingface/download/inference.pdiparams.metadata": "c9b16e60a6cb89b507c2bc317b7471ea562ac5be724c446f2e003028977503e3",
+        "korean_PP-OCRv5_mobile_rec/.cache/huggingface/download/inference.json.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "korean_PP-OCRv5_mobile_rec/.cache/huggingface/download/inference.yml.metadata": "948a9e6da14df7fccf9b51aec7b0b948d215dbf1313b0621172ca45e22aebb1c",
+        "korean_PP-OCRv5_mobile_rec/.cache/huggingface/download/README.md.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "korean_PP-OCRv5_mobile_rec/.cache/huggingface/download/README.md.metadata": "304a42d15b7b7782a3f13b9266ffe46f99f51e0b1b37f47bbe49dad248707d3a",
+        "korean_PP-OCRv5_mobile_rec/.cache/huggingface/download/inference.json.metadata": "4670d2006da89e7ec3447b10a7ea62e61649bfa9954d5ea4e58d76a75c4403ed",
+        "korean_PP-OCRv5_mobile_rec/.cache/huggingface/download/inference.pdiparams.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "latin_PP-OCRv5_mobile_rec/inference.pdiparams": "53cdc8b481a7394bb108f96d0fb3432b0a8f392e22c7d18f06dbb2d42b8b25f9",
+        "latin_PP-OCRv5_mobile_rec/inference.json": "820b2ee8e5072de5156c3d55124c2b03c82ef278d59f453f857c0789bacb4da1",
+        "latin_PP-OCRv5_mobile_rec/inference.yml": "0bbe984570f597af3638e50bdf2e8276f3ab26a61966096538b3b0d1849f5c84"
+      }
+    },
+    "predictions_sha256": "4c441b356840a2228832f4fa4c6948cf755571ec1c43d32ce55de46f9fa5003c",
+    "summary_sha256": "c79828445757d5dc2335007158f1b2aa7b1add6cfb6ade70d17b07564e6ba422"
+  },
+  "collection": {
+    "new_downloaded_originals": 7,
+    "new_bilingual_printed_menu_candidates": 3,
+    "new_country_verified_korean_menus": 0,
+    "new_prepared_food_photos_excluded": 4,
+    "independent_human_reviewers_completed": 0,
+    "blank_review_packet_captures": 6,
+    "blank_packets": 2,
+    "adjudicated_references": 0,
+    "train_records": 0,
+    "test_records": 0,
+    "source_access_limit": "Additional Commons source-page/search and Hugging Face metadata requests returned403 including supported escalation; no mirrors or access bypass used."
+  },
+  "model_training_performed": false,
+  "llm_run": false,
+  "cloud_model_api_configured": false,
+  "grant_account_accessed": false,
+  "historical_runs_retained": [
+    "pc-api-generated-2026-10-21-v1",
+    "pc-api-real-menus-2026-10-21-v1"
+  ],
+  "historical_run_correction": "First run finished and hash checks passed before edits. Historical source, not final; earlier provisional commentary calling it invalid was corrected."
+}
