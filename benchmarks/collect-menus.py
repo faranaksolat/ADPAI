@@ -76,21 +76,26 @@ def candidate(page):
             "complete_menu_verified": False, "human_reviewed": False}
 
 
-def collect(root, limit, getter=fetch, delay=.5):
+def collect(root, limit, getter=fetch, delay=.5, *, discovery_files=None, include_ids=None):
     root = Path(root)
     root.mkdir(parents=True, exist_ok=False)
     (root / "images").mkdir()
     report = {"started_utc": datetime.now(timezone.utc).isoformat(), "requested_limit": limit,
               "downloaded_original_images": 0, "independently_reviewed_references": 0,
-              "scored_real_menus": 0, "status": "running", "queries": QUERIES,
+              "scored_real_menus": 0, "status": "running", "queries": [] if discovery_files else QUERIES,
+              "cached_discovery": [], "include_ids": sorted(include_ids or []),
               "exclusions": [], "limitations": "Discovery only; verify actual menu, restaurant in Korea, visible languages and printed ingredients before annotation. No source hints are ground truth."}
     rows, seen_ids, hashes = [], set(), set()
     try:
-        for qi, query in enumerate(QUERIES):
+        for qi, query in enumerate(discovery_files or QUERIES):
             params = {"action": "query", "format": "json", "generator": "search", "gsrsearch": query,
                       "gsrnamespace": 6, "gsrlimit": min(50, limit * 2), "prop": "imageinfo",
                       "iiprop": "url|mime|size|timestamp|extmetadata"}
-            raw = getter("https://commons.wikimedia.org/w/api.php?" + urlencode(params))
+            if discovery_files:
+                raw = Path(query).read_bytes()
+                report["cached_discovery"].append({"path": str(query), "sha256": hashlib.sha256(raw).hexdigest()})
+            else:
+                raw = getter("https://commons.wikimedia.org/w/api.php?" + urlencode(params))
             (root / f"discovery-{qi}.json").write_bytes(raw)
             payload = json.loads(raw)
             if payload.get("error"):
@@ -99,6 +104,8 @@ def collect(root, limit, getter=fetch, delay=.5):
                 if page.get("pageid") in seen_ids:
                     continue
                 seen_ids.add(page.get("pageid"))
+                if include_ids and page.get("pageid") not in include_ids:
+                    continue
                 row = candidate(page)
                 if not row:
                     report["exclusions"].append({"title": page.get("title"), "reason": "missing compatible rights/author/image type/source"})
@@ -143,9 +150,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", required=True)
     parser.add_argument("--limit", type=int, default=24)
+    parser.add_argument("--cached-discovery", action="append", help="Reuse saved Commons API metadata; no search request")
+    parser.add_argument("--include-id", type=int, action="append", help="Optional explicit candidate page IDs, not human-reference labels")
     args = parser.parse_args()
     if not 1 <= args.limit <= 50:
         parser.error("Use1–50 images for the bounded discovery pilot")
-    result = collect(args.output, args.limit)
+    result = collect(args.output, args.limit, discovery_files=args.cached_discovery, include_ids=set(args.include_id or []))
     print(json.dumps(result, ensure_ascii=False, indent=2))
     raise SystemExit(0 if result["status"] == "unreviewed_candidates" else 2)

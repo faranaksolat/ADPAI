@@ -97,3 +97,21 @@ or Xcode with `npm run mobile:ios`. See [mobile/README.md](mobile/README.md)
 for prerequisites, debug builds, manual GitHub Actions builds and release
 requirements. These projects remain a prototype until real-package accuracy
 and physical-device behavior are validated; no store publication is automated.
+
+## Private PC server pilot
+
+The separate [PC companion](pc_server/README.md) has
+[Persian Windows instructions](pc_server/README-fa.md) and a
+`Start-PC-Server.cmd` launcher. It can use an installed official Cloudflare
+quick tunnel for temporary external HTTPS access to a paired, loopback-only
+PC server. No router forwarding or paid AI API is required. Photos pass
+through Cloudflare when remote mode is chosen; the selected allergy profile
+stays in the browser. The page uses background jobs with private polling and
+expiring in-memory text results. This does not change Pages/APK processing or
+automatically connect the installed app. The older `backend.main` API is
+separate; use the private launcher for this pilot.
+
+See the [21 October PC/menu work report](benchmarks/PC-MENU-LAB-2026-10-21.md).
+No voucher spend, LLM integration, model training or store publication is
+performed. Real-image performance remains insufficient; independent human
+menu references and actual Windows/phone/tunnel checks are still required.
