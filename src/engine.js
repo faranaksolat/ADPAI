@@ -1,6 +1,6 @@
 
-import { ONTOLOGY, NON_DAIRY_PHRASES } from "./ontology.js?v=1.7.0";
-import { labelPattern } from './label-pattern.js?v=1.7.0';
+import { ONTOLOGY, NON_DAIRY_PHRASES } from "./ontology.js?v=1.8.0";
+import { labelPattern } from './label-pattern.js?v=1.8.0';
 
 export const ALLERGENS = ONTOLOGY.allergens;
 export const MARKERS = ONTOLOGY.label_markers;
