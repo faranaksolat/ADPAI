@@ -71,12 +71,30 @@ try {
     if(result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description||result.exceptionDetails.text);
     return result.result.value;
   };
+  const tap=async(selector)=>{
+    const point=await evaluate(`(()=>{const element=document.querySelector(${JSON.stringify(selector)});element.scrollIntoView({block:'center'});const r=element.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`);
+    await send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...point});
+    await send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...point});
+  };
   assert.equal(await evaluate(`getComputedStyle(document.querySelector('.mark')).display`),'grid','app stylesheet must load');
   assert.equal(await evaluate(`document.documentElement.scrollWidth<=window.innerWidth`),true,'phone layout overflows horizontally');
   assert.equal(await evaluate(`document.querySelector('#workflow').hidden`),true);
-  if(process.env.HOME_SCREENSHOT){const {data}=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await fs.writeFile(process.env.HOME_SCREENSHOT,Buffer.from(data,'base64'))}
+  if(process.env.HOME_SCREENSHOT){const {data}=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});await fs.writeFile(process.env.HOME_SCREENSHOT,Buffer.from(data,'base64'))}
+  if(process.env.KO_HOME_SCREENSHOT){
+    await evaluate(`document.querySelector('#lang').value='ko';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
+    assert.equal(await evaluate(`document.documentElement.scrollWidth<=window.innerWidth`),true,'Korean home overflows horizontally');
+    const {data}=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});await fs.writeFile(process.env.KO_HOME_SCREENSHOT,Buffer.from(data,'base64'));
+    await evaluate(`document.querySelector('#lang').value='en';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
+  }
   assert.equal(await evaluate(`document.querySelectorAll('#modeSelection button').length`),2);
-  await evaluate(`document.querySelector('#shoppingMode').click()`);
+  const navigation=Number(process.env.VIEWPORT_WIDTH||390)<=760?'.mobileNavigation':'.railNavigation';
+  await tap(navigation+' [data-nav-mode=menu]');
+  assert.equal(await evaluate(`document.body.dataset.mode`),'menu');
+  assert.equal(await evaluate(`document.querySelector('#menuWarning').hidden`),false);
+  assert.equal(await evaluate(`document.querySelector(${JSON.stringify(navigation+' [data-nav-mode=menu]')}).getAttribute('aria-current')`),'page');
+  await tap(navigation+' [data-nav-mode=home]');
+  assert.equal(await evaluate(`document.querySelector('#workflow').hidden`),true);
+  await tap('#shoppingMode');
   assert.equal(await evaluate(`document.querySelector('#workflow').hidden`),false);
   if(!mobileWeb) {
     await evaluate(`document.querySelector('#installHelp').click()`);
@@ -85,6 +103,7 @@ try {
     await evaluate(`document.querySelector('#closeInstall').click()`);
     assert.equal(await evaluate(`document.querySelector('#installDialog').open`),false);
   }
+  if(process.env.SHOPPING_SCREENSHOT){const {data}=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});await fs.writeFile(process.env.SHOPPING_SCREENSHOT,Buffer.from(data,'base64'))}
   await evaluate(`(async()=>{
     const canvas=document.createElement('canvas');canvas.width=1400;canvas.height=400;
     const ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,1400,400);ctx.fillStyle='black';ctx.font='48px sans-serif';
@@ -97,13 +116,19 @@ try {
     input.dispatchEvent(new Event('change',{bubbles:true}));
     const milk=document.querySelector('#chips input[value=milk]');milk.checked=true;milk.dispatchEvent(new Event('change',{bubbles:true}));
   })()`);
+  assert.equal(await evaluate(`document.querySelector('#continuePhotos').disabled`),false);
+  await evaluate(`document.querySelector('#continuePhotos').click()`);
+  assert.equal(await evaluate(`document.activeElement.id`),'scanHeading');
   const cases=[['INGREDIENTS: milk, sugar, citric acid (E330)','Conflict detected'],['INGREDIENTS: sugar and cocoa','Unable to verify'],['Nutrition facts: per 100 g 500 kcal','Unable to verify']];
   for(const [text,expected] of realOcr ? cases.slice(0,1) : cases) {
     const result=await evaluate(`(async()=>{globalThis.testOcrText=${JSON.stringify(text)};document.querySelector('#analyze').click();const end=Date.now()+${realOcr?180000:20000};while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw new Error('analysis timeout');await new Promise(r=>setTimeout(r,25));}const visible=document.body.cloneNode(true);visible.querySelectorAll('.rawOcr').forEach(el=>el.remove());return {title:document.querySelector('#rtitle').textContent,icon:document.querySelector('#ricon').textContent,badge:document.querySelector('.presult .badge').textContent,body:visible.textContent,hasCalorieElements:!!document.querySelector('#calTotal,.kcal')};})()`);
     assert.equal(result.title,expected);
     assert.equal(result.badge,expected);
+    await tap(navigation+' [data-nav-mode=shopping]');
+    assert.equal(await evaluate(`document.querySelector('#result').classList.contains('show')`),true,'returning to the active tab must preserve the current result');
     assert.equal(result.icon,'!');
     assert.equal(result.hasCalorieElements,false);
+    assert.equal(await evaluate(`document.querySelector('.workflowSteps [aria-current=step]').dataset.stage`),'3');
     assert.ok(!/calorie|kcal|열량|칼로리/iu.test(result.body));
     if(text.includes('citric')&&!realOcr) {
       assert.ok(result.body.includes('Adjusts tartness and acidity.'));
@@ -152,11 +177,12 @@ try {
     // associate old OCR with a new photograph or selection.
     await evaluate(`globalThis.testOcrDelay=30;document.querySelector('#analyze').click()`);
     assert.equal(await evaluate(`document.querySelector('#chips input').disabled && document.querySelector('.photo .x').disabled && document.querySelector('#lang').disabled`),true);
+    assert.equal(await evaluate(`[...document.querySelectorAll('[data-nav-mode],#continuePhotos')].every(button=>button.disabled)`),true);
     await evaluate(`(async()=>{while(document.querySelector('#analyze').disabled)await new Promise(r=>setTimeout(r,25));globalThis.testOcrDelay=0})()`);
     await evaluate(`document.querySelector('.photo .x').click()`);
     assert.equal(await evaluate(`document.querySelector('#result').classList.contains('show')`),false);
     assert.equal(await evaluate(`document.querySelector('#analyze').disabled`),true);
-    await evaluate(`globalThis.ADPAI_NATIVE={pickPhotos:async()=>[globalThis.testPhotoFile],takePhoto:async()=>{throw new Error('User cancelled')}};document.querySelector('.capture .primary').click()`);
+    await evaluate(`globalThis.ADPAI_NATIVE={pickPhotos:async()=>[globalThis.testPhotoFile],takePhoto:async()=>{throw new Error('User cancelled')}};document.querySelector('[data-gallery]').click()`);
     await evaluate(`(async()=>{while(document.querySelector('#analyze').disabled)await new Promise(r=>setTimeout(r,25))})()`);
     assert.equal(await evaluate(`document.querySelectorAll('.photo').length`),1);
     await evaluate(`document.querySelector('[data-camera]').click()`);
@@ -214,7 +240,7 @@ try {
     await evaluate(`(async()=>{await navigator.serviceWorker.ready;const end=Date.now()+15000;while(!navigator.serviceWorker.controller){if(Date.now()>end)throw new Error('service worker did not claim page');await new Promise(r=>setTimeout(r,25))}})()`);
     const cache=await evaluate(`(async()=>({scope:(await navigator.serviceWorker.ready).scope,urls:(await Promise.all((await caches.keys()).map(async key=>(await (await caches.open(key)).keys()).map(r=>r.url)))).flat()}))()`);
     assert.ok(cache.scope.endsWith(prefix));
-    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.7.0')));
+    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.8.0')));
     assert.ok(cache.urls.every(url=>url.startsWith(cache.scope) && !/blob:|api\/|label\.png|profile/iu.test(url)));
     await send('Fetch.disable');
     await send('Network.enable');
@@ -228,7 +254,7 @@ try {
     assert.equal(await evaluate(`document.querySelector('#analyze').disabled`),true);
     assert.equal(await evaluate(`(async()=>(await fetch('./privacy.html')).ok)()`),true);
     // An offline shell is usable even when the CDN runtime is unavailable.
-    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.7.0');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
+    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.8.0');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
     assert.equal(offlineStatus,'unverified');
   }
   assert.deepEqual(errors,[]);

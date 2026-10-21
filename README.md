@@ -7,11 +7,13 @@ Android 1.7.0 adds a bundled Korean/Latin ML Kit reader through a local native
 bridge; Pages and iOS retain the browser Tesseract path. Native word scores are
 uncalibrated and cannot establish ingredient completeness or food safety.
 
-Version 1.7.0 refreshes the mobile interface, keeps technical OCR details behind
-expandable evidence, preserves uncertain ingredient mentions, and improves
-separate-price/bilingual menu grouping. Wide overlapping menu columns are read
-before expensive full-page passes so useful evidence survives later deadlines. Visible
-uncertainty/staff-confirmation warnings and bounded worker failures remain.
+Version 1.8.0 introduces a compact dashboard, desktop sidebar, phone navigation,
+illustrated allergen selection and a visible ingredients → photos → review flow.
+English/Korean navigation, focused photo entry, legible evidence cards and shared
+PC companion styling follow the same visual system. Recognition rules and model
+behavior remain those of 1.7.0; a UI refresh is not an accuracy improvement. See
+[interface validation](docs/UI-1.8.0.md) and the
+[Persian domain/hosting guide](docs/DOMAIN-HOSTING-fa.md).
 Package ingredient names stay visible
 with available plain English/Korean explanations. Menu names and photos are not
 used to infer recipes. See [menu behavior and limits](docs/menu-mode.md) and
