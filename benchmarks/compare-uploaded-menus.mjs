@@ -14,7 +14,7 @@ async function readRun(root){
  const predictions=bytes.toString().trim().split('\n').filter(Boolean).map(JSON.parse),metadata=JSON.parse(await fs.readFile(path.join(root,'metadata.json')));
  if(metadata.dataset_sha256!==dataset_sha256||predictions.length!==records.length)throw Error('Incompatible/incomplete dataset run');
  const summary=summarizeUserMenus(records,predictions);
- return {app_version:metadata.app_version,commit:metadata.commit,source_sha256:metadata.sha256,started_utc:metadata.started_utc,finished_utc:metadata.finished_utc,
+ return {app_version:metadata.app_version,commit:metadata.commit,source_sha256:metadata.sha256,evaluation_replay:metadata.evaluation_replay||null,latency_method:metadata.latency,started_utc:metadata.started_utc,finished_utc:metadata.finished_utc,
   predictions_sha256:sha(bytes),metrics:Object.fromEntries(fields.map(key=>[key,summary[key]])),failures:summary.cases.filter(c=>c.error).length,
   cases:summary.cases.map(c=>({capture_id:c.capture_id,known_titles:c.known_title_count,matched_titles:c.matched_titles,raw_title_signals:c.raw_title_signals,known_positive_pairs:c.known_positive_pairs,confident_pairs:c.confident_pairs,warned_pairs:c.warned_pairs,additional_titles_needing_review:c.additional_item_titles_needing_review,ocr_error_count:c.ocr_errors.length,latency_ms:c.latency_ms,error:c.error?'analysis_failed':null}))};
 }

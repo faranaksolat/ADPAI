@@ -182,3 +182,7 @@ test('wrong-script duplicate suppression preserves warnings as unassigned withou
  const r=evaluateMenu({sources:[a,b],profile});assert.equal(r.items.length,1);assert.equal(r.items[0].matches.length,0);
  assert.equal(r.unassigned[0].matches[0].allergen_id,'milk');assert.equal(r.unassigned[0].association_verified,false);
 });
+test('a price or punctuation before a colon cannot become an empty or numeric dish',()=>{
+ const r=evaluateMenu({sources:[source(['4,500: milk','38,000: soy','...: cream'])],profile});
+ assert.equal(r.items.length,0);assert.ok(r.unassigned.some(u=>u.matches.some(h=>h.allergen_id==='milk')));assert.deepEqual(r.safe_items,[]);
+});

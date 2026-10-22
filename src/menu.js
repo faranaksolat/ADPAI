@@ -151,7 +151,9 @@ export function evaluateMenu({sources=[],profile={},errors=[]}={}){
       const inline=/^(.{2,80}?)\s*(?:[:：]|[—–]|\s-\s)\s*(.{2,})$/u.exec(text);
       if(inline&&!DESCRIPTION.test(text)&&!ORIGIN.test(text)&&!section(inline[1])
         &&!(source.engine==null&&source.model_languages&&lineScore(line)<.45)){
-        titles.set(i,{name:cleanName(inline[1]),association:'same_printed_line'});continue;
+        const name=cleanName(inline[1]);
+        if(name.length>=2&&/\p{L}/u.test(name)&&!onlyPrice(inline[1]))titles.set(i,{name,association:'same_printed_line'});
+        continue;
       }
       const title=printedName(line);if(title.length<2||title.length>80||!/[\p{L}]/u.test(title)||DESCRIPTION.test(text)||ORIGIN.test(text)||onlyPrice(text)
         ||/^[wW]{1,2}$/u.test(title)||(!/[가-힣]/u.test(title)&&(title.match(/\p{L}/gu)||[]).length<3))continue;
