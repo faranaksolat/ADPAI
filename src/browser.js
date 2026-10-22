@@ -1,9 +1,10 @@
-import { analyzeProducts } from "./tesseract.js?v=1.8.0";
-import { cropPhoto } from "./crop.js?v=1.8.0";
-import { explainIngredient, sourceTranscript } from "./ingredients.js?v=1.8.0";
-import { initPwa, updateInstallUI } from "./pwa.js?v=1.8.0";
-import { evaluateMenu } from './menu.js?v=1.8.0';
-const APP_VERSION="1.8.0";
+import { analyzeProducts } from "./tesseract.js?v=1.9.0";
+import { cropPhoto } from "./crop.js?v=1.9.0";
+import { explainIngredient, sourceTranscript } from "./ingredients.js?v=1.9.0";
+import { initPwa, updateInstallUI } from "./pwa.js?v=1.9.0";
+import { evaluateMenu } from './menu.js?v=1.9.0';
+import {normalizeDietary, dietaryConflict} from './dietary.js?v=1.9.0';
+const APP_VERSION="1.9.0";
 const MAX_PRODUCTS=6,MAX_PHOTOS=3;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const lang=$("#lang"),productsEl=$("#products"),analyze=$("#analyze"),result=$("#result"),loading=$("#loading"),productResults=$("#productResults");
@@ -23,6 +24,8 @@ Object.assign(I.en,{customPlaceholder:'Other ingredient, e.g. gelatin',brandCapt
 Object.assign(I.ko,{customPlaceholder:'다른 성분 (예: 젤라틴)',brandCaption:'먹기 전에, 한 번 더 확인',beta:'테스트 버전',eyebrow:'작은 확인으로, 더 신중한 선택을.',hero:'먹기 전에, 한 번 더 확인하세요.',sub:'식품 라벨이나 식당 메뉴에서 피해야 할 성분을 확인해 보세요.',privateDevice:'사진은 내 기기에만',labelLanguages:'한국어 · 영어 라벨',artCaption:'적힌 내용부터 확인해요.',chooseContext:'무엇을 확인할까요?',contextHint:'두 가지 방법으로 시작하세요',guideProfile:'피할 성분 선택',guidePhoto:'선명한 사진 추가',guideReview:'인식된 문구 확인',shoppingDescription:'식품 포장의 원재료와 알레르기 주의 문구를 확인하세요.',restaurantDescription:'각 음식 옆에 적힌 재료를 확인하세요.',labelTitle:'식품 라벨 확인',menuTitle:'식당 메뉴 확인',labelSubtitle:'피해야 할 성분을 고른 뒤 라벨 전체를 촬영해 주세요.',menuSubtitle:'메뉴에 적힌 내용을 읽고, 나머지는 직원에게 확인하세요.',profile:'피해야 할 성분',profileSub:'확인하고 싶은 성분을 모두 선택하세요.',products:'라벨 사진 추가',productsSub:'원재료와 알레르기 주의 문구를 포함해 제품당 최대 3장을 추가하세요.',selectedCount:'개 성분 선택됨',profileEmpty:'아직 선택한 성분이 없습니다',readyToRead:'사진을 확인할 준비가 되었어요',progressReading:'사진 속 문구를 읽고 있어요…',menuEvidence:'인식된 원문 보기',backHome:'처음으로',photoAdded:'장 추가됨'});
 Object.assign(I.en,{brandCaption:'Your food companion',beta:'Preview',workspace:'WORKSPACE',navHome:'Overview',navMenu:'Menu',localNote:'A personal check, with your privacy in mind.',privacyLink:'Privacy notice',skipContent:'Skip to content',eyebrow:'A LITTLE MORE CLARITY',hero:'Read the label.\nChoose with care.',sub:'Your ingredients in mind. The label in focus.',heroFootnote:'A helpful second look, never a safety guarantee.',chooseContext:'Start a new check',contextHint:'Made for your everyday',atShop:'AT THE SHOP',atTable:'AT THE TABLE',shoppingDescription:'Ingredients & allergy warnings.',restaurantDescription:'Ingredients written on the menu.',guideProfile:'Choose your ingredients',guidePhoto:'Add a clear photo',guideReview:'Review the evidence',backHome:'Back to overview',stepProfile:'Your ingredients',stepPhotos:'Photos',stepReview:'Review',profileSub:'Choose what you want us to look for.',otherIngredients:'Something else?',customPlaceholder:'Add an ingredient',continuePhotos:'Continue to photos →',products:'Add your label photos',productsSub:'Include ingredients and all allergy warnings. Up to 3 photos per product.',analyze:'Check ingredients',checking:'Reading your photos…',checkingSub:'This can take a moment. Keep this screen open.',privacy:'Your photos and selected ingredients stay on this device.'});
 Object.assign(I.ko,{brandCaption:'먹기 전, 한 번 더',beta:'테스트 버전',workspace:'나의 공간',navHome:'홈',navMenu:'메뉴',localNote:'내 기기에서, 나에게 맞는 성분 확인.',privacyLink:'개인정보 처리 안내',skipContent:'본문으로 이동',eyebrow:'내 선택을 위한 작은 확인',hero:'먹기 전에,\n한 번 더 확인.',sub:'피해야 할 성분은 기억하고,\n라벨은 더 자세히 살펴보세요.',heroFootnote:'선택을 돕는 도구이며, 안전을 보장하지 않습니다.',chooseContext:'새로운 확인 시작',contextHint:'매일의 선택을 위해',atShop:'장볼 때',atTable:'외식할 때',shoppingDescription:'원재료와 알레르기 주의 문구.',restaurantDescription:'메뉴에 적힌 재료를 확인해요.',guideProfile:'피할 성분 선택',guidePhoto:'선명한 사진 추가',guideReview:'인식된 문구 확인',backHome:'처음으로',stepProfile:'피할 성분',stepPhotos:'사진',stepReview:'결과',profileSub:'확인하고 싶은 성분을 모두 선택해 주세요.',otherIngredients:'다른 성분도 있나요?',customPlaceholder:'성분 추가 (예: 젤라틴)',continuePhotos:'사진 추가로 이동 →',products:'라벨 사진 추가',productsSub:'원재료와 모든 주의 문구를 포함해 제품당 최대 3장을 추가하세요.',analyze:'성분 확인하기',checking:'사진을 읽고 있어요…',checkingSub:'잠시 시간이 걸릴 수 있어요. 화면을 열어 두세요.',privacy:'사진과 선택한 성분은 내 기기에서 처리됩니다.'});
+Object.assign(I.en,{dietaryTitle:'Food preferences',dietaryIntro:'For restaurant menus only. Also checks listed stocks, fats and other derivatives.',avoid_pork:'Avoid pork',avoid_beef:'Avoid beef & veal',vegetarian:'Vegetarian',vegetarianDetail:'No meat, poultry, fish or seafood, including their stocks and derivatives. Milk and eggs allowed.',dietaryNotice:'Menus may omit ingredients. Unknown sources need staff confirmation.',menuSelectedCount:'checks selected',menuProfileEmpty:'No ingredients or preferences selected yet',menuNoProfile:'Select an ingredient or food preference to check.',dietaryConflict:'A listed ingredient conflicts with your preference — confirm with staff',dietaryMatches:'Food preference conflicts',dietaryUncertain:'Source or reading uncertain — ask staff'});
+Object.assign(I.ko,{dietaryTitle:'식이 선호',dietaryIntro:'식당 메뉴에서만 적용됩니다. 적힌 육수·지방 등 파생 원료도 확인합니다.',avoid_pork:'돼지고기 피하기',avoid_beef:'소고기·송아지고기 피하기',vegetarian:'채식',vegetarianDetail:'육류·가금류·생선·해산물과 그 육수·파생 원료 제외. 우유와 달걀은 허용합니다.',dietaryNotice:'메뉴에는 재료가 빠질 수 있습니다. 원료의 출처가 불명확하면 직원에게 확인하세요.',menuSelectedCount:'개 확인 항목 선택됨',menuProfileEmpty:'아직 선택한 성분이나 식이 선호가 없습니다',menuNoProfile:'확인할 성분 또는 식이 선호를 선택하세요.',dietaryConflict:'적힌 재료가 식이 선호와 맞지 않습니다 — 직원에게 확인',dietaryMatches:'식이 선호와 맞지 않는 재료',dietaryUncertain:'출처 또는 판독 불확실 — 직원에게 문의'});
 function t(k){return(I[lang.value]||I.en)[k]||I.en[k]||k}
 function updateModeText(){
   const menu=currentMode==='menu';
@@ -30,7 +33,7 @@ function updateModeText(){
   $('#workflowTitle').textContent=t(menu?'menuTitle':'labelTitle');
   $('#workflowSubtitle').textContent=t(menu?'menuSubtitle':'labelSubtitle');
   for(const [key,value] of Object.entries({products:menu?'menuPhotos':'products',productsSub:menu?'menuPhotosSub':'productsSub',photoHint:menu?'menuPhotoHint':'photoHint',analyze:menu?'analyzeMenu':'analyze',checking:menu?'checkingMenu':'checking'}))$(`[data-i18n="${key}"]`).textContent=t(value);
-  $('#workflow').hidden=!currentMode;$('#menuWarning').hidden=!menu;$('#addProduct').hidden=menu;
+  $('#workflow').hidden=!currentMode;$('#menuWarning').hidden=!menu;$('#menuDietary').hidden=!menu;$('#addProduct').hidden=menu;
   $('#shoppingMode').setAttribute('aria-pressed',String(currentMode==='shopping'));$('#restaurantMode').setAttribute('aria-pressed',String(menu));
   $('#pageContext').textContent=t(currentMode?(menu?'restaurantMode':'shoppingMode'):'navHome');
   $('#workflowContext').textContent=t(menu?'atTable':'atShop');
@@ -44,11 +47,14 @@ $('#continuePhotos').onclick=()=>{if(analyzing||selectingPhoto)return;$('#scanHe
 function setLang(v){$('#custom').placeholder=t('customPlaceholder');$('#custom').setAttribute('aria-label',t('customPlaceholder'));document.documentElement.lang=v;document.documentElement.dir="ltr";$$('[data-i18n]').forEach(e=>e.textContent=t(e.dataset.i18n));localStorage.setItem('aller_lang',v);updateModeText();renderProducts();update();updateInstallUI();if(lastResult&&result.classList.contains('show'))showResults(lastResult)}
 lang.value=localStorage.getItem('aller_lang')||'en';if(!['en','ko'].includes(lang.value))lang.value='en';lang.onchange=()=>setLang(lang.value);
 
-function profile(){return{allergens:$$('#chips input:checked').map(x=>x.value),custom_avoid:[...custom]}}
+function selectedDietary(){return normalizeDietary($$('#menuDietary input:checked').map(x=>x.value))}
+function profile(mode=currentMode){return{allergens:$$('#chips input:checked').map(x=>x.value),custom_avoid:[...custom],...(mode==='menu'?{dietary_preferences:selectedDietary()}:{})}}
 function invalidateResults(){inputRevision++;lastResult=null;result.classList.remove('show')}
-function save(){invalidateResults();localStorage.setItem('aller_profile',JSON.stringify(profile()));update()}
+function save(){invalidateResults();localStorage.setItem('aller_profile',JSON.stringify(profile('shopping')));update()}
 try{const p=JSON.parse(localStorage.getItem('aller_profile')||'{}');(p.allergens||[]).forEach(v=>{const x=$(`#chips input[value="${v}"]`);if(x)x.checked=true});custom=Array.isArray(p.custom_avoid)?p.custom_avoid:[]}catch{}
 $('#chips').onchange=save;
+try{const saved=normalizeDietary(JSON.parse(localStorage.getItem('adpai_menu_dietary_v1')||'[]'));$$('#menuDietary input').forEach(input=>input.checked=saved.includes(input.value))}catch{}
+$('#menuDietary').onchange=()=>{invalidateResults();localStorage.setItem('adpai_menu_dietary_v1',JSON.stringify(selectedDietary()));update()};
 function renderCustom(){const e=$('#customList');e.innerHTML='';custom.forEach((v,i)=>{const l=document.createElement('label');l.className='chip';l.innerHTML="<input type='checkbox' checked><span></span>";l.querySelector('span').textContent=v+' ×';l.onclick=x=>{x.preventDefault();if(analyzing||selectingPhoto)return;custom.splice(i,1);renderCustom();save()};e.appendChild(l)})}
 $('#add').onclick=()=>{if(analyzing||selectingPhoto)return;const v=$('#custom').value.trim();if(v&&!custom.some(x=>x.toLowerCase()===v.toLowerCase()))custom.push(v);$('#custom').value='';renderCustom();save()};
 $('#custom').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('#add').click()}};
@@ -111,11 +117,11 @@ function renderProducts(){
 $('#addProduct').onclick=()=>{if(!analyzing&&!selectingPhoto&&products.length<MAX_PRODUCTS){invalidateResults();products.push({id:nextId++,photos:[]});renderProducts();update()}};
 function update(){
  const p=profile(),hasPhoto=products.some(x=>x.photos.length),busy=analyzing||selectingPhoto;
- const selected=p.allergens.length+p.custom_avoid.length;
- $('#selectionCount').textContent=selected?(lang.value==='en'&&selected===1?'1 ingredient selected':`${selected} ${t('selectedCount')}`):t('profileEmpty');
- $('#actionHint').textContent=t(!selected?'noProfile':!hasPhoto?'addPhoto':'readyToRead');
- analyze.disabled=busy||!currentMode||!(hasPhoto&&(p.allergens.length||p.custom_avoid.length));
- $$('#products button,#products input,#chips input,#custom,#add,#lang,#customList input').forEach(el=>el.disabled=busy);
+ const menu=currentMode==='menu',selected=p.allergens.length+p.custom_avoid.length+(p.dietary_preferences?.length||0);
+ $('#selectionCount').textContent=selected?(lang.value==='en'&&selected===1?(menu?'1 check selected':'1 ingredient selected'):`${selected} ${t(menu?'menuSelectedCount':'selectedCount')}`):t(menu?'menuProfileEmpty':'profileEmpty');
+ $('#actionHint').textContent=t(!selected?(menu?'menuNoProfile':'noProfile'):!hasPhoto?'addPhoto':'readyToRead');
+ analyze.disabled=busy||!currentMode||!(hasPhoto&&selected);
+ $$('#products button,#products input,#chips input,#menuDietary input,#custom,#add,#lang,#customList input').forEach(el=>el.disabled=busy);
  products.forEach((product,index)=>{if(product.photos.length>=MAX_PHOTOS)$$('#products .product')[index].querySelectorAll('.capture button').forEach(el=>el.disabled=true)});
  $('#addProduct').disabled=busy||products.length>=MAX_PRODUCTS;
  $$('#modeSelection button,#backHome,[data-nav-mode]').forEach(el=>el.disabled=busy);
@@ -210,14 +216,16 @@ function showResults(data) {
 function showMenuResults(data){
  lastResult=data;loading.classList.remove('show');result.classList.add('show');productResults.replaceChildren();
  $('#ricon').textContent='!';$('#rtitle').textContent=t('menuReview');
- const count=data.items.filter(item=>item.matches.length).length;
+ const count=data.items.filter(item=>item.matches.length||dietaryConflict(item.dietary_matches)).length;
  $('#rbody').textContent=lang.value==='ko'?`항목 ${data.items.length}개 · 주의 가능성 ${count}개. 판독된 항목만 표시하며 누락된 메뉴가 있을 수 있습니다. 안전이 확인된 메뉴는 없습니다.`:`${data.items.length} entries read · ${count} with potential risks. Only entries read are shown; other dishes may be missing. No dish is verified safe.`;
  const render=(item,unassigned=false)=>{
-  const box=document.createElement('div');box.className='presult '+(item.matches.length?'danger':'warn');
+  const conflict=dietaryConflict(item.dietary_matches);
+  const box=document.createElement('div');box.className='presult '+(item.matches.length||conflict?'danger':'warn');
   const heading=document.createElement('div');heading.className='prtitle';heading.textContent=unassigned?t('unassignedMenu'):item.name;
-  const message=document.createElement('p');message.className='prmsg';message.textContent=t(item.matches.length?'potentialRisk':'menuUnknown');
+  const message=document.createElement('p');message.className='prmsg';message.textContent=t(item.matches.length?'potentialRisk':conflict?'dietaryConflict':'menuUnknown');
   const evidence=document.createElement('div');evidence.className='evidence';
   addEv(evidence,t('menuMatches'),item.matches.map(hit=>`${allergenLabel(hit)} (${hit.term})`).join(' · '));
+  for(const kind of ['conflict','uncertain'])addEv(evidence,t(kind==='conflict'?'dietaryMatches':'dietaryUncertain'),(item.dietary_matches||[]).filter(hit=>hit.kind===kind).map(hit=>`${t(hit.preference_id)} (${hit.term})`).join(' · '));
   addEv(evidence,t('photo'),(item.photoIndex??0)+1);
   const quote=document.createElement('details');quote.className='menuQuote';
   const summary=document.createElement('summary');summary.textContent=t('menuEvidence');
@@ -230,7 +238,7 @@ function showMenuResults(data){
  result.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-analyze.onclick=async()=>{if(analyzing||selectingPhoto)return;const p=profile();if(!(p.allergens.length||p.custom_avoid.length)){alert(t('noProfile'));return}const active=products.filter(x=>x.photos.length);if(!active.length){alert(t('addPhoto'));return}result.classList.remove('show');loading.classList.add('show');analyzing=true;const revision=inputRevision;update();try{const d=await analyzeOnDevice(p,active);if(revision===inputRevision)showResults(d)}catch(e){console.error(e);loading.classList.remove('show');alert(t('serverTitle')+'\n'+t('serverBody'))}finally{loading.classList.remove('show');analyzing=false;update()}};
+analyze.onclick=async()=>{if(analyzing||selectingPhoto)return;const p=profile();if(!(p.allergens.length||p.custom_avoid.length||p.dietary_preferences?.length)){alert(t(currentMode==='menu'?'menuNoProfile':'noProfile'));return}const active=products.filter(x=>x.photos.length);if(!active.length){alert(t('addPhoto'));return}result.classList.remove('show');loading.classList.add('show');analyzing=true;const revision=inputRevision;update();try{const d=await analyzeOnDevice(p,active);if(revision===inputRevision)showResults(d)}catch(e){console.error(e);loading.classList.remove('show');alert(t('serverTitle')+'\n'+t('serverBody'))}finally{loading.classList.remove('show');analyzing=false;update()}};
 
 renderCustom();setLang(lang.value);renderProducts();update();
 

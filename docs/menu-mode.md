@@ -23,6 +23,45 @@ ingredients/cross-contact risks, and restaurant staff must confirm them. This
 warning is separate from the footer and is available in both interface languages.
 There is no calorie feature, recipe inference or automatic safe/negative output.
 
+## Restaurant food preferences (1.9.0)
+
+Only **Restaurant menu** offers `avoid_pork`, `avoid_beef` and `vegetarian`.
+Shopping retains the existing allergen/custom-ingredient profile and behavior.
+The separate `adpai_menu_dietary_v1` localStorage key stores menu preferences;
+they never become custom allergy terms or change the shopping profile. A menu
+can be checked with food preferences alone. Both English and Korean interfaces
+explain that vegetarian excludes meat, poultry, fish/seafood and their stocks
+and animal derivatives, while allowing milk and eggs. An independently selected
+milk/egg allergy still applies. Beef/veal avoidance does not exclude dairy.
+These controls do not assess religious identity or halal certification.
+
+`src/dietary.js` observes a finite, reviewed-in-code list of English/Korean
+printed terms. Explicit pork/beef terms and derivatives are separated from
+uncertain origins such as gelatin, ham, sausage or an unqualified stock. For
+vegetarian, explicitly animal gelatin/fat is a conflict, whereas unspecified
+stock/rennet/shortening requires staff confirmation. Explicit other-species or
+plant stock is not reclassified as pork/beef. Local negative/plant-alternative
+wording is respected when confidently read; weak readings, flavour/may-contain
+wording and unknown origins remain uncertain. The .58 score cutoff is an OCR
+heuristic, **not a calibrated correctness probability**. Duplicate passes never
+raise the observed scores and missing confidence stays zero.
+
+Menu items carry `dietary_matches` separately from allergen `matches`. Each
+observation retains preference, term, category, kind, actual score and reason.
+The UI shows preference conflicts separately from uncertain source/reading.
+Ambiguous layout or restaurant-wide warnings remain unassigned to a dish.
+Absent evidence, negation or plant wording never produces a safe/suitable dish.
+No recipes are inferred for names such as bulgogi or tonkotsu. Aliases, negation
+and association can still be missed; hidden stocks and full recipes require
+restaurant confirmation. This release does not train OCR or establish real-menu
+accuracy. The earlier independently labeled benchmark/pilot is still needed.
+
+Validation covers English/Korean terms, unknown origins, milk/egg allowance,
+negation scope, low/invalid scores, separate shopping output, preference-only
+analysis, persistence, busy controls and result invalidation in both the Pages
+entry point and bundled mobile web UI. Browser smoke images are generated
+fixtures; they are not real restaurant images or physical-device validation.
+
 `src/menu.js` evaluates printed menu text; `src/tesseract.js` supplies OCR;
 `src/ocr-worker.js` owns the pinned Tesseract5.1.1 worker protocol. Initialization,
 model errors and recognition deadlines reject and terminate the worker. This
