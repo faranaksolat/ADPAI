@@ -79,6 +79,7 @@ try {
   assert.equal(await evaluate(`getComputedStyle(document.querySelector('.mark')).display`),'grid','app stylesheet must load');
   assert.equal(await evaluate(`document.documentElement.scrollWidth<=window.innerWidth`),true,'phone layout overflows horizontally');
   assert.equal(await evaluate(`document.querySelector('#workflow').hidden`),true);
+  assert.equal(await evaluate(`document.querySelector('#menuDietary').hidden`),true);
   if(process.env.HOME_SCREENSHOT){const {data}=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});await fs.writeFile(process.env.HOME_SCREENSHOT,Buffer.from(data,'base64'))}
   if(process.env.KO_HOME_SCREENSHOT){
     await evaluate(`document.querySelector('#lang').value='ko';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
@@ -96,6 +97,7 @@ try {
   assert.equal(await evaluate(`document.querySelector('#workflow').hidden`),true);
   await tap('#shoppingMode');
   assert.equal(await evaluate(`document.querySelector('#workflow').hidden`),false);
+  assert.equal(await evaluate(`document.querySelector('#menuDietary').hidden`),true);
   if(!mobileWeb) {
     await evaluate(`document.querySelector('#installHelp').click()`);
     assert.equal(await evaluate(`document.querySelector('#installDialog').open`),true);
@@ -231,16 +233,50 @@ try {
   if(!realOcr){assert.equal(menuCards.length,3);assert.ok(menuCards.find(c=>c.name==='Garden salad').message.includes('Ingredients incomplete'))}
   await evaluate(`document.querySelector('#lang').value='ko';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
   assert.ok((await evaluate(`document.querySelector('#menuWarning').textContent`)).includes('오류'));
+  assert.equal(await evaluate(`document.querySelector('#menuDietary').hidden`),false);
+  assert.ok((await evaluate(`document.querySelector('#vegetarianDetail').textContent`)).includes('우유와 달걀은 허용'));
+  if(!realOcr){
+    // A menu-only preference works with zero allergens/custom terms, is locked
+    // during OCR, invalidates stale results and never leaks into shopping.
+    await evaluate(`document.querySelector('#lang').value='en';document.querySelector('#lang').dispatchEvent(new Event('change'));for(const input of document.querySelectorAll('#chips input')){input.checked=false;input.dispatchEvent(new Event('change',{bubbles:true}))}const pork=document.querySelector('#menuDietary input[value=avoid_pork]');pork.checked=true;pork.dispatchEvent(new Event('change',{bubbles:true}));globalThis.testOcrText='Rice bowl: pork\\nSoup: broth\\nSalad: lettuce';globalThis.testOcrDelay=25;document.querySelector('#analyze').click()`);
+    assert.equal(await evaluate(`[...document.querySelectorAll('#menuDietary input')].every(e=>e.disabled)`),true);
+    await evaluate(`(async()=>{const end=Date.now()+20000;while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw Error('dietary menu timeout');await new Promise(r=>setTimeout(r,25))}globalThis.testOcrDelay=0})()`);
+    assert.equal(await evaluate(`document.querySelector('.presult').classList.contains('danger')`),true);
+    assert.ok((await evaluate(`document.querySelector('.presult .evidence').textContent`)).includes('Avoid pork (pork)'));
+    assert.ok((await evaluate(`document.querySelectorAll('.presult')[1].textContent`)).includes('Source or reading uncertain'));
+    assert.ok((await evaluate(`document.querySelectorAll('.presult')[2].textContent`)).includes('Ingredients incomplete'));
+    assert.equal(await evaluate(`Object.hasOwn(JSON.parse(localStorage.getItem('aller_profile')),'dietary_preferences')`),false);
+    await evaluate(`const v=document.querySelector('#menuDietary input[value=vegetarian]');v.checked=true;v.dispatchEvent(new Event('change',{bubbles:true}))`);
+    assert.equal(await evaluate(`document.querySelector('#result').classList.contains('show')`),false);
+    assert.equal(await evaluate(`document.querySelector('#continuePhotos').disabled`),false);
+    assert.ok((await evaluate(`document.querySelector('#vegetarianDetail').textContent`)).includes('Milk and eggs allowed'));
+    if(process.env.DIETARY_SCREENSHOT){
+      await evaluate(`window.scrollTo({top:0,behavior:'instant'})`);
+      const {data}=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await fs.writeFile(process.env.DIETARY_SCREENSHOT,Buffer.from(data,'base64'));
+    }
+    await evaluate(`document.querySelector('#shoppingMode').click()`);
+    assert.equal(await evaluate(`document.querySelector('#menuDietary').hidden`),true);
+    assert.equal(await evaluate(`document.querySelector('#analyze').disabled && document.querySelector('#continuePhotos').disabled`),true);
+    assert.ok((await evaluate(`document.querySelector('#selectionCount').textContent`)).includes('No ingredients selected'));
+    await evaluate(`document.querySelector('#restaurantMode').click()`);
+    assert.equal(await evaluate(`document.querySelector('#analyze').disabled`),false);
+    const reloaded=new Promise(resolve=>listeners.set('Page.loadEventFired',[resolve]));await send('Page.reload');await reloaded;
+    await evaluate(`document.querySelector('#restaurantMode').click()`);
+    assert.deepEqual(await evaluate(`[...document.querySelectorAll('#menuDietary input:checked')].map(e=>e.value)`),['avoid_pork','vegetarian']);
+    assert.equal(await evaluate(`document.querySelectorAll('#chips input:checked').length`),0);
+    assert.equal(await evaluate(`document.querySelector('#result').classList.contains('show')`),false);
+  }
   await evaluate(`document.querySelector('#backHome').click()`);
   assert.equal(await evaluate(`document.querySelector('#workflow').hidden`),true);
   assert.equal(await evaluate(`document.querySelector('#result').classList.contains('show')`),false);
   await evaluate(`document.querySelector('#shoppingMode').click();document.querySelector('#lang').value='en';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
   assert.equal(await evaluate(`document.querySelector('#menuWarning').hidden`),true);
+  assert.equal(await evaluate(`document.querySelector('#menuDietary').hidden`),true);
   if(!mobileWeb) {
     await evaluate(`(async()=>{await navigator.serviceWorker.ready;const end=Date.now()+15000;while(!navigator.serviceWorker.controller){if(Date.now()>end)throw new Error('service worker did not claim page');await new Promise(r=>setTimeout(r,25))}})()`);
     const cache=await evaluate(`(async()=>({scope:(await navigator.serviceWorker.ready).scope,urls:(await Promise.all((await caches.keys()).map(async key=>(await (await caches.open(key)).keys()).map(r=>r.url)))).flat()}))()`);
     assert.ok(cache.scope.endsWith(prefix));
-    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.8.0')));
+    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.9.0')));
     assert.ok(cache.urls.every(url=>url.startsWith(cache.scope) && !/blob:|api\/|label\.png|profile/iu.test(url)));
     await send('Fetch.disable');
     await send('Network.enable');
@@ -254,7 +290,7 @@ try {
     assert.equal(await evaluate(`document.querySelector('#analyze').disabled`),true);
     assert.equal(await evaluate(`(async()=>(await fetch('./privacy.html')).ok)()`),true);
     // An offline shell is usable even when the CDN runtime is unavailable.
-    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.8.0');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
+    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.9.0');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
     assert.equal(offlineStatus,'unverified');
   }
   assert.deepEqual(errors,[]);

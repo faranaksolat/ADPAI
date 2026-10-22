@@ -1,5 +1,5 @@
-import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.8.0';
-import {resizeForOcr} from './image.js?v=1.8.0';
+import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.9.0';
+import {resizeForOcr} from './image.js?v=1.9.0';
 
 // Keep menu layout separate from shopping. Read the upright full image and
 // overlapping columns first so a slow whole-page pass cannot erase all useful

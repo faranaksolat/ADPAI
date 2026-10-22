@@ -1,4 +1,5 @@
-import { ingredientEvidence, containsAny, MARKERS, fold, ALLERGENS, matchSpans } from './engine.js?v=1.8.0';
+import { ingredientEvidence, containsAny, MARKERS, fold, ALLERGENS, matchSpans } from './engine.js?v=1.9.0';
+import {dietaryEvidence, mergeDietary, dietaryConflict} from './dietary.js?v=1.9.0';
 
 // A menu's printed description is not a complete recipe or a safety certificate.
 // Associate text only on one explicit line, or adjacent lines in one column.
@@ -94,8 +95,8 @@ export function evaluateMenu({sources=[],profile={},errors=[]}={}){
     return mergeMatches([],[...p.direct_matches,...p.caution_matches,...p.mention_matches]);
   };
   const addUnassigned=(lines,source)=>{
-    const hits=matches(lines);if(!hits.length)return;
-    unassigned.push({text:lines.map(l=>l.text).join('\n'),matches:hits,photoIndex:source.photoIndex??0,association_verified:false});
+    const hits=matches(lines),dietary=dietaryEvidence(lines,profile.dietary_preferences);if(!hits.length&&!dietary.length)return;
+    unassigned.push({text:lines.map(l=>l.text).join('\n'),matches:hits,dietary_matches:dietary,photoIndex:source.photoIndex??0,association_verified:false});
   };
   // Evaluate each actual reading separately. A high average confidence on
   // unrelated text must not erase a correct upright/column reading. Readings
@@ -125,7 +126,7 @@ export function evaluateMenu({sources=[],profile={},errors=[]}={}){
         &&next.text.length>=3&&!SECTION.test(next.text)&&!CAUTION.test(next.text)&&!PRICE.test(next.text);
       // A larger printed name such as "Cream Cheese Pizza" can itself supply
       // a warning even if its description is absent. No recipe is inferred.
-      const namedIngredient=bodyHeight>0&&height(line)>=bodyHeight*1.35&&lineScore(line)>=.75&&matches([line]).length;
+      const namedIngredient=bodyHeight>0&&height(line)>=bodyHeight*1.35&&lineScore(line)>=.75&&(matches([line]).length||dietaryEvidence([line],profile.dietary_preferences).length);
       if(PRICE.test(text)||marker||typography||namedIngredient)titles.set(i,{name:title,association:PRICE.test(text)||marker?'printed_title_and_adjacent_description':'larger_printed_title_and_adjacent_description'});
     }
     // Bilingual names often sit between an English priced title and its
@@ -163,21 +164,21 @@ export function evaluateMenu({sources=[],profile={},errors=[]}={}){
   }
   const items=[];
   for(const entry of entries){
-    const text=entry.lines.map(l=>l.text).join('\n'),hits=matches(entry.lines);
+    const text=entry.lines.map(l=>l.text).join('\n'),hits=matches(entry.lines),dietary=dietaryEvidence(entry.lines,profile.dietary_preferences);
     const previous=items.find(item=>item.photoIndex===entry.photoIndex&&item.readings[0].source.rotation===entry.source.rotation
       &&((samePrintedTitle(item.box,entry.box)&&compatibleTitleNames(item.name,entry.name))||(nameKey(item.name)===nameKey(entry.name)
       &&(!entry.box||!item.box||(sameColumn({box:entry.box},{box:item.box})&&Math.abs(entry.box.y0-item.box.y0)<=Math.max(entry.box.y1-entry.box.y0,item.box.y1-item.box.y0)*1.5)))));
     if(previous){
       if(titleQuality(entry.name)>titleQuality(previous.name))previous.name=entry.name;
-      previous.matches=mergeMatches(previous.matches,hits);previous.status=previous.matches.length?'potential_risk':'unverified';
+      previous.matches=mergeMatches(previous.matches,hits);previous.dietary_matches=mergeDietary(previous.dietary_matches,dietary);previous.status=previous.matches.length||dietaryConflict(previous.dietary_matches)?'potential_risk':'unverified';
       if(!previous.readings.some(r=>r.printed_text===text))previous.readings.push({printed_text:text,source:entry.source});
       previous.printed_text=previous.readings.map(r=>r.printed_text).join('\n—\n');
     }else items.push({name:entry.name,printed_text:text,photoIndex:entry.photoIndex,box:entry.box,association:entry.association,
-      status:hits.length?'potential_risk':'unverified',matches:hits,complete_ingredients_verified:false,readings:[{printed_text:text,source:entry.source}]});
+      status:hits.length||dietaryConflict(dietary)?'potential_risk':'unverified',matches:hits,dietary_matches:dietary,complete_ingredients_verified:false,readings:[{printed_text:text,source:entry.source}]});
   }
   const unique=new Map();
-  for(const u of unassigned){const key=u.photoIndex+':'+fold(u.text);if(!unique.has(key))unique.set(key,u);else unique.get(key).matches=mergeMatches(unique.get(key).matches,u.matches)}
-  return {mode:'menu',status:items.some(i=>i.matches.length)||unique.size?'potential_risk':'unverified',
+  for(const u of unassigned){const key=u.photoIndex+':'+fold(u.text);if(!unique.has(key))unique.set(key,u);else {unique.get(key).matches=mergeMatches(unique.get(key).matches,u.matches);unique.get(key).dietary_matches=mergeDietary(unique.get(key).dietary_matches,u.dietary_matches)}}
+  return {mode:'menu',status:items.some(i=>i.status==='potential_risk')||[...unique.values()].some(u=>u.matches.length||dietaryConflict(u.dietary_matches))?'potential_risk':'unverified',
     items,unassigned:[...unique.values()],errors,complete_menu_verified:false,safe_items:[],
     warning:'Menus may omit ingredients and cross-contact risks. ADPAI may make mistakes. Confirm with restaurant staff; no dish is verified safe.'};
 }
