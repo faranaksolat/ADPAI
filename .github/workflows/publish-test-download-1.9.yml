@@ -1,0 +1,62 @@
+name: Publish restaurant preference test downloads
+
+# Share an already verified APK; no rebuild, signing-key transfer or store upload.
+on:
+  workflow_dispatch:
+    inputs:
+      artifact_ref:
+        description: Temporary branch containing the verified public download files
+        required: true
+        default: download-assets-1.9.0
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: adpai-download-1.9.0
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ inputs.artifact_ref }}
+          path: downloads
+          persist-credentials: false
+      - name: Verify the exact tested files
+        working-directory: downloads
+        run: |
+          echo 'b40eae1e3333fdd00703da78c56450624bdbdae53c322b6516cdf28966f2186c  ADPAI-1.9.0-debug.apk' | sha256sum --strict --check
+          sha256sum --strict --check SHA256SUMS.txt
+          unzip -tq ADPAI-1.9.0-debug.apk
+          jq -e '.version == "1.9.0" and .version_code == 9 and .source_commit == "47599c21e99076a97615ccb91a335896f21614d1" and .store_publication == false' BUILD-INFO.json
+      - name: Create complete draft, then publish test download links
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag=v1.9.0-test
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo 'This test release already exists; leave its files unchanged.'
+            exit 1
+          fi
+          cat > "$RUNNER_TEMP/download-notes.md" <<'NOTES'
+          Restaurant-only pork avoidance, beef/veal avoidance and vegetarian preferences in English and Korean. Shopping is unchanged. Vegetarian allows milk and eggs. Unknown ingredient origins require staff confirmation.
+
+          Android test APK and browser interface previews for ADPAI 1.9.0.
+
+          This is the exact locally verified APK, with its existing debug signature preserved. SHA256SUMS.txt records the download hashes. BUILD-INFO.json records the compiled source and validation limits.
+
+          Prototype: recognition can miss allergens. Uncertain results never certify safety. No Play Store/App Store upload, paid API or domain purchase is performed. The phone/desktop screenshots are browser previews, not physical-device validation. The APK does not automatically connect to the private PC server.
+          NOTES
+          gh release create "$tag" downloads/ADPAI-1.9.0-debug.apk downloads/ADPAI-1.9.0-home.png downloads/ADPAI-1.9.0-desktop.png downloads/SHA256SUMS.txt downloads/BUILD-INFO.json \
+            --target 47599c21e99076a97615ccb91a335896f21614d1 --draft --prerelease \
+            --title 'ADPAI 1.9.0 · Android test' --notes-file "$RUNNER_TEMP/download-notes.md"
+          gh release view "$tag" --json assets --jq '.assets | length == 5' | grep -qx true
+          gh release edit "$tag" --draft=false --prerelease
