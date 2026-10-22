@@ -1,10 +1,10 @@
-import { analyzeProducts } from "./tesseract.js?v=1.9.0";
-import { cropPhoto } from "./crop.js?v=1.9.0";
-import { explainIngredient, sourceTranscript } from "./ingredients.js?v=1.9.0";
-import { initPwa, updateInstallUI } from "./pwa.js?v=1.9.0";
-import { evaluateMenu } from './menu.js?v=1.9.0';
-import {normalizeDietary, dietaryConflict} from './dietary.js?v=1.9.0';
-const APP_VERSION="1.9.0";
+import { analyzeProducts } from "./tesseract.js?v=1.9.1";
+import { cropPhoto } from "./crop.js?v=1.9.1";
+import { explainIngredient, sourceTranscript } from "./ingredients.js?v=1.9.1";
+import { initPwa, updateInstallUI } from "./pwa.js?v=1.9.1";
+import { evaluateMenu } from './menu.js?v=1.9.1';
+import {normalizeDietary, dietaryConflict} from './dietary.js?v=1.9.1';
+const APP_VERSION="1.9.1";
 const MAX_PRODUCTS=6,MAX_PHOTOS=3;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const lang=$("#lang"),productsEl=$("#products"),analyze=$("#analyze"),result=$("#result"),loading=$("#loading"),productResults=$("#productResults");
@@ -26,6 +26,8 @@ Object.assign(I.en,{brandCaption:'Your food companion',beta:'Preview',workspace:
 Object.assign(I.ko,{brandCaption:'먹기 전, 한 번 더',beta:'테스트 버전',workspace:'나의 공간',navHome:'홈',navMenu:'메뉴',localNote:'내 기기에서, 나에게 맞는 성분 확인.',privacyLink:'개인정보 처리 안내',skipContent:'본문으로 이동',eyebrow:'내 선택을 위한 작은 확인',hero:'먹기 전에,\n한 번 더 확인.',sub:'피해야 할 성분은 기억하고,\n라벨은 더 자세히 살펴보세요.',heroFootnote:'선택을 돕는 도구이며, 안전을 보장하지 않습니다.',chooseContext:'새로운 확인 시작',contextHint:'매일의 선택을 위해',atShop:'장볼 때',atTable:'외식할 때',shoppingDescription:'원재료와 알레르기 주의 문구.',restaurantDescription:'메뉴에 적힌 재료를 확인해요.',guideProfile:'피할 성분 선택',guidePhoto:'선명한 사진 추가',guideReview:'인식된 문구 확인',backHome:'처음으로',stepProfile:'피할 성분',stepPhotos:'사진',stepReview:'결과',profileSub:'확인하고 싶은 성분을 모두 선택해 주세요.',otherIngredients:'다른 성분도 있나요?',customPlaceholder:'성분 추가 (예: 젤라틴)',continuePhotos:'사진 추가로 이동 →',products:'라벨 사진 추가',productsSub:'원재료와 모든 주의 문구를 포함해 제품당 최대 3장을 추가하세요.',analyze:'성분 확인하기',checking:'사진을 읽고 있어요…',checkingSub:'잠시 시간이 걸릴 수 있어요. 화면을 열어 두세요.',privacy:'사진과 선택한 성분은 내 기기에서 처리됩니다.'});
 Object.assign(I.en,{dietaryTitle:'Food preferences',dietaryIntro:'For restaurant menus only. Also checks listed stocks, fats and other derivatives.',avoid_pork:'Avoid pork',avoid_beef:'Avoid beef & veal',vegetarian:'Vegetarian',vegetarianDetail:'No meat, poultry, fish or seafood, including their stocks and derivatives. Milk and eggs allowed.',dietaryNotice:'Menus may omit ingredients. Unknown sources need staff confirmation.',menuSelectedCount:'checks selected',menuProfileEmpty:'No ingredients or preferences selected yet',menuNoProfile:'Select an ingredient or food preference to check.',dietaryConflict:'A listed ingredient conflicts with your preference — confirm with staff',dietaryMatches:'Food preference conflicts',dietaryUncertain:'Source or reading uncertain — ask staff'});
 Object.assign(I.ko,{dietaryTitle:'식이 선호',dietaryIntro:'식당 메뉴에서만 적용됩니다. 적힌 육수·지방 등 파생 원료도 확인합니다.',avoid_pork:'돼지고기 피하기',avoid_beef:'소고기·송아지고기 피하기',vegetarian:'채식',vegetarianDetail:'육류·가금류·생선·해산물과 그 육수·파생 원료 제외. 우유와 달걀은 허용합니다.',dietaryNotice:'메뉴에는 재료가 빠질 수 있습니다. 원료의 출처가 불명확하면 직원에게 확인하세요.',menuSelectedCount:'개 확인 항목 선택됨',menuProfileEmpty:'아직 선택한 성분이나 식이 선호가 없습니다',menuNoProfile:'확인할 성분 또는 식이 선호를 선택하세요.',dietaryConflict:'적힌 재료가 식이 선호와 맞지 않습니다 — 직원에게 확인',dietaryMatches:'식이 선호와 맞지 않는 재료',dietaryUncertain:'출처 또는 판독 불확실 — 직원에게 문의'});
+Object.assign(I.en,{retakeAdvice:'Some text could not be read clearly. Move closer, avoid glare and photograph one label or menu column at a time. Check the original text before choosing.'});
+Object.assign(I.ko,{retakeAdvice:'일부 문구가 선명하게 읽히지 않았습니다. 가까이서 빛 반사를 피하고 라벨이나 메뉴의 한 열씩 촬영해 주세요. 선택하기 전에 원문을 확인하세요.'});
 function t(k){return(I[lang.value]||I.en)[k]||I.en[k]||k}
 function updateModeText(){
   const menu=currentMode==='menu';
@@ -134,11 +136,12 @@ function setProgress(){const e=$('#loading span');if(e)e.textContent=t('progress
 async function analyzeOnDevice(p,active){
  const menu=currentMode==='menu';
  const data=await analyzeProducts(active,p,{onProgress:setProgress,purpose:menu?'menu':'shopping'});
- return menu?evaluateMenu({sources:data.products[0]?.sources||[],profile:p,errors:data.products[0]?.errors||[]}):data;
+ return menu?{...evaluateMenu({sources:data.products[0]?.sources||[],profile:p,errors:data.products[0]?.errors||[]}),retake_recommended:data.products[0]?.retake_recommended!==false}:data;
 }
 
 function kindFor(status){return status==='conflict'?'danger':'warn'}
 function addEv(parent,label,value){if(value===undefined||value===null||value==='')return;const r=document.createElement('div');r.className='ev';const a=document.createElement('span');a.textContent=label;const b=document.createElement('strong');b.textContent=value;r.append(a,b);parent.appendChild(r)}
+function addRetakeAdvice(parent){const p=document.createElement('p');p.className='retakeAdvice';p.textContent=t('retakeAdvice');parent.appendChild(p)}
 function allergenLabel(hit){const map={milk:'milk',egg:'egg',peanut:'peanut',tree_nuts:'treeNuts',soy:'soy',wheat:'wheat',sesame:'sesame',fish:'fish',shellfish:'shellfish'};if(hit&&map[hit.allergen_id])return t(map[hit.allergen_id]);if(hit&&hit.allergen_id==='custom')return lang.value==='ko'?'사용자 지정':(hit.allergen||'Custom avoid');return hit&&hit.allergen?hit.allergen:''}
 function localizedStatus(status){if(lang.value!=='ko'){if(status==='unverified')return t('unableVerify');if(status==='conflict')return t('conflict');if(status==='caution')return t('caution');if(status==='unverified_language')return t('unableVerify');if(status==='no_listed_conflict')return t('unableVerify');if(status==='ingredient_not_confirmed')return'Ingredient list not confirmed';if(status==='nutrition_panel')return'Nutrition panel detected';if(status==='unreadable')return'Please retake the label photo';return String(status||'').replaceAll('_',' ')}const map={unverified:'확인 불가',conflict:'주의 성분 확인',caution:'교차접촉 주의',unverified_language:'확인 불가',no_listed_conflict:'확인 불가',ingredient_not_confirmed:'원재료 목록 확인 필요',nutrition_panel:'영양정보 확인됨',unreadable:'라벨 재촬영 필요'};return map[status]||String(status||'').replaceAll('_',' ')}
 function localizedProductMessage(p){const dn=[...new Set((p.direct_matches||[]).map(allergenLabel))].filter(Boolean),cn=[...new Set((p.caution_matches||[]).map(allergenLabel))].filter(Boolean);if(lang.value!=='ko')return p.message||'';if(p.status==='conflict')return`선택한 주의 성분이 원재료 또는 직접 알레르기 표시에서 확인되었습니다: ${dn.join(', ')}.`;if(p.status==='caution')return`교차접촉 가능성에 대한 주의 표시가 확인되었습니다: ${cn.join(', ')}.`;if(p.status==='unverified')return'전체 원재료 라벨을 확인하지 못했습니다. 알레르기 유발물질이 없다는 뜻이 아닙니다.';if(p.status==='unverified_language')return'현재 검증 중인 언어의 라벨 패널을 감지했지만 충분히 확인하지 못했습니다. 이 결과를 음성 결과로 해석하지 마세요.';if(p.status==='no_listed_conflict')return'전체 라벨을 확인하지 못했습니다. 알레르기 유발물질 부재를 보장하지 않습니다.';if(p.status==='ingredient_not_confirmed'){
@@ -185,6 +188,7 @@ function showResults(data) {
     const unresolved=(p.mention_matches||[]).filter(hit=>![...(p.direct_matches||[]),...(p.caution_matches||[])].some(known=>known.allergen_id===hit.allergen_id));
     addEv(evidence,lang.value==='ko'?'불확실한 판독 — 라벨 확인':'Uncertain mentions — check label',unresolved.map(hit=>`${allergenLabel(hit)} (${hit.term})`).join(' · '));
     box.append(top,message);
+    if(p.retake_recommended)addRetakeAdvice(box);
     if (evidence.children.length) box.appendChild(evidence);
     const ingredients=document.createElement('section');ingredients.className='ingredientSection';
     const ih=document.createElement('h4');ih.textContent=t('ingredientsTitle');
@@ -218,6 +222,7 @@ function showMenuResults(data){
  $('#ricon').textContent='!';$('#rtitle').textContent=t('menuReview');
  const count=data.items.filter(item=>item.matches.length||dietaryConflict(item.dietary_matches)).length;
  $('#rbody').textContent=lang.value==='ko'?`항목 ${data.items.length}개 · 주의 가능성 ${count}개. 판독된 항목만 표시하며 누락된 메뉴가 있을 수 있습니다. 안전이 확인된 메뉴는 없습니다.`:`${data.items.length} entries read · ${count} with potential risks. Only entries read are shown; other dishes may be missing. No dish is verified safe.`;
+ if(data.retake_recommended&&(data.items.length||data.unassigned.length))addRetakeAdvice(productResults);
  const render=(item,unassigned=false)=>{
   const conflict=dietaryConflict(item.dietary_matches);
   const box=document.createElement('div');box.className='presult '+(item.matches.length||conflict?'danger':'warn');

@@ -1,9 +1,9 @@
-import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.9.0';
-import { preprocess, rotateCanvas, resizeForOcr } from './image.js?v=1.9.0';
-import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.9.0';
-import {createManagedWorker} from './ocr-worker.js?v=1.9.0';
-import {readMenuPhoto} from './menu-ocr.js?v=1.9.0';
-import {analyzeNativeProducts} from './native-ocr.js?v=1.9.0';
+import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.9.1';
+import { preprocess, rotateCanvas, resizeForOcr, needsRetake } from './image.js?v=1.9.1';
+import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.9.1';
+import {createManagedWorker} from './ocr-worker.js?v=1.9.1';
+import {readMenuPhoto} from './menu-ocr.js?v=1.9.1';
+import {analyzeNativeProducts} from './native-ocr.js?v=1.9.1';
 
 const PRIMARY = {id: 'korean', langs: ['kor','eng','fra'], label: 'Korean / English / French'};
 const FALLBACKS = [
@@ -128,6 +128,7 @@ export async function analyzeProducts(products, profile, options = {}) {
           try {
             const photoStarted=Date.now();
             const canvas=await prepare(photo.file,false);
+            let enhancedCanvas;const enhancedLanguages=new Set();
             if(menuMode&&def.id===PRIMARY.id&&worker.reinitialize){
               const menu=await readMenuPhoto({worker,canvas,photoIndex,familyId:def.id,rotate,itemsFrom,maxPhotoMs});
               state.sources.push(...menu.sources);state.errors.push(...menu.errors);complete=complete&&menu.complete;
@@ -160,6 +161,23 @@ export async function analyzeProducts(products, profile, options = {}) {
                   // words/rotations have a better average confidence.
                   const evidence=evaluateProduct({sources:[candidate],profile});
                   if(evidence.direct_matches.length||evidence.caution_matches.length)state.sources.push(candidate);
+                  // Try actual normalized pixels early on a weak upright read.
+                  // Waiting for all rotations used to exhaust the budget before
+                  // a damaged label with no recognised heading could be helped.
+                  const languageKey=pass.langs.join('+');
+                  if(!menuMode&&rotation===0&&def.id===PRIMARY.id&&pass.langs.length===1&&worker.reinitialize
+                    &&!satisfied()&&sourceQuality(candidate)<.7&&!enhancedLanguages.has(languageKey)&&Date.now()-photoStarted<maxPhotoMs-1000){
+                    enhancedLanguages.add(languageKey);
+                    try{
+                      enhancedCanvas??=await prepare(photo.file,true);
+                      if(enhancedCanvas!==canvas){
+                        const extra=await worker.recognize(enhancedCanvas,{timeoutMs:Math.max(1,maxPhotoMs-(Date.now()-photoStarted))});
+                        const enhanced={...candidate,variant:'enhanced',items:itemsFrom(extra)};candidates.push(enhanced);
+                        const e=evaluateProduct({sources:[enhanced],profile});
+                        if(e.direct_matches.length||e.caution_matches.length)state.sources.push(enhanced);
+                      }
+                    }catch(error){complete=false;state.errors.push({family:def.id,photoIndex,phase:'enhanced',message:String(error?.message||error)})}
+                  }
                   if(satisfied())break;
                 }catch(error){
                   complete=false;state.errors.push({family:def.id,photoIndex,rotation,phase:pass.variant,message:String(error?.message||error)});
@@ -216,7 +234,7 @@ export async function analyzeProducts(products, profile, options = {}) {
     return {...result, product_id: state.product.id ?? index+1, label: `Product ${index+1}`,
       message: result.reason,
       ocr_families_used: [...new Set(state.sources.map(s => s.familyId === PRIMARY.id ? PRIMARY.label : (FALLBACKS.find(def => def.id === s.familyId)?.label || s.familyId)))],
-      errors: state.errors, sources: state.sources, ingredients:extractIngredients(state.sources)};
+      errors: state.errors, sources: state.sources,retake_recommended:needsRetake(state.sources), ingredients:extractIngredients(state.sources)};
   });
   return {status: 'ok', products: out, summary: {product_count: out.length}};
 }

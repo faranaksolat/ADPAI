@@ -1,0 +1,838 @@
+{
+  "metadata": {
+    "kind": "synthetic_degradation_comparison_not_real_menu_validation",
+    "versions": {
+      "baseline": "1.9.0",
+      "candidate": "1.9.1"
+    },
+    "budget_ms": 45000,
+    "source_sha256": {
+      "baseline": {
+        "app.js": "42d0c7ef88fc6f5935f97180f214fc411efccefaec15f7a150cfb56c89e99602",
+        "browser.js": "e564808586a4c5b3984f22ad5375c40b9430f579295d679eaf5578ef9279d7ba",
+        "crop.js": "e42138526c896391b368291fa4180c8f4cbdb9194ae39e5d5b2560d5e155f1f8",
+        "dietary.js": "88ab41fb2e7640e5942e6872544fa28a4cff082b2eb922b3499c5cc2e31a6a04",
+        "engine.js": "6a4762acb6943f3b8fccd5dc412cc3373be38fa006d83c9afd00836958bfdfa4",
+        "image.js": "24c90a6f1f954dbceef89e6be4647b9cbb388ff0b6ef2ed870d87dcd952a32a3",
+        "ingredient-glossary.js": "905ecc9e6b17b74bccf3b276adc18d56eb013c2238344afd99e31732b21974c5",
+        "ingredients.js": "c376116ce782ec41770d3a37bdbc2972fb835b00a7dd1189943db627d05217e3",
+        "label-pattern.js": "8c6b1700ecbf21b1600891d9bcd491a9d7021cce3936842ca20a5f3e1fe9dc6e",
+        "learning.js": "ac374449df44626ae5b1fd3424b350946670f654375b245d6859f6e6445a381d",
+        "menu-image.js": "3f9504d97c17d53889e7d3da793384455e490dbad73c0c57b7ff98d6af3b4398",
+        "menu-ocr.js": "a96d6795273df3f696b99d91a0b411094273df89fda64fce5a803e63f44e478b",
+        "menu.js": "048012ae0b4897cc6cd474e0de0eacb50fc56c2f48a8efe62c30c50315e611bd",
+        "native-ocr.js": "db340c6b32f597944e2701ba3e7e2530f08f19b1714f9b6d75926eea46082fcf",
+        "ocr-worker.js": "9d3a1c5abbbb3c3d581fb78a4ffbf02148495f442ca24891ed2f0ae3e4f6f3f9",
+        "ocr.js": "fc69bb8067a9d43153f408f54d9d05913021f3951f22709d19e3ff6065452948",
+        "ontology.js": "2306cfa5a3108c99cd737adccc97ae8f2eee7948beb78312e9ed638188aa3815",
+        "pwa.js": "ccdd680e194df221e7b5d1d64fd5eead9450faf8f7dbac2e9e4b68dc12763f6f",
+        "tesseract.js": "fc0a49c36d46da017b21d6db8d762ea9c8d68e227e63de1fab1c5acdf492fb2e"
+      },
+      "candidate": {
+        "app.js": "1b16c90a268f16b6c201fdee3bed0f1580425d6c9f63b68c83c64311c32a15b6",
+        "browser.js": "98a11b294a54c96f7c1120b8e9877f2f1513e4d74d49175c770f51fe0cbbd9d3",
+        "crop.js": "e42138526c896391b368291fa4180c8f4cbdb9194ae39e5d5b2560d5e155f1f8",
+        "dietary.js": "ad3fe36f09b0791112d8e051da5cc1fce27f8031f3b5b116ec4fed5c853fd655",
+        "engine.js": "7e79f5282e346080caffce53ab607a1520f24b94384efbf7cb3cdabc681b1bfb",
+        "image.js": "212b27e4f22c08b72ef44a9c228432a79f9e6d1c5770097b95bac8f87a5a3451",
+        "ingredient-glossary.js": "905ecc9e6b17b74bccf3b276adc18d56eb013c2238344afd99e31732b21974c5",
+        "ingredients.js": "3a7d05e00ad3966056268b93b287c9e264dab393f45c21de530552153f88b6fe",
+        "label-pattern.js": "8c6b1700ecbf21b1600891d9bcd491a9d7021cce3936842ca20a5f3e1fe9dc6e",
+        "learning.js": "ac374449df44626ae5b1fd3424b350946670f654375b245d6859f6e6445a381d",
+        "menu-image.js": "4d263ed5f05099d48f65d0ac12e2737a3697201ac0de569254874bf383604405",
+        "menu-ocr.js": "f3d492c760113b9fdba17d6fa66b0537fdfd003ccb5b60c00d144c77d6fca7fd",
+        "menu.js": "0b1963d50c95ae7ac307440dfc79b5b3d89cd265aa81f051178a87084336a3ee",
+        "native-ocr.js": "33774eae47c216f89229afc092a6d7c32f25d9a9d9b5881839d9654befdff1c3",
+        "ocr-worker.js": "9d3a1c5abbbb3c3d581fb78a4ffbf02148495f442ca24891ed2f0ae3e4f6f3f9",
+        "ocr.js": "473d001fb386b40daf3cc35cdd76827faba6b96c46687e7c444ac7a45e214a5d",
+        "ontology.js": "2306cfa5a3108c99cd737adccc97ae8f2eee7948beb78312e9ed638188aa3815",
+        "pwa.js": "ccdd680e194df221e7b5d1d64fd5eead9450faf8f7dbac2e9e4b68dc12763f6f",
+        "tesseract.js": "78ab5d43938bc511dd94d4704e374b0e8024910a57c10a98d411087f6088eaae"
+      }
+    },
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/154.0.8037.57",
+      "revision": "@73c14f6228d7cd537c855007e8f88678969cc0eb",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+      "jsVersion": "15.4.80.11"
+    },
+    "font": "NotoSansCJK-Regular.ttc: \"Noto Sans CJK KR\" \"Regular\"",
+    "models": {
+      "kor": "ec1749377d49ac38fb3d3cd05dd5e2a53359d329f359762bc638a81132109992",
+      "eng": "5dc5d8d640a212c9d6184921ba103b186f50e0fed9ee716c53e6b312b400d747",
+      "fra": "bf83833fa957ff0076f6aa93f69e3bdf7b014dea829ea0c0d6be6b48a3ceef6d"
+    },
+    "latency": "warm reusable local Tesseract worker; includes image preprocessing, OCR passes and parsing; excludes initial worker/model load, camera/UI; not Android ML Kit or phone latency",
+    "ocr_selection": "highest fixed confidence/length heuristic among upright full-image readings; no ground-truth selection",
+    "warning_metric": "strict printed title-allergen association; uncertain warnings reported separately from confident warnings",
+    "references": "authored fixture strings fixed before OCR, all derived images correlated; no human-reviewed real package/menu reference or training",
+    "scope": "Actual shared web menu reader + parser; native pixel routing has separate controlled tests, not physical-device recognition validation"
+  },
+  "summary": {
+    "baseline": {
+      "cer": 0.1,
+      "wer": 0.3941176470588235,
+      "warned_pairs": 30,
+      "confident_warned_pairs": 30,
+      "known_positive_pairs": 40,
+      "missed_pairs": 10,
+      "additional_warning_pairs": 4,
+      "pork_cases_warned": 8,
+      "unsafe_outputs": 0,
+      "latency_median_ms": 3184.449999988079,
+      "latency_p95_ms": 27929.599999964237,
+      "cases": [
+        {
+          "id": "en-clean",
+          "character_edits": 0,
+          "reference_characters": 113,
+          "word_edits": 0,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 4,
+          "confident_warned_pairs": 4,
+          "additional_warning_pairs": [],
+          "pork_warning": true,
+          "unsafe_outputs": 0,
+          "latency_ms": 4363.5,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-original"
+        },
+        {
+          "id": "en-small",
+          "character_edits": 0,
+          "reference_characters": 113,
+          "word_edits": 0,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 4,
+          "confident_warned_pairs": 4,
+          "additional_warning_pairs": [],
+          "pork_warning": true,
+          "unsafe_outputs": 0,
+          "latency_ms": 1910.2000000476837,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-original"
+        },
+        {
+          "id": "en-dim",
+          "character_edits": 0,
+          "reference_characters": 113,
+          "word_edits": 0,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 4,
+          "confident_warned_pairs": 4,
+          "additional_warning_pairs": [],
+          "pork_warning": true,
+          "unsafe_outputs": 0,
+          "latency_ms": 4160.699999988079,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-original"
+        },
+        {
+          "id": "en-blur",
+          "character_edits": 0,
+          "reference_characters": 113,
+          "word_edits": 0,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 4,
+          "confident_warned_pairs": 4,
+          "additional_warning_pairs": [],
+          "pork_warning": true,
+          "unsafe_outputs": 0,
+          "latency_ms": 27929.599999964237,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-original"
+        },
+        {
+          "id": "en-tilted",
+          "character_edits": 0,
+          "reference_characters": 113,
+          "word_edits": 0,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 1,
+          "confident_warned_pairs": 1,
+          "additional_warning_pairs": [],
+          "pork_warning": true,
+          "unsafe_outputs": 0,
+          "latency_ms": 4537.5,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-overview"
+        },
+        {
+          "id": "ko-clean",
+          "character_edits": 13,
+          "reference_characters": 65,
+          "word_edits": 14,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 4,
+          "confident_warned_pairs": 4,
+          "additional_warning_pairs": [],
+          "pork_warning": false,
+          "unsafe_outputs": 0,
+          "latency_ms": 2490.600000023842,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-original"
+        },
+        {
+          "id": "ko-small",
+          "character_edits": 10,
+          "reference_characters": 65,
+          "word_edits": 13,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 1,
+          "confident_warned_pairs": 1,
+          "additional_warning_pairs": [
+            "we국수:egg",
+            "we국수:peanut"
+          ],
+          "pork_warning": true,
+          "unsafe_outputs": 0,
+          "latency_ms": 1247.8999999761581,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-original"
+        },
+        {
+          "id": "ko-dim",
+          "character_edits": 15,
+          "reference_characters": 65,
+          "word_edits": 15,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 4,
+          "confident_warned_pairs": 4,
+          "additional_warning_pairs": [],
+          "pork_warning": false,
+          "unsafe_outputs": 0,
+          "latency_ms": 3165,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-original"
+        },
+        {
+          "id": "ko-blur",
+          "character_edits": 9,
+          "reference_characters": 65,
+          "word_edits": 11,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 1,
+          "confident_warned_pairs": 1,
+          "additional_warning_pairs": [
+            "랑콩국수:peanut"
+          ],
+          "pork_warning": true,
+          "unsafe_outputs": 0,
+          "latency_ms": 1476.5,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-original"
+        },
+        {
+          "id": "ko-tilted",
+          "character_edits": 42,
+          "reference_characters": 65,
+          "word_edits": 14,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 3,
+          "confident_warned_pairs": 3,
+          "additional_warning_pairs": [
+            "도마토수프:milk"
+          ],
+          "pork_warning": true,
+          "unsafe_outputs": 0,
+          "latency_ms": 3203.899999976158,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-original"
+        }
+      ]
+    },
+    "candidate": {
+      "cer": 0.0853932584269663,
+      "wer": 0.3764705882352941,
+      "warned_pairs": 33,
+      "confident_warned_pairs": 32,
+      "known_positive_pairs": 40,
+      "missed_pairs": 7,
+      "additional_warning_pairs": 5,
+      "pork_cases_warned": 8,
+      "unsafe_outputs": 0,
+      "latency_median_ms": 4043.2999999821186,
+      "latency_p95_ms": 11081.399999976158,
+      "cases": [
+        {
+          "id": "en-clean",
+          "character_edits": 0,
+          "reference_characters": 113,
+          "word_edits": 0,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 4,
+          "confident_warned_pairs": 4,
+          "additional_warning_pairs": [],
+          "pork_warning": true,
+          "unsafe_outputs": 0,
+          "latency_ms": 4118.799999952316,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-original"
+        },
+        {
+          "id": "en-small",
+          "character_edits": 0,
+          "reference_characters": 113,
+          "word_edits": 0,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 4,
+          "confident_warned_pairs": 4,
+          "additional_warning_pairs": [],
+          "pork_warning": true,
+          "unsafe_outputs": 0,
+          "latency_ms": 2296.800000011921,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-enhanced"
+        },
+        {
+          "id": "en-dim",
+          "character_edits": 0,
+          "reference_characters": 113,
+          "word_edits": 0,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 4,
+          "confident_warned_pairs": 4,
+          "additional_warning_pairs": [],
+          "pork_warning": true,
+          "unsafe_outputs": 0,
+          "latency_ms": 4768.5,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-enhanced"
+        },
+        {
+          "id": "en-blur",
+          "character_edits": 0,
+          "reference_characters": 113,
+          "word_edits": 0,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 4,
+          "confident_warned_pairs": 4,
+          "additional_warning_pairs": [],
+          "pork_warning": true,
+          "unsafe_outputs": 0,
+          "latency_ms": 11081.399999976158,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-original"
+        },
+        {
+          "id": "en-tilted",
+          "character_edits": 0,
+          "reference_characters": 113,
+          "word_edits": 0,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 1,
+          "confident_warned_pairs": 1,
+          "additional_warning_pairs": [],
+          "pork_warning": true,
+          "unsafe_outputs": 0,
+          "latency_ms": 4678.900000035763,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-enhanced"
+        },
+        {
+          "id": "ko-clean",
+          "character_edits": 13,
+          "reference_characters": 65,
+          "word_edits": 13,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 4,
+          "confident_warned_pairs": 4,
+          "additional_warning_pairs": [],
+          "pork_warning": false,
+          "unsafe_outputs": 0,
+          "latency_ms": 3967.800000011921,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-enhanced"
+        },
+        {
+          "id": "ko-small",
+          "character_edits": 10,
+          "reference_characters": 65,
+          "word_edits": 13,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 4,
+          "confident_warned_pairs": 3,
+          "additional_warning_pairs": [
+            "we국수:egg",
+            "we국수:peanut"
+          ],
+          "pork_warning": true,
+          "unsafe_outputs": 0,
+          "latency_ms": 1931.699999988079,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-original"
+        },
+        {
+          "id": "ko-dim",
+          "character_edits": 15,
+          "reference_characters": 65,
+          "word_edits": 15,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 4,
+          "confident_warned_pairs": 4,
+          "additional_warning_pairs": [],
+          "pork_warning": false,
+          "unsafe_outputs": 0,
+          "latency_ms": 4161.199999988079,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-original"
+        },
+        {
+          "id": "ko-blur",
+          "character_edits": 7,
+          "reference_characters": 65,
+          "word_edits": 9,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 1,
+          "confident_warned_pairs": 1,
+          "additional_warning_pairs": [
+            "랑콩국수:peanut",
+            "랑콩국수:egg"
+          ],
+          "pork_warning": true,
+          "unsafe_outputs": 0,
+          "latency_ms": 2124.300000011921,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-enhanced"
+        },
+        {
+          "id": "ko-tilted",
+          "character_edits": 31,
+          "reference_characters": 65,
+          "word_edits": 14,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 3,
+          "confident_warned_pairs": 3,
+          "additional_warning_pairs": [
+            "도마토수프:milk"
+          ],
+          "pork_warning": true,
+          "unsafe_outputs": 0,
+          "latency_ms": 3527.7999999523163,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-enhanced"
+        }
+      ]
+    }
+  },
+  "baseline_commit": "a654a023fce83f6cdd65433a2174d7b683880b84",
+  "fixture_manifest": [
+    {
+      "language": "en",
+      "variant": "clean",
+      "reference_text": "Peanut noodles: peanut, wheat, egg\nTomato soup: cream, tomato\nPork bowl: pork, rice\nGarden salad: lettuce, tomato",
+      "entries": [
+        {
+          "name": "Peanut noodles",
+          "allergens": [
+            "peanut",
+            "wheat",
+            "egg"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "Tomato soup",
+          "allergens": [
+            "milk"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "Pork bowl",
+          "allergens": [],
+          "dietary": [
+            "avoid_pork"
+          ]
+        },
+        {
+          "name": "Garden salad",
+          "allergens": [],
+          "dietary": []
+        }
+      ],
+      "id": "en-clean",
+      "sha256": "ab28bfdfaa0017d753b3157c162073e446e59a6e53b240c6b53f30dc6494c2f2"
+    },
+    {
+      "language": "en",
+      "variant": "small",
+      "reference_text": "Peanut noodles: peanut, wheat, egg\nTomato soup: cream, tomato\nPork bowl: pork, rice\nGarden salad: lettuce, tomato",
+      "entries": [
+        {
+          "name": "Peanut noodles",
+          "allergens": [
+            "peanut",
+            "wheat",
+            "egg"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "Tomato soup",
+          "allergens": [
+            "milk"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "Pork bowl",
+          "allergens": [],
+          "dietary": [
+            "avoid_pork"
+          ]
+        },
+        {
+          "name": "Garden salad",
+          "allergens": [],
+          "dietary": []
+        }
+      ],
+      "id": "en-small",
+      "sha256": "61b8d273a0dd7f9d63971fda8ebb7c48ab3365bdba01054c787b999fffa6c708"
+    },
+    {
+      "language": "en",
+      "variant": "dim",
+      "reference_text": "Peanut noodles: peanut, wheat, egg\nTomato soup: cream, tomato\nPork bowl: pork, rice\nGarden salad: lettuce, tomato",
+      "entries": [
+        {
+          "name": "Peanut noodles",
+          "allergens": [
+            "peanut",
+            "wheat",
+            "egg"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "Tomato soup",
+          "allergens": [
+            "milk"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "Pork bowl",
+          "allergens": [],
+          "dietary": [
+            "avoid_pork"
+          ]
+        },
+        {
+          "name": "Garden salad",
+          "allergens": [],
+          "dietary": []
+        }
+      ],
+      "id": "en-dim",
+      "sha256": "7210237b2842128ea28fa77e3f9d3ac40874fce6cd486815405bc456600a4be5"
+    },
+    {
+      "language": "en",
+      "variant": "blur",
+      "reference_text": "Peanut noodles: peanut, wheat, egg\nTomato soup: cream, tomato\nPork bowl: pork, rice\nGarden salad: lettuce, tomato",
+      "entries": [
+        {
+          "name": "Peanut noodles",
+          "allergens": [
+            "peanut",
+            "wheat",
+            "egg"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "Tomato soup",
+          "allergens": [
+            "milk"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "Pork bowl",
+          "allergens": [],
+          "dietary": [
+            "avoid_pork"
+          ]
+        },
+        {
+          "name": "Garden salad",
+          "allergens": [],
+          "dietary": []
+        }
+      ],
+      "id": "en-blur",
+      "sha256": "3475e6359fa583314dd1937ef4ccc4bb2babc013e8b945b5fb8433541d3009cc"
+    },
+    {
+      "language": "en",
+      "variant": "tilted",
+      "reference_text": "Peanut noodles: peanut, wheat, egg\nTomato soup: cream, tomato\nPork bowl: pork, rice\nGarden salad: lettuce, tomato",
+      "entries": [
+        {
+          "name": "Peanut noodles",
+          "allergens": [
+            "peanut",
+            "wheat",
+            "egg"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "Tomato soup",
+          "allergens": [
+            "milk"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "Pork bowl",
+          "allergens": [],
+          "dietary": [
+            "avoid_pork"
+          ]
+        },
+        {
+          "name": "Garden salad",
+          "allergens": [],
+          "dietary": []
+        }
+      ],
+      "id": "en-tilted",
+      "sha256": "36411c0cf6e28c92edef1feafdc6ad59f15b7fb0c94357a7634e6f97f441e3a4"
+    },
+    {
+      "language": "ko",
+      "variant": "clean",
+      "reference_text": "땅콩 국수: 땅콩, 밀, 계란\n토마토 수프: 우유, 토마토\n돼지고기 덮밥: 돼지고기, 쌀\n채소 샐러드: 상추, 토마토",
+      "entries": [
+        {
+          "name": "땅콩 국수",
+          "allergens": [
+            "peanut",
+            "wheat",
+            "egg"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "토마토 수프",
+          "allergens": [
+            "milk"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "돼지고기 덮밥",
+          "allergens": [],
+          "dietary": [
+            "avoid_pork"
+          ]
+        },
+        {
+          "name": "채소 샐러드",
+          "allergens": [],
+          "dietary": []
+        }
+      ],
+      "id": "ko-clean",
+      "sha256": "e3182bc6bcba46ec1e36d969037c05b218a70ed2d05cdcb418a550f2b54b70cb"
+    },
+    {
+      "language": "ko",
+      "variant": "small",
+      "reference_text": "땅콩 국수: 땅콩, 밀, 계란\n토마토 수프: 우유, 토마토\n돼지고기 덮밥: 돼지고기, 쌀\n채소 샐러드: 상추, 토마토",
+      "entries": [
+        {
+          "name": "땅콩 국수",
+          "allergens": [
+            "peanut",
+            "wheat",
+            "egg"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "토마토 수프",
+          "allergens": [
+            "milk"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "돼지고기 덮밥",
+          "allergens": [],
+          "dietary": [
+            "avoid_pork"
+          ]
+        },
+        {
+          "name": "채소 샐러드",
+          "allergens": [],
+          "dietary": []
+        }
+      ],
+      "id": "ko-small",
+      "sha256": "87e8378b43a27e287d23098a4cf3feae671af6f3fa64326a76b2fbef57e25506"
+    },
+    {
+      "language": "ko",
+      "variant": "dim",
+      "reference_text": "땅콩 국수: 땅콩, 밀, 계란\n토마토 수프: 우유, 토마토\n돼지고기 덮밥: 돼지고기, 쌀\n채소 샐러드: 상추, 토마토",
+      "entries": [
+        {
+          "name": "땅콩 국수",
+          "allergens": [
+            "peanut",
+            "wheat",
+            "egg"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "토마토 수프",
+          "allergens": [
+            "milk"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "돼지고기 덮밥",
+          "allergens": [],
+          "dietary": [
+            "avoid_pork"
+          ]
+        },
+        {
+          "name": "채소 샐러드",
+          "allergens": [],
+          "dietary": []
+        }
+      ],
+      "id": "ko-dim",
+      "sha256": "abfcaaedabefab78c1e34c17056c3c7767e75b5048252c457df95a1b84f7af30"
+    },
+    {
+      "language": "ko",
+      "variant": "blur",
+      "reference_text": "땅콩 국수: 땅콩, 밀, 계란\n토마토 수프: 우유, 토마토\n돼지고기 덮밥: 돼지고기, 쌀\n채소 샐러드: 상추, 토마토",
+      "entries": [
+        {
+          "name": "땅콩 국수",
+          "allergens": [
+            "peanut",
+            "wheat",
+            "egg"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "토마토 수프",
+          "allergens": [
+            "milk"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "돼지고기 덮밥",
+          "allergens": [],
+          "dietary": [
+            "avoid_pork"
+          ]
+        },
+        {
+          "name": "채소 샐러드",
+          "allergens": [],
+          "dietary": []
+        }
+      ],
+      "id": "ko-blur",
+      "sha256": "b85292c55ee75c964140eca5e098ec82c76dba1ce03c84927726e4b13c312600"
+    },
+    {
+      "language": "ko",
+      "variant": "tilted",
+      "reference_text": "땅콩 국수: 땅콩, 밀, 계란\n토마토 수프: 우유, 토마토\n돼지고기 덮밥: 돼지고기, 쌀\n채소 샐러드: 상추, 토마토",
+      "entries": [
+        {
+          "name": "땅콩 국수",
+          "allergens": [
+            "peanut",
+            "wheat",
+            "egg"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "토마토 수프",
+          "allergens": [
+            "milk"
+          ],
+          "dietary": []
+        },
+        {
+          "name": "돼지고기 덮밥",
+          "allergens": [],
+          "dietary": [
+            "avoid_pork"
+          ]
+        },
+        {
+          "name": "채소 샐러드",
+          "allergens": [],
+          "dietary": []
+        }
+      ],
+      "id": "ko-tilted",
+      "sha256": "35de900ff672531209d7c725179ef9e37a8f78ea7d709cd17e4b4e8cfc62f6b4"
+    }
+  ],
+  "limitations": [
+    "Ten correlated synthetic images of two authored menus, not real restaurant validation.",
+    "Additional unmatched warning associations increased from four to five.",
+    "Native ML Kit accuracy and phone latency were not measured; controlled bridge tests only.",
+    "No training, generative restoration or safe dish certification."
+  ]
+}

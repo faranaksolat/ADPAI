@@ -1,5 +1,5 @@
-import { ingredientEvidence, containsAny, MARKERS, fold, ALLERGENS, matchSpans } from './engine.js?v=1.9.0';
-import {dietaryEvidence, mergeDietary, dietaryConflict} from './dietary.js?v=1.9.0';
+import { ingredientEvidence, containsAny, MARKERS, fold, ALLERGENS, matchSpans } from './engine.js?v=1.9.1';
+import {dietaryEvidence, mergeDietary, dietaryConflict} from './dietary.js?v=1.9.1';
 
 // A menu's printed description is not a complete recipe or a safety certificate.
 // Associate text only on one explicit line, or adjacent lines in one column.

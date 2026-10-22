@@ -1,5 +1,5 @@
-import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.9.0';
-import {resizeForOcr} from './image.js?v=1.9.0';
+import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.9.1';
+import {resizeForOcr} from './image.js?v=1.9.1';
 
 // Keep menu layout separate from shopping. Read the upright full image and
 // overlapping columns first so a slow whole-page pass cannot erase all useful
@@ -8,9 +8,10 @@ export async function readMenuPhoto({worker,canvas,photoIndex,familyId,rotate,it
   const sources=[],errors=[],started=Date.now();let complete=true;
   const views=menuReadCanvases(canvas),full=views[0];
   const preview=resizeForOcr(full.canvas,1280);
-  const overview=preview===full.canvas?[]:[{view:{canvas:preview,variant:'menu-overview',frame:{...full.frame,scale:full.frame.scale*preview.width/full.canvas.width}},langs:['eng'],psm:'11'}];
-  const passes=[...overview,...views.slice(1).map(view=>({view,langs:['kor','eng'],psm:'11'})),
-    {view:full,langs:['eng'],psm:'11'},{view:full,langs:['kor'],psm:'11'}];
+  const overview=preview===full.canvas?[]:[{view:{canvas:preview,variant:'menu-overview',frame:{...full.frame,scale:full.frame.scale*preview.width/full.canvas.width,scaleY:(full.frame.scaleY||full.frame.scale)*preview.height/full.canvas.height}},langs:['eng'],psm:'11'}];
+  const passes=[...overview,...views.slice(1).filter(view=>view.variant!=='menu-enhanced').map(view=>({view,langs:['kor','eng'],psm:'11'})),
+    {view:full,langs:['eng'],psm:'11'},{view:full,langs:['kor'],psm:'11'},
+    ...views.filter(view=>view.variant==='menu-enhanced').map(view=>({view,langs:['kor','eng'],psm:'11'}))];
   const read=async(pass,rotation)=>{
     if(worker.closed||Date.now()-started>=maxPhotoMs){complete=false;return false}
     try{
