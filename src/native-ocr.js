@@ -1,7 +1,7 @@
-import {evaluateProduct,containsAny,MARKERS} from './engine.js?v=1.9.1';
-import {extractIngredients} from './ingredients.js?v=1.9.1';
-import {preprocess,rotateCanvas,needsRetake} from './image.js?v=1.9.1';
-import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.9.1';
+import {evaluateProduct,containsAny,MARKERS} from './engine.js?v=1.9.2';
+import {extractIngredients} from './ingredients.js?v=1.9.2';
+import {preprocess,rotateCanvas,needsRetake} from './image.js?v=1.9.2';
+import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.9.2';
 
 // Native word scores are uncalibrated model outputs, not probabilities of food
 // safety. Both script recognizers and rotations remain one OCR family.

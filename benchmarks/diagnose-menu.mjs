@@ -9,19 +9,27 @@ import {once} from 'node:events';
 import {createHash} from 'node:crypto';
 import {ALLERGEN_IDS} from './evaluate.mjs';
 import {loadMenuEvidence as loadDataset,summarizeMenus as evaluatePredictions} from './menu-evidence.mjs';
+import {loadUserMenus,summarizeUserMenus} from './user-menu-evidence.mjs';
 
 const args=process.argv.slice(2);
 function arg(name,fallback) {const i=args.indexOf(name);return i<0?fallback:args[i+1]}
-if(!arg('--dataset'))throw new Error('Usage: node benchmarks/diagnose-menu.mjs --dataset path/menu-evidence.jsonl --output path/NEW-results [--app-root path/source-snapshot] [--timeout-ms 240000]');
+const uploaded=arg('--upload-inventory');
+if(!arg('--dataset')&&!uploaded)throw new Error('Usage: node benchmarks/diagnose-menu.mjs --dataset manifest.jsonl OR --upload-inventory inventory.json --references references.json --output NEW-results');
+if(uploaded&&!arg('--references'))throw Error('Uploaded diagnostics require references frozen before OCR');
+const loadChosenDataset=()=>uploaded?loadUserMenus(uploaded,arg('--references')):loadDataset(arg('--dataset'));
+const score=uploaded?summarizeUserMenus:evaluatePredictions;
+const diagnosticProfile={allergens:ALLERGEN_IDS,...(uploaded?{dietary_preferences:['avoid_pork','avoid_beef','vegetarian']}:{})};
 const repoRoot=path.resolve(import.meta.dirname,'..');
 const root=path.resolve(arg('--app-root',repoRoot));
 const snapshot=JSON.parse(await fs.readFile(path.join(root,'source-snapshot.json'),'utf8').catch(()=>'{"commit":null}'));
 const filePath=file=>path.join(file.startsWith('dist/')||file.startsWith('benchmarks/')?repoRoot:root,file);
-const {records:all,root:dataRoot,dataset_sha256}=await loadDataset(arg('--dataset'));
-const records=arg('--split')?all.filter(x=>x.split===arg('--split')):all;
+const {records:all,root:dataRoot,dataset_sha256}=await loadChosenDataset();
+const captures=arg('--captures')?.split(',');
+const records=all.filter(x=>(!arg('--split')||x.split===arg('--split'))&&(!captures||captures.includes(x.capture_id)));
+if(captures&&(new Set(captures).size!==captures.length||captures.some(id=>!all.some(x=>x.capture_id===id))))throw Error('Unknown/duplicate selected capture');
 if(!records.length)throw new Error('Selected split has zero images.');
 const out=path.resolve(arg('--output','benchmarks/results/latest'));
-const sourceFiles=[...(await fs.readdir(path.join(root,'src'))).filter(x=>x.endsWith('.js')).map(x=>'src/'+x),'package-lock.json','benchmarks/diagnose-menu.mjs','benchmarks/menu-evidence.mjs','benchmarks/evaluate.mjs','dist/vendor/tesseract/tesseract.min.js','dist/vendor/tesseract/worker.min.js','dist/vendor/tessdata/kor.traineddata','dist/vendor/tessdata/eng.traineddata','dist/vendor/tessdata/fra.traineddata'];
+const sourceFiles=[...(await fs.readdir(path.join(root,'src'))).filter(x=>x.endsWith('.js')).map(x=>'src/'+x),'package-lock.json','benchmarks/diagnose-menu.mjs','benchmarks/menu-evidence.mjs','benchmarks/user-menu-evidence.mjs','benchmarks/evaluate.mjs','dist/vendor/tesseract/tesseract.min.js','dist/vendor/tesseract/worker.min.js','dist/vendor/tessdata/kor.traineddata','dist/vendor/tessdata/eng.traineddata','dist/vendor/tessdata/fra.traineddata'];
 const fingerprints=async()=>{
   const sha256={};
   for(const file of sourceFiles)sha256[file]=createHash('sha256').update(await fs.readFile(filePath(file))).digest('hex');
@@ -36,6 +44,14 @@ await fs.mkdir(out,{recursive:true});
 for(const name of ['predictions.jsonl','summary.json','metadata.json']) {
   try {await fs.access(path.join(out,name));throw new Error(`Output already exists: ${name}; use a new output directory.`)}
   catch(error){if(error.code!=='ENOENT')throw error;}
+}
+// Build scripts replace dist/ atomically. Serve a verified private snapshot so
+// a concurrent mobile build cannot remove a worker/model midway through OCR.
+const vendorSnapshot=await fs.mkdtemp(path.join(os.tmpdir(),'adpai-benchmark-vendor-'));
+await fs.cp(path.join(repoRoot,'dist/vendor'),vendorSnapshot,{recursive:true});
+for(const file of sourceFiles.filter(file=>file.startsWith('dist/vendor/'))){
+  const bytes=await fs.readFile(path.join(vendorSnapshot,file.slice('dist/vendor/'.length)));
+  if(createHash('sha256').update(bytes).digest('hex')!==initialHashes[file])throw Error('Vendor snapshot changed during copy');
 }
 const imagePaths=new Map(records.flatMap(row=>row.images.map(image=>[image.path,path.join(dataRoot,image.path)])));
 const prefix='/ADPAI/';
@@ -55,8 +71,8 @@ const server=http.createServer(async(req,res)=>{
       file=path.resolve(root,decodeURIComponent(url.pathname.slice(prefix.length)));
       if(!file.startsWith(path.join(root,'src')+path.sep))throw new Error('Outside source');
     } else if(url.pathname.startsWith(prefix+'vendor/')) {
-      file=path.resolve(repoRoot,'dist',decodeURIComponent(url.pathname.slice(prefix.length)));
-      if(!file.startsWith(path.join(repoRoot,'dist/vendor')+path.sep))throw new Error('Outside vendor');
+      file=path.resolve(vendorSnapshot,decodeURIComponent(url.pathname.slice((prefix+'vendor/').length)));
+      if(!file.startsWith(vendorSnapshot+path.sep))throw new Error('Outside vendor');
     } else throw new Error('Not found');
     res.setHeader('Content-Type',({'.js':'text/javascript','.wasm':'application/wasm','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg'})[path.extname(file)]||'application/octet-stream');
     res.end(await fs.readFile(file));
@@ -110,9 +126,9 @@ try {
         const start=performance.now();let timer;
         try {
           globalThis.ADPAI_DIAGNOSTIC_PROGRESS=[];
-          const result=await Promise.race([analyzeProducts([{id:1,photos}],{allergens:${JSON.stringify(ALLERGEN_IDS)}},{purpose:'menu',onProgress:message=>globalThis.ADPAI_DIAGNOSTIC_PROGRESS.push({message,elapsed_ms:performance.now()-start})}),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('analysis_timeout')),${timeout})})]);
+          const result=await Promise.race([analyzeProducts([{id:1,photos}],${JSON.stringify(diagnosticProfile)},{purpose:'menu',nativeReader:null,onProgress:message=>globalThis.ADPAI_DIAGNOSTIC_PROGRESS.push({message,elapsed_ms:performance.now()-start})}),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('analysis_timeout')),${timeout})})]);
           const p=result.products[0];
-          const menu=evaluateMenu({sources:p.sources,profile:{allergens:${JSON.stringify(ALLERGEN_IDS)}},errors:p.errors});
+          const menu=evaluateMenu({sources:p.sources,profile:${JSON.stringify(diagnosticProfile)},errors:p.errors});
           return {...menu,progress:globalThis.ADPAI_DIAGNOSTIC_PROGRESS,latency_ms:performance.now()-start,ocr_errors:p.errors,sources:p.sources,error:p.sources.some(s=>s.items.some(x=>x.text.trim()))?null:'no_text_read'};
         } finally {clearTimeout(timer)}
       })()`});
@@ -129,21 +145,21 @@ try {
     await fs.appendFile(path.join(out,'predictions.jsonl'),JSON.stringify(prediction)+'\n');
     console.log(`${index+1}/${records.length} ${row.capture_id}: ${prediction.status}${prediction.error?' (failure)':''}`);
   }
-  const summary=evaluatePredictions(records,predictions);
+  const summary=score(records,predictions);
   summary.by_split=Object.fromEntries([...new Set(records.map(x=>x.split))].map(split=>{
     const selected=records.filter(x=>x.split===split),ids=new Set(selected.map(x=>x.capture_id));
-    return [split,evaluatePredictions(selected,predictions.filter(x=>ids.has(x.capture_id)))];
+    return [split,score(selected,predictions.filter(x=>ids.has(x.capture_id)))];
   }));
   const sha256=await fingerprints();
   for(const file of sourceFiles)if(sha256[file]!==initialHashes[file])throw new Error(`Source/model changed during benchmark: ${file}; this run is incomplete.`);
-  const finalDataset=await loadDataset(arg('--dataset'));
+  const finalDataset=await loadChosenDataset();
   if(finalDataset.dataset_sha256!==dataset_sha256)throw new Error('Dataset changed during benchmark; this run is incomplete.');
   let commit='unknown',dirty=true;
   try {commit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();dirty=!!execFileSync('git',['status','--porcelain'],{cwd:root,encoding:'utf8'}).trim()}catch{}
   const metadata={started_utc:started,finished_utc:new Date().toISOString(),commit:snapshot.commit||commit,execution_repository_commit:commit,working_tree_dirty:dirty,app_root:root,reference_method:"model_visual_not_independent_human",source_snapshot:snapshot,app_version:version,dataset_sha256,
     browser:await send('Browser.getVersion'),platform:process.platform,architecture:process.arch,cpu:os.cpus()[0]?.model,logical_cpus:os.cpus().length,total_memory_bytes:os.totalmem(),
     implementation:'shipped analyzeProducts(purpose:menu) + evaluateMenu with bundled official models; no camera/UI timing',
-    profile:{allergens:ALLERGEN_IDS},network:'external HTTPS blocked; experimental fallback downloads may fail and are recorded',
+    profile:diagnosticProfile,network:'external HTTPS blocked; experimental fallback downloads may fail and are recorded',
     latency:'one menu capture per call; includes preprocessing, worker/model initialization, rotations and retries; excludes image loading, camera and model downloads; desktop timings are not phone timings',timeout_ms:timeout,sha256};
   await fs.writeFile(path.join(out,'metadata.json'),JSON.stringify(metadata,null,2)+'\n');
   await fs.writeFile(path.join(out,'summary.json'),JSON.stringify(summary,null,2)+'\n');
@@ -152,4 +168,5 @@ try {
 } finally {
   socket?.close();chrome.kill();if(chrome.exitCode==null)await once(chrome,'exit');server.close();
   await fs.rm(profile,{recursive:true,force:true,maxRetries:3});
+  await fs.rm(vendorSnapshot,{recursive:true,force:true,maxRetries:3});
 }

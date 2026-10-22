@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {menuContrastPixels,mapMenuItems} from '../src/menu-image.js';
+import {menuContrastPixels,mapMenuItems,menuDetailRegions} from '../src/menu-image.js';
 import {readMenuPhoto} from '../src/menu-ocr.js';
 test('white lettering on dark blue is inverted while paper menus retain dark ink',()=>{
  const dark=new Uint8ClampedArray([...Array(5).fill([30,60,120,255]).flat(),255,255,255,255]);
@@ -21,4 +21,14 @@ test('upright menu reads cover both languages and preserve earlier evidence on w
  }};
  const r=await readMenuPhoto({worker,canvas:{},photoIndex:0,familyId:'korean',rotate:x=>x,itemsFrom:r=>r.data.words.map(w=>({text:w.text,score:w.confidence/100})),maxPhotoMs:1000});
  assert.equal(r.sources[0].items[0].score,.4);assert.equal(r.complete,false);assert.equal(r.errors.length,1);assert.deepEqual(active,['kor']);
+});
+test('detail regions overlap in both directions, stay bounded and map back without score changes',()=>{
+ const regions=menuDetailRegions(1200,1800);assert.equal(regions.length,4);
+ assert.ok(regions[0].x+regions[0].width>regions[1].x);
+ assert.ok(regions[0].y+regions[0].height>regions[2].y);
+ for(const r of regions){assert.ok(r.x>=0&&r.y>=0&&r.x+r.width<=1200&&r.y+r.height<=1800);assert.ok(Math.max(r.width,r.height)*r.scale<=2000)}
+ const small=menuDetailRegions(283,400);assert.equal(small.length,1);assert.equal(small[0].scale,4);
+ const mapped=mapMenuItems([{text:'돼지고기',score:.25,box:{x0:40,x1:80,y0:60,y1:100}}],{x:300,y:500,scale:4,scaleY:2});
+ assert.deepEqual(mapped[0].box,{x0:310,x1:320,y0:530,y1:550});assert.equal(mapped[0].score,.25);
+ assert.throws(()=>menuDetailRegions(0,200));
 });

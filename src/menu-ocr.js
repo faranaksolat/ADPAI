@@ -1,5 +1,4 @@
-import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.9.1';
-import {resizeForOcr} from './image.js?v=1.9.1';
+import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.9.2';
 
 // Keep menu layout separate from shopping. Read the upright full image and
 // overlapping columns first so a slow whole-page pass cannot erase all useful
@@ -7,11 +6,12 @@ import {resizeForOcr} from './image.js?v=1.9.1';
 export async function readMenuPhoto({worker,canvas,photoIndex,familyId,rotate,itemsFrom,maxPhotoMs=65000}){
   const sources=[],errors=[],started=Date.now();let complete=true;
   const views=menuReadCanvases(canvas),full=views[0];
-  const preview=resizeForOcr(full.canvas,1280);
-  const overview=preview===full.canvas?[]:[{view:{canvas:preview,variant:'menu-overview',frame:{...full.frame,scale:full.frame.scale*preview.width/full.canvas.width,scaleY:(full.frame.scaleY||full.frame.scale)*preview.height/full.canvas.height}},langs:['eng'],psm:'11'}];
-  const passes=[...overview,...views.slice(1).filter(view=>view.variant!=='menu-enhanced').map(view=>({view,langs:['kor','eng'],psm:'11'})),
-    {view:full,langs:['eng'],psm:'11'},{view:full,langs:['kor'],psm:'11'},
-    ...views.filter(view=>view.variant==='menu-enhanced').map(view=>({view,langs:['kor','eng'],psm:'11'}))];
+  const columns=views.filter(view=>view.variant.startsWith('menu-column-'));
+  const details=views.filter(view=>view.variant.startsWith('menu-detail-'));
+  const passes=[...columns.map(view=>({view,langs:['kor','eng'],psm:'11'})),
+    {view:full,langs:['eng'],psm:'11'},
+    ...views.filter(view=>view.variant==='menu-enhanced').map(view=>({view,langs:['kor','eng'],psm:'11'})),
+    ...details.map(view=>({view,langs:['kor','eng'],psm:'11'})),{view:full,langs:['kor'],psm:'11'}];
   const read=async(pass,rotation)=>{
     if(worker.closed||Date.now()-started>=maxPhotoMs){complete=false;return false}
     try{
@@ -24,8 +24,8 @@ export async function readMenuPhoto({worker,canvas,photoIndex,familyId,rotate,it
   };
   for(const pass of passes)if(!await read(pass,0))break;
   const upright=sources.some(s=>{
-    const words=s.items.filter(w=>/[\p{L}]/u.test(w.text)),chars=words.reduce((n,w)=>n+w.text.length,0);
-    return words.length>=6&&chars>=35&&words.reduce((n,w)=>n+w.text.length*w.score,0)/Math.max(1,chars)>=.65;
+    const words=s.items.filter(w=>w.score>=.58&&/[\p{L}]/u.test(w.text));
+    return words.length>=4&&words.reduce((n,w)=>n+(w.text.match(/\p{L}/gu)||[]).length,0)>=20;
   });
   if(!upright)for(const rotation of [90,270,180])if(!await read({view:full,langs:['kor','eng'],psm:'11'},rotation))break;
   if(!complete&&!errors.length)errors.push({family:familyId,photoIndex,message:'OCR menu photo time budget reached'});

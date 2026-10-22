@@ -1,10 +1,10 @@
-import { analyzeProducts } from "./tesseract.js?v=1.9.1";
-import { cropPhoto } from "./crop.js?v=1.9.1";
-import { explainIngredient, sourceTranscript } from "./ingredients.js?v=1.9.1";
-import { initPwa, updateInstallUI } from "./pwa.js?v=1.9.1";
-import { evaluateMenu } from './menu.js?v=1.9.1';
-import {normalizeDietary, dietaryConflict} from './dietary.js?v=1.9.1';
-const APP_VERSION="1.9.1";
+import { analyzeProducts } from "./tesseract.js?v=1.9.2";
+import { cropPhoto } from "./crop.js?v=1.9.2";
+import { explainIngredient, sourceTranscript } from "./ingredients.js?v=1.9.2";
+import { initPwa, updateInstallUI } from "./pwa.js?v=1.9.2";
+import { evaluateMenu } from './menu.js?v=1.9.2';
+import {normalizeDietary, dietaryConflict} from './dietary.js?v=1.9.2';
+const APP_VERSION="1.9.2";
 const MAX_PRODUCTS=6,MAX_PHOTOS=3;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const lang=$("#lang"),productsEl=$("#products"),analyze=$("#analyze"),result=$("#result"),loading=$("#loading"),productResults=$("#productResults");
@@ -136,7 +136,7 @@ function setProgress(){const e=$('#loading span');if(e)e.textContent=t('progress
 async function analyzeOnDevice(p,active){
  const menu=currentMode==='menu';
  const data=await analyzeProducts(active,p,{onProgress:setProgress,purpose:menu?'menu':'shopping'});
- return menu?{...evaluateMenu({sources:data.products[0]?.sources||[],profile:p,errors:data.products[0]?.errors||[]}),retake_recommended:data.products[0]?.retake_recommended!==false}:data;
+ return menu?{...evaluateMenu({sources:data.products[0]?.sources||[],profile:p,errors:data.products[0]?.errors||[]}),sources:data.products[0]?.sources||[],retake_recommended:data.products[0]?.retake_recommended!==false}:data;
 }
 
 function kindFor(status){return status==='conflict'?'danger':'warn'}
@@ -239,7 +239,17 @@ function showMenuResults(data){
  };
  for(const item of data.items)render(item);
  for(const item of data.unassigned)render(item,true);
- if(!data.items.length&&!data.unassigned.length){const p=document.createElement('p');p.textContent=t('menuUnreadable');productResults.appendChild(p)}
+ const readable=(data.sources||[]).filter(source=>source.items?.some(word=>/\p{L}/u.test(word.text)));
+ if(!data.items.length&&!data.unassigned.length){const p=document.createElement('p');p.textContent=readable.length
+  ?(lang.value==='ko'?'일부 문구를 읽었지만 음식별로 연결하지 못했습니다. 아래 원문을 확인하고 한 열씩 가까이서 다시 촬영하세요. 재료는 직원에게 확인하세요.':'Some text was read, but dishes could not be separated reliably. Review the text below and take a closer photo of one column. Confirm ingredients with staff.')
+  :t('menuUnreadable');productResults.appendChild(p)}
+ if(readable.length){
+  const raw=document.createElement('details');raw.className='rawOcr';
+  const summary=document.createElement('summary');summary.textContent=t('rawOcr');raw.appendChild(summary);
+  const note=document.createElement('p');note.textContent=lang.value==='ko'?'불완전한 자동 판독입니다. 메뉴에 음식 이름만 있고 재료가 없으면 안전 여부를 판단할 수 없습니다.':'This automatic reading may be incomplete. Dish names alone cannot establish ingredients or safety.';raw.appendChild(note);
+  for(const source of readable){const heading=document.createElement('h4');heading.textContent=`${t('photo')} ${(source.photoIndex??0)+1}`;const pre=document.createElement('pre');pre.textContent=sourceTranscript(source).text;raw.append(heading,pre)}
+  productResults.appendChild(raw);
+ }
  result.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
