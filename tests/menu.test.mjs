@@ -135,3 +135,50 @@ test('a printed ingredient in a larger final title may warn without an inferred 
  const r=evaluateMenu({sources:[s],profile:{allergens:['milk','wheat','egg']}});
  assert.deepEqual(r.items.find(i=>i.name==='Cream Cheese Pizza').matches.map(m=>m.allergen_id),['milk']);assert.deepEqual(r.safe_items,[]);
 });
+
+test('individually boxed prices separate same-height menu columns without moving ingredients',()=>{
+ const word=(text,x0,x1,y0,lineId)=>({text,score:.9,lineId,box:{x0,x1,y0,y1:y0+20}});
+ const s={items:[word('Milkshake',10,100,0,0),word('5,000',125,180,0,0),word('Tea',205,250,0,0),word('4,000',280,335,0,0),
+  word('Ingredients: milk',10,180,26,1),word('Ingredients: mint',205,335,26,1)]};
+ const r=evaluateMenu({sources:[s],profile});assert.equal(r.items.length,2);
+ assert.deepEqual(r.items.find(i=>i.name==='Milkshake').matches.map(h=>h.allergen_id),['milk']);
+ assert.equal(r.items.find(i=>i.name==='Tea').matches.length,0);assert.deepEqual(r.safe_items,[]);
+ const aggregate=source(['Shake 5,000 Tea 4,000 milk']);
+ assert.equal(evaluateMenu({sources:[aggregate],profile}).items.length,0);
+});
+test('dot leaders, bilingual aliases and a distant price do not become separate dishes',()=>{
+ const s={items:[
+  {text:'김 치 찌 개 Kimchi Jjigae',lineId:0,score:.9,box:{x0:10,x1:260,y0:0,y1:30}},
+  {text:'6,500',lineId:1,score:.9,box:{x0:650,x1:740,y0:0,y1:30}},
+  {text:'원산지 - 김치 : 국내산, 돼지고기 : 국내산',lineId:2,score:.9,box:{x0:10,x1:420,y0:45,y1:60}},
+  {text:'된 장 찌 개 6,500',lineId:3,score:.9,box:{x0:10,x1:260,y0:100,y1:130}},
+  {text:'원산지 - 콩 : 국내산',lineId:4,score:.9,box:{x0:10,x1:220,y0:145,y1:160}},
+ ]};
+ const r=evaluateMenu({sources:[s],profile:{dietary_preferences:['avoid_pork']}});
+ assert.equal(r.items.length,2);assert.equal(r.items[0].name,'김치찌개');assert.equal(r.items[0].dietary_matches[0].kind,'conflict');
+ assert.ok(r.items[0].printed_text.includes('돼지고기 : 국내산'));
+ const dotted=evaluateMenu({sources:[source(['티 라 미수 … ㅡ ~ 5,500'])],profile});
+ assert.equal(dotted.items[0].name,'티라미수');assert.equal(dotted.items[0].matches.length,0);
+});
+test('a global origin panel with multiple colons is never a dish or a verified association',()=>{
+ const s=source(['Salad 9,000원','원산지 - 돼지고기 : 국내산, 소고기 : 국내산']);s.items[1].box.y0=300;s.items[1].box.y1=320;
+ const r=evaluateMenu({sources:[s],profile:{dietary_preferences:['avoid_pork','avoid_beef']}});
+ assert.equal(r.items.length,1);assert.equal(r.items[0].dietary_matches.length,0);assert.equal(r.unassigned[0].association_verified,false);
+ s.items[1].box={x0:10,x1:400,y0:28,y1:38};
+ const footer=evaluateMenu({sources:[s],profile:{dietary_preferences:['avoid_pork','avoid_beef']}});
+ assert.equal(footer.items[0].dietary_matches.length,0);assert.equal(footer.unassigned[0].association_verified,false);
+});
+test('currency misread as W is not a dish, and price-free names cannot imply a recipe',()=>{
+ const r=evaluateMenu({sources:[source(['W 6,000','Ramen 4.5','Bulgogi 14.0','950mm'])],profile});
+ assert.deepEqual(r.items.map(i=>i.name),['Ramen','Bulgogi']);assert.ok(r.items.every(i=>i.matches.length===0&&i.status==='unverified'));
+});
+test('horizontal tile edges cannot assign a cropped name to its ingredients',()=>{
+ const s=source(['Soup: milk']);s.items[0].box={x0:100,x1:300,y0:101,y1:121};s.frame={x:0,y:100,cropWidth:500,cropHeight:300,width:500,height:1000};
+ const r=evaluateMenu({sources:[s],profile});assert.equal(r.items.length,0);assert.equal(r.unassigned[0].association_verified,false);
+});
+test('wrong-script duplicate suppression preserves warnings as unassigned without transferring them',()=>{
+ const a=source(['김 치 찌 개 6,500']);a.model_languages=['kor'];
+ const b=source(['ZXAB: milk']);b.model_languages=['eng'];
+ const r=evaluateMenu({sources:[a,b],profile});assert.equal(r.items.length,1);assert.equal(r.items[0].matches.length,0);
+ assert.equal(r.unassigned[0].matches[0].allergen_id,'milk');assert.equal(r.unassigned[0].association_verified,false);
+});

@@ -254,6 +254,7 @@ try {
   assert.ok(menuCards.some(c=>/Tomato/i.test(c.name)&&c.message.includes('Potential risk')));
   if(realOcr&&process.env.MENU_CARD_OCR==='1')assert.ok(menuCards.some(c=>/굴/u.test(c.name)&&c.message.includes('Potential risk')),'printed Korean oyster must be read and associated');
   assert.ok(menuCards.every(c=>!/(?:verified safe|no listed conflict)/i.test(c.message)));
+  assert.ok((await evaluate(`document.querySelector('#productResults .rawOcr').textContent`)).includes('Dish names alone cannot establish ingredients or safety.'));
   if(!realOcr){assert.equal(menuCards.length,3);assert.ok(menuCards.find(c=>c.name==='Garden salad').message.includes('Ingredients incomplete'))}
   await evaluate(`document.querySelector('#lang').value='ko';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
   assert.ok((await evaluate(`document.querySelector('#menuWarning').textContent`)).includes('오류'));
@@ -269,6 +270,10 @@ try {
     assert.ok((await evaluate(`document.querySelector('.presult .evidence').textContent`)).includes('Avoid pork (pork)'));
     assert.ok((await evaluate(`document.querySelectorAll('.presult')[1].textContent`)).includes('Source or reading uncertain'));
     assert.ok((await evaluate(`document.querySelectorAll('.presult')[2].textContent`)).includes('Ingredients incomplete'));
+    await evaluate(`(async()=>{globalThis.testOcrText='Letters without dish boundaries';document.querySelector('#analyze').click();const end=Date.now()+20000;while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw Error('raw menu timeout');await new Promise(r=>setTimeout(r,25))}})()`);
+    assert.equal(await evaluate(`document.querySelectorAll('.presult').length`),0);
+    assert.ok((await evaluate(`document.querySelector('#productResults').textContent`)).includes('Some text was read, but dishes could not be separated reliably.'));
+    assert.ok((await evaluate(`document.querySelector('#productResults .rawOcr').textContent`)).includes('Letters without dish boundaries'));
     assert.equal(await evaluate(`Object.hasOwn(JSON.parse(localStorage.getItem('aller_profile')),'dietary_preferences')`),false);
     await evaluate(`const v=document.querySelector('#menuDietary input[value=vegetarian]');v.checked=true;v.dispatchEvent(new Event('change',{bubbles:true}))`);
     assert.equal(await evaluate(`document.querySelector('#result').classList.contains('show')`),false);
@@ -300,7 +305,7 @@ try {
     await evaluate(`(async()=>{await navigator.serviceWorker.ready;const end=Date.now()+15000;while(!navigator.serviceWorker.controller){if(Date.now()>end)throw new Error('service worker did not claim page');await new Promise(r=>setTimeout(r,25))}})()`);
     const cache=await evaluate(`(async()=>({scope:(await navigator.serviceWorker.ready).scope,urls:(await Promise.all((await caches.keys()).map(async key=>(await (await caches.open(key)).keys()).map(r=>r.url)))).flat()}))()`);
     assert.ok(cache.scope.endsWith(prefix));
-    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.9.1')));
+    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.9.2')));
     assert.ok(cache.urls.every(url=>url.startsWith(cache.scope) && !/blob:|api\/|label\.png|profile/iu.test(url)));
     await send('Fetch.disable');
     await send('Network.enable');
@@ -314,7 +319,7 @@ try {
     assert.equal(await evaluate(`document.querySelector('#analyze').disabled`),true);
     assert.equal(await evaluate(`(async()=>(await fetch('./privacy.html')).ok)()`),true);
     // An offline shell is usable even when the CDN runtime is unavailable.
-    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.9.1');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
+    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.9.2');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
     assert.equal(offlineStatus,'unverified');
   }
   assert.deepEqual(errors,[]);

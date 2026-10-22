@@ -12,7 +12,7 @@ It does not infer recipes from names, food appearance or a learned recipe list.
 
 Menu results use **potential risk** or **unverified**. A name is associated
 with an ingredient on an explicit same-line description or nearby rows in the
-same column. Multiple separators/prices and distant columns remain unassigned;
+same column. Ambiguous merged separators/prices and distant columns remain unassigned;
 restaurant-wide caution text is not assigned to the nearest dish. The source
 quote/photo is shown for confirmation. OCR can still misread item boundaries,
 negation, names and ingredients. No dish is certified safe, and an incomplete
@@ -101,3 +101,33 @@ that same bounded normalization; weak shopping reads can retry enhanced pixels
 before exhausting their budget on rotations. See [the quality comparison and
 limits](LOW-QUALITY-1.9.1-fa.md). These are additional correlated readings, not
 independent confidence, recipe inference or safe-dish evidence.
+
+## Uploaded-menu fixes (1.9.2)
+
+The menu reader retains overlapping columns and full-page normalization, and
+adds bounded detail views: up to 4× existing pixels for a small image or four
+overlapping two-dimensional tiles for a larger menu. Original coordinates,
+word confidence and the per-photo deadline are retained. Artificial top/bottom
+crop edges now have the same abstention rule as left/right edges. Resampling
+cannot restore missing letters or prove complete ingredient coverage.
+
+Separate boxed prices can split a merged physical row into menu columns. An
+aggregate word with several dishes/prices stays unassigned. Distant same-row
+prices retain the name's original box, avoiding an artificial column overlap.
+Display names remove dot leaders and join clearly fragmented Korean syllables;
+the original text and word scores are preserved. Readable Korean names on a
+bilingual row are displayed without concatenating a corrupted Latin alias.
+A repeated smaller per-dish origin-row pattern can stay with its dish; an
+isolated/global origin panel remains unassigned even below the last dish.
+
+Overlapping Latin-only model noise can be suppressed as a duplicate card when
+a stronger Korean title occupies the same row. Its ingredient warnings stay
+unassigned; they never transfer to the Korean dish. Conflicting full names in
+one script still cannot pool evidence. These are presentation/layout heuristics
+and can still misidentify a name or omit a dish.
+
+Menu results expose the raw readings in a collapsed disclosure. A read with
+text but no reliably separated dishes says so, rather than implying no text
+was read. Neither a name-only menu nor an absent warning certifies a dish safe.
+The uploaded development corpus is local and not redistributed. It has partial
+model-visual references, not independent human labels; no OCR training occurs.
