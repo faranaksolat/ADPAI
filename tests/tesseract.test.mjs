@@ -57,6 +57,15 @@ test('failed model download returns unverified and a failure record', async () =
   assert.equal(result.products[0].status,'unverified');
   assert.ok(result.products[0].errors.length);
 });
+test('a weak read without a recognised heading can try enhanced pixels before rotations',async()=>{
+ const calls=[],original={name:'original'},enhanced={name:'enhanced'};
+ const p=(await analyzeProducts([{photos:[photo('damaged')]}],{allergens:['milk']},{nativeReader:null,prepare:async(_,extra)=>extra?enhanced:original,rotate:(c,r)=>({...c,rotation:r}),
+  createWorker:async()=>({reinitialize:async()=>{},setParameters:async()=>{},terminate:async()=>{},recognize:async image=>{
+   calls.push(image);return {data:{words:image.name==='enhanced'?[{text:'INGREDIENTS:',confidence:95},{text:'milk',confidence:90}]:[{text:'unreadable',confidence:10}]}};
+  }})})).products[0];
+ assert.equal(p.status,'conflict');assert.deepEqual(calls.slice(0,2).map(c=>c.name),['original','enhanced']);
+ assert.ok(p.sources.some(s=>s.variant==='enhanced'&&s.items.some(w=>w.text==='milk'&&w.score===.9)));
+});
 
 test('readable marketing does not discard a rotated ingredient panel',async()=>{
   const h=harness();let rotation;

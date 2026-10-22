@@ -12,3 +12,4 @@
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition:none!important;scroll-behavior:auto!important}}
 
 .menuDietary{min-width:0;margin:24px 0 0;padding:18px 0 0;border:0;border-top:1px solid var(--line)}.menuDietary legend{padding:0 8px 0 0;font-size:13px;font-weight:650}.menuDietary p{font-size:11px;line-height:1.75;color:var(--muted);margin:0 0 12px}.dietaryOptions{display:grid;gap:8px;margin-bottom:13px}.dietaryOptions .chip>span{display:flex;width:100%;min-height:44px}.menuDietary #dietaryNotice{margin-bottom:0;font-size:10px}
+.retakeAdvice{padding:12px 14px!important;margin:12px 0!important;border:1px solid #e8dab6;border-radius:10px;background:var(--warn-bg);color:#755a30;font-size:12px!important;line-height:1.75!important}

@@ -94,3 +94,10 @@ worker cleanup. Browser tests cover both modes, warnings, profile/photo changes,
 translations and offline behavior. Generated-menu OCR tests exercise integration;
 they do not validate accuracy on real restaurant photographs or physical phones.
 A real menu dataset with independent references is still required.
+
+Since 1.9.1, native Android also reads the menu columns and an additional
+normalized full image. Web keeps its earlier columns/original readings and adds
+that same bounded normalization; weak shopping reads can retry enhanced pixels
+before exhausting their budget on rotations. See [the quality comparison and
+limits](LOW-QUALITY-1.9.1-fa.md). These are additional correlated readings, not
+independent confidence, recipe inference or safe-dish evidence.

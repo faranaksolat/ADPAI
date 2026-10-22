@@ -111,6 +111,16 @@ try {
     const ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,1400,400);ctx.fillStyle='black';ctx.font='48px sans-serif';
     ctx.fillText('INGREDIENTS: MILK, SUGAR, WHEAT',30,80);ctx.fillText('CONTAINS: MILK',30,180);
     ctx.fillText('Please check the original ingredient label.',30,280);
+    if(${realOcr&&process.env.LOW_QUALITY_LABEL==='1'}){
+      if(${process.env.KOREAN_LABEL==='1'}){
+        ctx.fillStyle='white';ctx.fillRect(0,0,1400,400);ctx.fillStyle='black';ctx.font='48px "Noto Sans CJK KR", sans-serif';
+        ctx.fillText('원재료명: 우유, 설탕, 밀',30,80);ctx.fillText('우유, 밀 함유',30,180);ctx.fillText('원본 라벨을 확인해 주세요.',30,280);
+      }
+      const small=document.createElement('canvas');small.width=700;small.height=200;small.getContext('2d').drawImage(canvas,0,0,700,200);
+      canvas.width=700;canvas.height=200;ctx.drawImage(small,0,0);const pixels=ctx.getImageData(0,0,700,200);
+      for(let i=0;i<pixels.data.length;i+=4)for(let k=0;k<3;k++)pixels.data[i+k]=30+pixels.data[i+k]*.23;
+      ctx.putImageData(pixels,0,0);
+    }
     const blob=await new Promise(resolve=>canvas.toBlob(resolve));
     const input=document.querySelector('#products input[type=file]');
     globalThis.testPhotoFile=new File([blob],'label.png',{type:'image/png'});
@@ -153,6 +163,20 @@ try {
   }
   if(mobileWeb)assert.equal(await evaluate(`document.querySelector('#installPanel').hidden`),true);
   if(!realOcr) {
+    // Retake advice appears for unreadable text. Exercise the real canvas
+    // preprocessing and native bridge routing with controlled word outputs;
+    // this verifies pixels/coordinates and UI, not ML Kit accuracy on a phone.
+    await evaluate(`(async()=>{globalThis.testOcrText='...';document.querySelector('#analyze').click();const end=Date.now()+20000;while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw Error('retake timeout');await new Promise(r=>setTimeout(r,25))}})()`);
+    assert.ok((await evaluate(`document.querySelector('.retakeAdvice').textContent`)).includes('가까이서'));
+    await evaluate(`document.querySelector('#lang').value='en';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
+    assert.ok((await evaluate(`document.querySelector('.retakeAdvice').textContent`)).includes('Move closer'));
+    await evaluate(`globalThis.testNativeSizes=[];globalThis.ADPAI_NATIVE_OCR=async({base64})=>{const image=new Image();image.src='data:image/png;base64,'+base64;await image.decode();globalThis.testNativeSizes.push(image.naturalWidth);const enhanced=image.naturalWidth>1400;return {items:(enhanced?['INGREDIENTS:','milk,','sugar,','cocoa,','salt,','water']:['unclear']).map((text,i)=>({text,score:enhanced?.9:.2,lineId:0,box:{x0:i*80,x1:i*80+75,y0:0,y1:20}}))}};document.querySelector('#analyze').click()`);
+    await evaluate(`(async()=>{const end=Date.now()+20000;while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw Error('native enhance timeout');await new Promise(r=>setTimeout(r,25))}})()`);
+    assert.equal(await evaluate(`document.querySelector('#rtitle').textContent`),'Conflict detected');
+    assert.equal(await evaluate(`globalThis.testNativeSizes[0]`),1400);
+    assert.equal(await evaluate(`globalThis.testNativeSizes.some(w=>w===2800)&&globalThis.testNativeSizes.every(w=>w<=3000)`),true);
+    assert.ok((await evaluate(`document.querySelector('.rawOcr').textContent`)).includes('native-enhanced'));
+    await evaluate(`delete globalThis.ADPAI_NATIVE_OCR;document.querySelector('#lang').value='ko';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
     // Explicit crop works on touch-sized UI; cancellation preserves a result,
     // applying/restoring invalidates it and restores the original pixels.
     await evaluate(`document.querySelector('.cropPhoto').click()`);
@@ -276,7 +300,7 @@ try {
     await evaluate(`(async()=>{await navigator.serviceWorker.ready;const end=Date.now()+15000;while(!navigator.serviceWorker.controller){if(Date.now()>end)throw new Error('service worker did not claim page');await new Promise(r=>setTimeout(r,25))}})()`);
     const cache=await evaluate(`(async()=>({scope:(await navigator.serviceWorker.ready).scope,urls:(await Promise.all((await caches.keys()).map(async key=>(await (await caches.open(key)).keys()).map(r=>r.url)))).flat()}))()`);
     assert.ok(cache.scope.endsWith(prefix));
-    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.9.0')));
+    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.9.1')));
     assert.ok(cache.urls.every(url=>url.startsWith(cache.scope) && !/blob:|api\/|label\.png|profile/iu.test(url)));
     await send('Fetch.disable');
     await send('Network.enable');
@@ -290,7 +314,7 @@ try {
     assert.equal(await evaluate(`document.querySelector('#analyze').disabled`),true);
     assert.equal(await evaluate(`(async()=>(await fetch('./privacy.html')).ok)()`),true);
     // An offline shell is usable even when the CDN runtime is unavailable.
-    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.9.0');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
+    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.9.1');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
     assert.equal(offlineStatus,'unverified');
   }
   assert.deepEqual(errors,[]);
