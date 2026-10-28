@@ -9,6 +9,12 @@ test('missing or invalid native confidence is never promoted to high confidence'
  assert.deepEqual(items.map(i=>i.score),[0,0,.2,0,0]);
  assert.ok(items.every(i=>i.confidence_scope==='native_word_uncalibrated'));
 });
+test('native overview geometry maps back to the original camera photo and releases its decoded source',async()=>{
+ const image={naturalWidth:4032,naturalHeight:3024,src:'local-image'},large={width:2400,height:1800,ocrOriginal:image,toDataURL:()=> 'data:image/png;base64,AA=='};
+ const p=(await analyzeNativeProducts(products,{allergens:['milk']},{prepare:async()=>large,rotate,nativeReader:async()=>({items:words()})})).products[0];
+ assert.equal(p.sources[0].frame.width,4032);assert.ok(Math.abs(p.sources[0].items[1].box.x0-80*4032/2400)<1e-8);
+ assert.equal(p.sources[0].items[1].score,.95);assert.equal(large.ocrOriginal,null);assert.equal(image.src,'');
+});
 test('weak native reads try enhanced pixels and retain actual scores and original evidence',async()=>{
  const original={width:400,height:200,toDataURL:()=> 'data:image/png;base64,ORIGINAL'},enhanced={width:800,height:400,toDataURL:()=> 'data:image/png;base64,ENHANCED'};
  const calls=[];

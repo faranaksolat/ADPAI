@@ -1,4 +1,4 @@
-import {fold, matchSpans} from './engine.js?v=1.9.2';
+import {fold, matchSpans} from './engine.js?v=1.10.0';
 
 // Restaurant preferences only. These are lexical observations, not recipes,
 // halal certification, a calibrated probability, or a completeness policy.
@@ -31,6 +31,7 @@ function scoreOf(word) {
   return Number.isFinite(value)&&value>=0&&value<=1 ? value : 0;
 }
 function rowEvidence(words, preferences) {
+  const clipped=words.some(word=>word.context_clipped===true);
   let offset=0;
   const parts=words.map(word=>{
     const text=fold(word.text),part={start:offset,end:offset+text.length,score:scoreOf(word)};
@@ -60,9 +61,9 @@ function rowEvidence(words, preferences) {
       const target=preference==='avoid_pork'?'pork':preference==='avoid_beef'?'beef':null;
       if(target&&specific.has(hit.category)&&hit.category!==target)continue;
       const unknown=(target!==null&&!specific.has(hit.category))||hit.category==='unknown_source';
-      const kind=score<.58||wordingUncertain||unknown?'uncertain':'conflict';
+      const kind=clipped||score<.58||wordingUncertain||unknown?'uncertain':'conflict';
       observations.push({preference_id:preference,category:hit.category,term:hit.term,kind,score,
-        uncertain:kind==='uncertain',reason:score<.58?'weak_reading':wordingUncertain?'qualified_wording':unknown?'origin_unknown':'explicit_term'});
+        uncertain:kind==='uncertain',reason:clipped?'clipped_context':score<.58?'weak_reading':wordingUncertain?'qualified_wording':unknown?'origin_unknown':'explicit_term'});
     }
   }
   return observations;

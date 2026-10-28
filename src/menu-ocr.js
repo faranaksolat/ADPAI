@@ -1,4 +1,4 @@
-import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.9.2';
+import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.10.0';
 
 // Keep menu layout separate from shopping. Read the upright full image and
 // overlapping columns first so a slow whole-page pass cannot erase all useful
@@ -8,10 +8,11 @@ export async function readMenuPhoto({worker,canvas,photoIndex,familyId,rotate,it
   const views=menuReadCanvases(canvas),full=views[0];
   const columns=views.filter(view=>view.variant.startsWith('menu-column-'));
   const details=views.filter(view=>view.variant.startsWith('menu-detail-'));
-  const passes=[...columns.map(view=>({view,langs:['kor','eng'],psm:'11'})),
+  const priority=details.some(v=>v.frame?.from_original&&Math.max(v.frame.width,v.frame.height)>2400)?details.slice(0,2):[];
+  const passes=[...columns.map(view=>({view,langs:['kor','eng'],psm:'11'})),...priority.map(view=>({view,langs:['kor','eng'],psm:'11'})),
     {view:full,langs:['eng'],psm:'11'},
     ...views.filter(view=>view.variant==='menu-enhanced').map(view=>({view,langs:['kor','eng'],psm:'11'})),
-    ...details.map(view=>({view,langs:['kor','eng'],psm:'11'})),{view:full,langs:['kor'],psm:'11'}];
+    ...details.filter(view=>!priority.includes(view)).map(view=>({view,langs:['kor','eng'],psm:'11'})),{view:full,langs:['kor'],psm:'11'}];
   const read=async(pass,rotation)=>{
     if(worker.closed||Date.now()-started>=maxPhotoMs){complete=false;return false}
     try{
@@ -21,6 +22,7 @@ export async function readMenuPhoto({worker,canvas,photoIndex,familyId,rotate,it
         frame:pass.view.frame,items:mapMenuItems(itemsFrom(result),pass.view.frame,rotation)});
       return true;
     }catch(error){complete=false;errors.push({family:familyId,photoIndex,rotation,phase:pass.view.variant,message:String(error?.message||error)});return !worker.closed}
+    finally{if(pass.view!==full)pass.view.release?.()}
   };
   for(const pass of passes)if(!await read(pass,0))break;
   const upright=sources.some(s=>{
@@ -29,5 +31,6 @@ export async function readMenuPhoto({worker,canvas,photoIndex,familyId,rotate,it
   });
   if(!upright)for(const rotation of [90,270,180])if(!await read({view:full,langs:['kor','eng'],psm:'11'},rotation))break;
   if(!complete&&!errors.length)errors.push({family:familyId,photoIndex,message:'OCR menu photo time budget reached'});
+  for(const view of views)view.release?.();
   return {sources,errors,complete};
 }

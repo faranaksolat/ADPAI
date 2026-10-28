@@ -1,5 +1,5 @@
-import { ingredientEvidence, containsAny, MARKERS, fold, ALLERGENS, matchSpans } from './engine.js?v=1.9.2';
-import {dietaryEvidence, mergeDietary, dietaryConflict} from './dietary.js?v=1.9.2';
+import { ingredientEvidence, containsAny, MARKERS, fold, ALLERGENS, matchSpans } from './engine.js?v=1.10.0';
+import {dietaryEvidence, mergeDietary, dietaryConflict} from './dietary.js?v=1.10.0';
 
 // A menu's printed description is not a complete recipe or a safety certificate.
 // Associate text only on one explicit line, or adjacent lines in one column.
@@ -99,7 +99,9 @@ function mergeMatches(a,b){
   const found=new Map();
   for(const hit of [...a,...b]){
     const key=hit.allergen_id==='custom'?'custom:'+fold(hit.term):hit.allergen_id;
-    if(!found.has(key)||found.get(key).score<hit.score)found.set(key,{...hit,uncertain:hit.score<.58});
+    const previous=found.get(key);
+    if(!previous||(previous.context_uncertain&&!hit.context_uncertain)||!!previous.context_uncertain===!!hit.context_uncertain&&previous.score<hit.score)
+      found.set(key,{...hit,uncertain:hit.score<.58||hit.context_uncertain===true});
   }
   return [...found.values()];
 }

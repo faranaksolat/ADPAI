@@ -1,7 +1,7 @@
-import {evaluateProduct,containsAny,MARKERS} from './engine.js?v=1.9.2';
-import {extractIngredients} from './ingredients.js?v=1.9.2';
-import {preprocess,rotateCanvas,needsRetake} from './image.js?v=1.9.2';
-import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.9.2';
+import {evaluateProduct,containsAny,MARKERS} from './engine.js?v=1.10.0';
+import {extractIngredients} from './ingredients.js?v=1.10.0';
+import {preprocess,rotateCanvas,needsRetake,releasePhotoSource} from './image.js?v=1.10.0';
+import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.10.0';
 
 // Native word scores are uncalibrated model outputs, not probabilities of food
 // safety. Both script recognizers and rotations remain one OCR family.
@@ -21,9 +21,10 @@ export async function analyzeNativeProducts(products,profile,{nativeReader,prepa
     for(const [photoIndex,photo] of product.photos.entries()){
       let canvas;const started=now();let exhausted=false;
       const budgetError=()=>{if(!exhausted)errors.push({family:'korean',photoIndex,message:'Native OCR photo time budget reached'});exhausted=true};
-      try{canvas=await prepare(photo.file,false)}
+      try{canvas=await prepare(photo.file,false,{preserveOriginal:true})}
       catch{errors.push({family:'korean',photoIndex,message:'Image could not be decoded'});continue}
-      const original={canvas,variant:'native-original'};
+      const ow=canvas.ocrOriginal?.naturalWidth||canvas.width,oh=canvas.ocrOriginal?.naturalHeight||canvas.height;
+      const original={canvas,variant:'native-original',...(canvas.ocrOriginal?{frame:{x:0,y:0,scale:canvas.width/ow,scaleY:canvas.height/oh,width:ow,height:oh,cropWidth:ow,cropHeight:oh}}:{})};
       const read=async(view,rotation,script)=>{
         if(exhausted||now()-started>=maxPhotoMs){budgetError();return false}
         onProgress('Reading photo text on this device…');
@@ -58,9 +59,10 @@ export async function analyzeNativeProducts(products,profile,{nativeReader,prepa
           if(purpose==='menu')views=makeMenuViews(canvas).slice(1);
           else{
             const enhanced=await prepare(photo.file,true);
-            views=enhanced===canvas?[]:[{canvas:enhanced,variant:'native-enhanced',frame:{x:0,y:0,scale:enhanced.width/canvas.width,scaleY:enhanced.height/canvas.height,width:canvas.width,height:canvas.height,cropWidth:canvas.width}}];
+            views=enhanced===canvas?[]:[{canvas:enhanced,variant:'native-enhanced',frame:{x:0,y:0,scale:enhanced.width/ow,scaleY:enhanced.height/oh,width:ow,height:oh,cropWidth:ow,cropHeight:oh}}];
+            if(canvas.ocrOriginal&&Math.max(ow,oh)>2400)views.push(...makeMenuViews(canvas).filter(v=>v.variant.startsWith('menu-detail-')));
           }
-          for(const view of views){for(const script of ['ko','en'])if(!await read(view,0,script))break;if(exhausted)break}
+          for(const view of views){for(const script of ['ko','en'])if(!await read(view,0,script))break;view.release?.();if(exhausted)break}
         }catch(error){errors.push({family:'korean',photoIndex,phase:'enhancement',message:String(error?.message||error)})}
       }
       // An upright sidebar can be readable while a different panel is rotated;
@@ -68,6 +70,7 @@ export async function analyzeNativeProducts(products,profile,{nativeReader,prepa
       if(bestWords().filter(w=>w.score>=.58).length<6&&!errors.some(e=>e.photoIndex===photoIndex)){
         for(const rotation of [90,270,180])if(!await read(original,rotation,'ko'))break;
       }
+      releasePhotoSource(canvas);
     }
     const value=evaluateProduct({sources,profile,requiredFamilies:['korean'],familyStatus:{korean:{attempted:true,ok:!errors.length}}});
     results.push({...value,product_id:product.id??index+1,label:`Product ${index+1}`,message:value.reason,

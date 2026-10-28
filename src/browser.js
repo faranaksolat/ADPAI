@@ -1,10 +1,12 @@
-import { analyzeProducts } from "./tesseract.js?v=1.9.2";
-import { cropPhoto } from "./crop.js?v=1.9.2";
-import { explainIngredient, sourceTranscript } from "./ingredients.js?v=1.9.2";
-import { initPwa, updateInstallUI } from "./pwa.js?v=1.9.2";
-import { evaluateMenu } from './menu.js?v=1.9.2';
-import {normalizeDietary, dietaryConflict} from './dietary.js?v=1.9.2';
-const APP_VERSION="1.9.2";
+import { analyzeProducts } from "./tesseract.js?v=1.10.0";
+import { cropPhoto } from "./crop.js?v=1.10.0";
+import { explainIngredient, sourceTranscript } from "./ingredients.js?v=1.10.0";
+import { initPwa, updateInstallUI } from "./pwa.js?v=1.10.0";
+import { evaluateMenu } from './menu.js?v=1.10.0';
+import {normalizeDietary, dietaryConflict} from './dietary.js?v=1.10.0';
+import {inspectPhoto,qualityMessage} from './photo-quality.js?v=1.10.0';
+import {capturePhoto,supportsLivePhoto} from './camera.js?v=1.10.0';
+const APP_VERSION="1.10.0";
 const MAX_PRODUCTS=6,MAX_PHOTOS=3;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const lang=$("#lang"),productsEl=$("#products"),analyze=$("#analyze"),result=$("#result"),loading=$("#loading"),productResults=$("#productResults");
@@ -74,7 +76,8 @@ function renderProducts(){
   const inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;inp.hidden=true;
   const camera=document.createElement('button');camera.className='btn primary';camera.textContent=lang.value==='ko'?'사진 촬영':'Take a photo';camera.dataset.camera='true';
   const capture=document.createElement('input');capture.type='file';capture.accept='image/*';capture.setAttribute('capture','environment');capture.hidden=true;
-  const addFiles=files=>{invalidateResults();for(const f of files){if(p.photos.length>=MAX_PHOTOS)break;if(f.type.startsWith('image/'))p.photos.push({file:f,originalFile:f,url:URL.createObjectURL(f)})}renderProducts();update()};
+  const assess=photo=>{const file=photo.file;photo.quality=null;photo.qualityTask=inspectPhoto(file).catch(()=>({issues:['text_not_found'],scope:'assessment_unavailable'})).then(value=>{if(p.photos.includes(photo)&&photo.file===file){photo.quality=value;if(!selectingPhoto&&!analyzing)renderProducts();update()}})};
+  const addFiles=files=>{invalidateResults();for(const f of files){if(p.photos.length>=MAX_PHOTOS)break;if(f.type.startsWith('image/')){const photo={file:f,originalFile:f,url:URL.createObjectURL(f)};p.photos.push(photo);assess(photo)}}renderProducts();update()};
   const pickNative=async source=>{
     if(analyzing||selectingPhoto||p.photos.length>=MAX_PHOTOS)return;
     selectingPhoto=true;invalidateResults();update();
@@ -82,10 +85,17 @@ function renderProducts(){
     catch(error){
       // Cancellation and denied permission leave no result behind.
       if(!/cancel/iu.test(String(error?.message||error)))alert(lang.value==='ko'?'사진을 열 수 없습니다. 카메라 또는 사진 접근 권한을 확인하고 다시 시도하세요.':'Could not open the photo. Check camera or photo access and try again.');
-    }finally{selectingPhoto=false;update()}
+    }finally{selectingPhoto=false;renderProducts();update()}
   };
   btn.onclick=()=>{if(globalThis.ADPAI_NATIVE)pickNative('gallery');else inp.click()};
-  camera.onclick=()=>{if(globalThis.ADPAI_NATIVE)pickNative('camera');else capture.click()};
+  camera.onclick=async()=>{
+   if(globalThis.ADPAI_NATIVE){pickNative('camera');return}
+   if(!supportsLivePhoto()){capture.click();return}
+   if(analyzing||selectingPhoto)return;
+   selectingPhoto=true;invalidateResults();update();
+   try{const file=await capturePhoto({language:lang.value,onSystemCamera:()=>capture.click()});if(file)addFiles([file])}
+   finally{selectingPhoto=false;renderProducts();update()}
+  };
   inp.onchange=e=>{if(!analyzing&&!selectingPhoto)addFiles([...e.target.files]);inp.value=''};
   capture.onchange=e=>{if(!analyzing&&!selectingPhoto)addFiles([...e.target.files]);capture.value=''};
   btn.disabled=camera.disabled=p.photos.length>=MAX_PHOTOS;
@@ -103,13 +113,14 @@ function renderProducts(){
       if(analyzing||selectingPhoto)return;
       selectingPhoto=true;update();
       try {
-        const file=await cropPhoto(photo.originalFile,lang.value);
-        if(file){invalidateResults();URL.revokeObjectURL(photo.url);photo.file=file;photo.url=URL.createObjectURL(file);renderProducts()}
+        const file=await cropPhoto(photo.originalFile,lang.value,{purpose:currentMode});
+        if(file){invalidateResults();URL.revokeObjectURL(photo.url);photo.file=file;photo.url=URL.createObjectURL(file);assess(photo);renderProducts()}
       } catch {alert(lang.value==='ko'?'사진을 편집할 수 없습니다. 다른 사진을 선택하세요.':'Could not edit the photo. Please choose another photo.');}
-      finally {selectingPhoto=false;update()}
+      finally {selectingPhoto=false;renderProducts();update()}
     };
-    wrap.append(d,crop);
-    if(photo.file!==photo.originalFile){const restore=document.createElement('button');restore.className='btn outline restorePhoto';restore.textContent=t('restore');restore.onclick=()=>{if(analyzing||selectingPhoto)return;invalidateResults();URL.revokeObjectURL(photo.url);photo.file=photo.originalFile;photo.url=URL.createObjectURL(photo.file);renderProducts();update()};wrap.appendChild(restore)}
+    const quality=document.createElement('p');quality.className='qualityHint';quality.setAttribute('aria-live','polite');quality.textContent=qualityMessage(photo.quality,lang.value);
+    wrap.append(d,quality,crop);
+    if(photo.file!==photo.originalFile){const restore=document.createElement('button');restore.className='btn outline restorePhoto';restore.textContent=t('restore');restore.onclick=()=>{if(analyzing||selectingPhoto)return;invalidateResults();URL.revokeObjectURL(photo.url);photo.file=photo.originalFile;photo.url=URL.createObjectURL(photo.file);assess(photo);renderProducts();update()};wrap.appendChild(restore)}
     ph.appendChild(wrap);
   });
   box.append(top,cap,ph);productsEl.appendChild(box)
@@ -134,6 +145,7 @@ function update(){
 
 function setProgress(){const e=$('#loading span');if(e)e.textContent=t('progressReading')}
 async function analyzeOnDevice(p,active){
+ await Promise.all(active.flatMap(product=>product.photos.map(photo=>photo.qualityTask)).filter(Boolean));
  const menu=currentMode==='menu';
  const data=await analyzeProducts(active,p,{onProgress:setProgress,purpose:menu?'menu':'shopping'});
  return menu?{...evaluateMenu({sources:data.products[0]?.sources||[],profile:p,errors:data.products[0]?.errors||[]}),sources:data.products[0]?.sources||[],retake_recommended:data.products[0]?.retake_recommended!==false}:data;

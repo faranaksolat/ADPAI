@@ -51,8 +51,10 @@ export function needsRetake(sources=[]){
   return words.length>=3&&words.reduce((n,w)=>n+(w.text.match(/\p{L}/gu)||[]).length,0)>=20;
  });
 }
-export function preprocess(file,enhanced=false){return new Promise((resolve,reject)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{try{
+export function preprocess(file,enhanced=false,{preserveOriginal=false}={}){return new Promise((resolve,reject)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{try{
+ if(img.naturalWidth*img.naturalHeight>50000000)throw Error('Photo is too large. Photograph one menu column or label panel.');
  const c=drawForOcr(img,img.naturalWidth,img.naturalHeight,enhanced);
+ if(preserveOriginal&&!enhanced)Object.defineProperty(c,'ocrOriginal',{value:img,writable:true,configurable:true});
  URL.revokeObjectURL(url);resolve(c)
 }catch(e){URL.revokeObjectURL(url);reject(e)}};img.onerror=e=>{URL.revokeObjectURL(url);reject(e)};img.src=url})}
 
@@ -67,6 +69,10 @@ export function rotateCanvas(src,deg){
  ctx.rotate(rad*Math.PI/180);
  ctx.drawImage(src,-src.width/2,-src.height/2);
  return c
+}
+
+export function releasePhotoSource(canvas){
+ if(canvas?.ocrOriginal){canvas.ocrOriginal.src='';canvas.ocrOriginal=null;}
 }
 
 // Focused reads use a smaller canvas; retain the larger original reading too.

@@ -1,9 +1,10 @@
-import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.9.2';
-import { preprocess, rotateCanvas, resizeForOcr, needsRetake } from './image.js?v=1.9.2';
-import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.9.2';
-import {createManagedWorker} from './ocr-worker.js?v=1.9.2';
-import {readMenuPhoto} from './menu-ocr.js?v=1.9.2';
-import {analyzeNativeProducts} from './native-ocr.js?v=1.9.2';
+import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.10.0';
+import { preprocess, rotateCanvas, resizeForOcr, needsRetake, releasePhotoSource } from './image.js?v=1.10.0';
+import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.10.0';
+import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.10.0';
+import {createManagedWorker} from './ocr-worker.js?v=1.10.0';
+import {readMenuPhoto} from './menu-ocr.js?v=1.10.0';
+import {analyzeNativeProducts} from './native-ocr.js?v=1.10.0';
 
 const PRIMARY = {id: 'korean', langs: ['kor','eng','fra'], label: 'Korean / English / French'};
 const FALLBACKS = [
@@ -125,9 +126,10 @@ export async function analyzeProducts(products, profile, options = {}) {
           // access/model-load failures are not retried indefinitely.
           if(worker.closed)worker=await openWorker();
           const photo = state.product.photos[photoIndex];
+          let photoCanvas;
           try {
             const photoStarted=Date.now();
-            const canvas=await prepare(photo.file,false);
+            const canvas=photoCanvas=await prepare(photo.file,false,{preserveOriginal:true});
             let enhancedCanvas;const enhancedLanguages=new Set();
             if(menuMode&&def.id===PRIMARY.id&&worker.reinitialize){
               const menu=await readMenuPhoto({worker,canvas,photoIndex,familyId:def.id,rotate,itemsFrom,maxPhotoMs});
@@ -137,6 +139,8 @@ export async function analyzeProducts(products, profile, options = {}) {
             const passes=def.id===PRIMARY.id&&worker.reinitialize
               ? [{langs:['kor'],psm:'6',canvas:resizeForOcr(canvas,1000),variant:'reduced'},
                  {langs:['eng'],psm:'11',canvas:resizeForOcr(canvas,1600),variant:'reduced'},
+                 ...(!menuMode&&canvas.ocrOriginal&&Math.max(canvas.ocrOriginal.naturalWidth,canvas.ocrOriginal.naturalHeight)>2400
+                  ?menuReadCanvases(canvas).filter(v=>v.variant.startsWith('menu-detail-')).map(view=>({langs:['kor','eng'],psm:'11',view,variant:'original-region'})):[]),
                  {langs:PRIMARY.langs,psm:'3',canvas,variant:'original'}]
               : [{langs:def.langs,psm:menuMode?'11':'3',canvas,variant:'original'}];
             const satisfied=()=>{
@@ -147,15 +151,16 @@ export async function analyzeProducts(products, profile, options = {}) {
                 &&(profile.custom_avoid||[]).every(term=>hits.some(h=>h.allergen_id==='custom'&&h.term.toLowerCase()===term.toLowerCase()));
             };
             for(const pass of passes){
+              if(satisfied())break;
               if(worker.closed||Date.now()-photoStarted>=maxPhotoMs){complete=false;break}
               if(worker.reinitialize)await worker.reinitialize(pass.langs,1);
               if(worker.setParameters)await worker.setParameters({tessedit_pageseg_mode:pass.psm});
               const candidates=[];
-              for(const rotation of [0,90,270,180]){
+              for(const rotation of pass.view?[0]:[0,90,270,180]){
                 if(Date.now()-photoStarted>=maxPhotoMs){complete=false;state.errors.push({family:def.id,photoIndex,message:'OCR photo time budget reached'});break}
                 try{
-                  const r=await worker.recognize(rotate(pass.canvas,rotation),{timeoutMs:Math.max(1,maxPhotoMs-(Date.now()-photoStarted))});
-                  const candidate={familyId:def.id,photoIndex,rotation,variant:pass.variant,model_languages:pass.langs,segmentation:pass.psm,items:itemsFrom(r)};
+                  const r=await worker.recognize(rotate(pass.view?.canvas||pass.canvas,rotation),{timeoutMs:Math.max(1,maxPhotoMs-(Date.now()-photoStarted))});
+                  const candidate={familyId:def.id,photoIndex,rotation,variant:pass.variant,model_languages:pass.langs,segmentation:pass.psm,frame:pass.view?.frame,items:pass.view?mapMenuItems(itemsFrom(r),pass.view.frame,rotation):itemsFrom(r)};
                   candidates.push(candidate);
                   // A real positive must not be discarded because unrelated
                   // words/rotations have a better average confidence.
@@ -165,7 +170,7 @@ export async function analyzeProducts(products, profile, options = {}) {
                   // Waiting for all rotations used to exhaust the budget before
                   // a damaged label with no recognised heading could be helped.
                   const languageKey=pass.langs.join('+');
-                  if(!menuMode&&rotation===0&&def.id===PRIMARY.id&&pass.langs.length===1&&worker.reinitialize
+                  if(!menuMode&&!pass.view&&rotation===0&&def.id===PRIMARY.id&&pass.langs.length===1&&worker.reinitialize
                     &&!satisfied()&&sourceQuality(candidate)<.7&&!enhancedLanguages.has(languageKey)&&Date.now()-photoStarted<maxPhotoMs-1000){
                     enhancedLanguages.add(languageKey);
                     try{
@@ -179,12 +184,14 @@ export async function analyzeProducts(products, profile, options = {}) {
                     }catch(error){complete=false;state.errors.push({family:def.id,photoIndex,phase:'enhanced',message:String(error?.message||error)})}
                   }
                   if(satisfied())break;
+                  if(pass.view)break; // Region crops use upright coordinates.
                 }catch(error){
                   complete=false;state.errors.push({family:def.id,photoIndex,rotation,phase:pass.variant,message:String(error?.message||error)});
                   if(worker.closed||/OCR timeout|OCR worker is closed/u.test(String(error?.message||error)))break;
                 }
               }
               const selected=menuMode?[...candidates].sort((a,b)=>sourceQuality(b)-sourceQuality(a)).slice(0,1):selectCandidates(candidates);
+              pass.view?.release?.();
               for(const source of selected)if(!state.sources.includes(source))state.sources.push(source);
               if(satisfied())break;
             }
@@ -203,7 +210,7 @@ export async function analyzeProducts(products, profile, options = {}) {
           } catch (error) {
             complete = false;
             state.errors.push({family: def.id, photoIndex, message: String(error?.message || error)});
-          }
+          } finally {releasePhotoSource(photoCanvas)}
         }
         state.familyStatus[def.id] = {ok: complete, attempted: true};
       }

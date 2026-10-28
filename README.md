@@ -7,6 +7,12 @@ Android 1.7.0 adds a bundled Korean/Latin ML Kit reader through a local native
 bridge; Pages and iOS retain the browser Tesseract path. Native word scores are
 uncalibrated and cannot establish ingredient completeness or food safety.
 
+Version 1.10.0 preserves original-camera pixels for bounded region reads,
+adds on-device capture guidance, progressive live still-photo capture and
+reversible four-corner page correction. Unsupported browsers retain system
+camera capture. Clipped crop context stays uncertain without changing word
+scores. See the [implementation and validation limits](docs/CAMERA-1.10.0-fa.md).
+
 Version 1.9.2 improves menu column/price separation, adds bounded detail OCR
 views and exposes raw menu readings. On 21 uploaded development images, 63/135
 partially referenced names and 30/71 dish/risk pairs were recovered, with 41
@@ -14,10 +20,9 @@ known pairs still missed. References are partial model-visual observations,
 not independent human labels; no OCR training or safety validation is claimed.
 See the [uploaded-menu report and remaining work](docs/USER-MENUS-1.9.2-fa.md)
 and [anonymous reproducibility counts](benchmarks/USER-MENUS-1.9.2-aggregate.json).
-The [camera quality review](docs/CAMERA-QUALITY-REVIEW-fa.md) identifies early
-downsampling and missing pre-OCR capture checks, and proposes original-image
-region reads before live camera controls. These camera changes are a plan;
-they are not implemented by this menu-recognition release.
+The [initial camera review](docs/CAMERA-QUALITY-REVIEW-fa.md) explains the
+downsampling and capture issues addressed in 1.10.0. Real-device validation
+remains required; capture guidance does not certify readable or safe food.
 
 Version 1.8.0 introduces a compact dashboard, desktop sidebar, phone navigation,
 illustrated allergen selection and a visible ingredients → photos → review flow.

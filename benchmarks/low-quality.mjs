@@ -20,6 +20,8 @@ const snapshots=async()=>{
  }return result;
 };
 const before=await snapshots(),versions={baseline:JSON.parse(await fs.readFile(path.join(baseline,'package.json'))).version,candidate:JSON.parse(await fs.readFile(path.join(repo,'package.json'))).version};
+const variants=arg('--variants','clean,small,dim,blur,tilted').split(',');
+if(!variants.length||new Set(variants).size!==variants.length||variants.some(x=>!['clean','small','dim','blur','tilted','camera-fineprint'].includes(x)))throw Error('Unknown/duplicate variants');
 const server=http.createServer(async(req,res)=>{
  try{
   const p=decodeURIComponent(new URL(req.url,'http://local').pathname);let file;
@@ -49,7 +51,7 @@ try{
  listeners.set('Fetch.requestPaused',[e=>send('Fetch.failRequest',{requestId:e.requestId,errorReason:'InternetDisconnected'}).catch(()=>{})]);await send('Fetch.enable',{patterns:[{urlPattern:'https://*'}]});
  const loaded=new Promise(r=>listeners.set('Page.loadEventFired',[r]));await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/`});await loaded;
  const fixtures=[];
- for(const language of ['en','ko'])for(const variant of ['clean','small','dim','blur','tilted']){
+ for(const language of ['en','ko'])for(const variant of variants){
   const {png,...reference}=await evaluate(`makeQualityFixture(${JSON.stringify(language)},${JSON.stringify(variant)})`),id=language+'-'+variant,bytes=Buffer.from(png,'base64');
   await fs.writeFile(path.join(out,'fixtures',id+'.png'),bytes);fixtures.push({...reference,id,sha256:sha(bytes)});
  }
@@ -72,10 +74,10 @@ try{
     unsafe_outputs:r.safe_items.length+r.items.filter(e=>['safe','clear','no_listed_conflict'].includes(e.status)).length,latency_ms:r.latency_ms,complete:r.complete,errors:r.errors,selected_ocr_variant:r.selected_ocr_variant};
   });
   const sum=key=>cases.reduce((n,c)=>n+c[key],0),times=cases.map(c=>c.latency_ms).sort((a,b)=>a-b);
-  summary[implementation]={cer:sum('character_edits')/sum('reference_characters'),wer:sum('word_edits')/sum('reference_words'),warned_pairs:sum('warned_pairs'),confident_warned_pairs:sum('confident_warned_pairs'),known_positive_pairs:sum('known_positive_pairs'),missed_pairs:sum('known_positive_pairs')-sum('warned_pairs'),additional_warning_pairs:cases.reduce((n,c)=>n+c.additional_warning_pairs.length,0),pork_cases_warned:cases.filter(c=>c.pork_warning).length,unsafe_outputs:sum('unsafe_outputs'),latency_median_ms:(times[4]+times[5])/2,latency_p95_ms:times.at(-1),cases};
+  summary[implementation]={cer:sum('character_edits')/sum('reference_characters'),wer:sum('word_edits')/sum('reference_words'),warned_pairs:sum('warned_pairs'),confident_warned_pairs:sum('confident_warned_pairs'),known_positive_pairs:sum('known_positive_pairs'),missed_pairs:sum('known_positive_pairs')-sum('warned_pairs'),additional_warning_pairs:cases.reduce((n,c)=>n+c.additional_warning_pairs.length,0),pork_cases_warned:cases.filter(c=>c.pork_warning).length,unsafe_outputs:sum('unsafe_outputs'),latency_median_ms:(times[Math.floor((times.length-1)/2)]+times[Math.ceil((times.length-1)/2)])/2,latency_p95_ms:times.at(-1),cases};
  }
  if(JSON.stringify(before)!==JSON.stringify(await snapshots()))throw Error('Source changed during comparison');
- const metadata={kind:'synthetic_degradation_comparison_not_real_menu_validation',versions,budget_ms:budget,source_sha256:before,browser:await send('Browser.getVersion'),font:execFileSync('fc-match',['Noto Sans CJK KR'],{encoding:'utf8'}).trim(),models:{},latency:'warm reusable local Tesseract worker; includes image preprocessing, OCR passes and parsing; excludes initial worker/model load, camera/UI; not Android ML Kit or phone latency',ocr_selection:'highest fixed confidence/length heuristic among upright full-image readings; no ground-truth selection',warning_metric:'strict printed title-allergen association; uncertain warnings reported separately from confident warnings',references:'authored fixture strings fixed before OCR, all derived images correlated; no human-reviewed real package/menu reference or training',scope:'Actual shared web menu reader + parser; native pixel routing has separate controlled tests, not physical-device recognition validation'};
+ const metadata={kind:'synthetic_degradation_comparison_not_real_menu_validation',versions,budget_ms:budget,source_sha256:before,browser:await send('Browser.getVersion'),font:execFileSync('fc-match',['Noto Sans CJK KR'],{encoding:'utf8'}).trim(),models:{},latency:'warm reusable local Tesseract worker; includes image preprocessing, OCR passes and parsing; excludes initial worker/model load, camera/UI; not Android ML Kit or phone latency',ocr_selection:variants.includes('camera-fineprint')?'highest fixed confidence/length heuristic among all upright readings for camera fixtures; partial views scored against full reference; no ground-truth selection':'highest fixed confidence/length heuristic among upright full-image readings; no ground-truth selection',fixture_variants:variants,warning_metric:'strict printed title-allergen association; uncertain warnings reported separately from confident warnings',references:'authored fixture strings fixed before OCR, all derived images correlated; no human-reviewed real package/menu reference or training',scope:'Actual shared web menu reader + parser; native pixel routing has separate controlled tests, not physical-device recognition validation'};
  for(const lang of ['kor','eng','fra'])metadata.models[lang]=sha(await fs.readFile(path.join(repo,'dist/vendor/tessdata',lang+'.traineddata')));
  await fs.writeFile(path.join(out,'summary.json'),JSON.stringify({metadata,summary},null,2)+'\n');console.log(JSON.stringify({output:out,summary:Object.fromEntries(Object.entries(summary).map(([k,{cases,...rest}])=>[k,rest]))},null,2));
  if(Object.values(summary).some(s=>s.unsafe_outputs))process.exitCode=1;

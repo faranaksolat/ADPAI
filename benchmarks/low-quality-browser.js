@@ -8,10 +8,11 @@ globalThis.makeQualityFixture=async(language,variant)=>{
  const rows=definitions[language],original=document.createElement('canvas');original.width=1000;original.height=380;
  const ctx=original.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,1000,380);ctx.fillStyle='#141414';ctx.font='28px "Noto Sans CJK KR", sans-serif';
  rows.forEach(([name,body],i)=>ctx.fillText(name+': '+body,35,65+i*85));
- const canvas=document.createElement('canvas');canvas.width=variant==='small'||variant==='blur'?500:1000;canvas.height=variant==='small'||variant==='blur'?190:380;
+ const canvas=document.createElement('canvas');canvas.width=variant==='camera-fineprint'?4032:variant==='small'||variant==='blur'?500:1000;canvas.height=variant==='camera-fineprint'?3024:variant==='small'||variant==='blur'?190:380;
  const c=canvas.getContext('2d');c.fillStyle='white';c.fillRect(0,0,canvas.width,canvas.height);
  if(variant==='blur')c.filter='blur(0.9px)';
  if(variant==='tilted'){c.translate(500,190);c.rotate(3*Math.PI/180);c.drawImage(original,-500,-190)}
+ else if(variant==='camera-fineprint')c.drawImage(original,1480,1450,500,190);
  else c.drawImage(original,0,0,canvas.width,canvas.height);
  if(variant==='dim'){
   const image=c.getImageData(0,0,canvas.width,canvas.height);
@@ -34,10 +35,11 @@ globalThis.readQualityFixture=async(root,version,id,budget)=>{
  }
  const {worker,itemsFrom,readMenuPhoto,image,menu}=environments.get(root);
  const response=await fetch('/fixture/'+id+'.png'),blob=await response.blob();
- const start=performance.now(),canvas=await image.preprocess(new File([blob],'fixture.png',{type:'image/png'}),false);
+ const start=performance.now(),canvas=await image.preprocess(new File([blob],'fixture.png',{type:'image/png'}),false,{preserveOriginal:true});
  const output=await readMenuPhoto({worker,canvas,photoIndex:0,familyId:'korean',rotate:image.rotateCanvas,itemsFrom,maxPhotoMs:budget});
  const result=menu.evaluateMenu({...output,profile:{allergens:['milk','egg','peanut','wheat'],dietary_preferences:['avoid_pork']}});
- const full=output.sources.filter(s=>s.rotation===0&&(!s.frame.cropWidth||s.frame.cropWidth===s.frame.width));
+ image.releasePhotoSource?.(canvas);
+ const full=output.sources.filter(s=>s.rotation===0&&(id.includes('camera-fineprint')||!s.frame.cropWidth||s.frame.cropWidth===s.frame.width));
  // Fixed reference-free selection, not the pass with the best reference score.
  const quality=s=>{const chars=s.items.reduce((n,w)=>n+w.text.length,0);return s.items.reduce((n,w)=>n+w.text.length*w.score,0)/Math.max(1,chars)*Math.min(1,chars/80)};
  full.sort((a,b)=>quality(b)-quality(a));

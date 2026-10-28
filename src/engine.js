@@ -1,6 +1,6 @@
 
-import { ONTOLOGY, NON_DAIRY_PHRASES } from "./ontology.js?v=1.9.2";
-import { labelPattern } from './label-pattern.js?v=1.9.2';
+import { ONTOLOGY, NON_DAIRY_PHRASES } from "./ontology.js?v=1.10.0";
+import { labelPattern } from './label-pattern.js?v=1.10.0';
 
 export const ALLERGENS = ONTOLOGY.allergens;
 export const MARKERS = ONTOLOGY.label_markers;
@@ -229,16 +229,17 @@ function aggregateEvidence(sources, profile, learnedTexts = []) {
         while (index < normalized.length-1 && offset + normalized[index].length < span.start) offset += normalized[index++].length + 1;
         // A multi-word/syllable alias is only as confident as its weakest
         // constituent word. Matching across OCR spaces must not borrow scores.
-        let cursor=0,confidence=1;
+        let cursor=0,confidence=1,contextUncertain=false;
         for(let i=0;i<normalized.length;i++) {
           const end=cursor+normalized[i].length;
-          if(end>span.start&&cursor<span.end&&normalized[i])confidence=Math.min(confidence,lineScore(lines[i]));
+          if(end>span.start&&cursor<span.end&&normalized[i]){confidence=Math.min(confidence,lineScore(lines[i]));contextUncertain||=lines[i].context_clipped===true;}
           cursor=end+1;
         }
         let kind = occurrenceKind(text, span, events);
         if (source.learned && kind === "mention") kind = "direct";
+        if(contextUncertain)kind='mention';
         hits.push({kind, allergen_id: id, allergen: label, term: alias, language,
-          score: confidence, family: source.familyId, photoIndex: source.photoIndex,
+          score: confidence, ...(contextUncertain?{context_uncertain:true}:{}),family: source.familyId, photoIndex: source.photoIndex,
           text: lines[index]?.text || "", learned: !!source.learned});
       }
     }

@@ -1,0 +1,180 @@
+{
+  "metadata": {
+    "kind": "synthetic_degradation_comparison_not_real_menu_validation",
+    "versions": {
+      "baseline": "1.9.2",
+      "candidate": "1.10.0"
+    },
+    "budget_ms": 65000,
+    "source_sha256": {
+      "baseline": {
+        "app.js": "1dd7ba4ff00ec12740d9d868700152585e0814b141e9f74d12966f6feab9731d",
+        "browser.js": "f198ad9a41d936e57a286ad0445fc1ed53158a41bd0870b3cfbb13face2143db",
+        "crop.js": "e42138526c896391b368291fa4180c8f4cbdb9194ae39e5d5b2560d5e155f1f8",
+        "dietary.js": "53031bed496fe7c6b888da525bc91081946b99bb713e5d9f9456bf714309fab0",
+        "engine.js": "3fa69e7150d9d4f47ed1fb3409bf2dc0d6b56e8f4b9d46eac28b3e83faa1f5af",
+        "image.js": "212b27e4f22c08b72ef44a9c228432a79f9e6d1c5770097b95bac8f87a5a3451",
+        "ingredient-glossary.js": "905ecc9e6b17b74bccf3b276adc18d56eb013c2238344afd99e31732b21974c5",
+        "ingredients.js": "a8ed0215f81f3578846ab1ec213f88c48b8a76cba844714a40d8cfa335f8b413",
+        "label-pattern.js": "8c6b1700ecbf21b1600891d9bcd491a9d7021cce3936842ca20a5f3e1fe9dc6e",
+        "learning.js": "ac374449df44626ae5b1fd3424b350946670f654375b245d6859f6e6445a381d",
+        "menu-image.js": "398a1f2f74e6defaa88e8cad2e8f2870139b14d387f4863ee0a7cc952ae563f0",
+        "menu-ocr.js": "dcb41423128ff3d7f6d79f3e79f06b051d586e36e528c09fae61db01a2630821",
+        "menu.js": "2e3ed25c337d24dc323a93454449e9770d0b2fbb735fe112d9add3701ce8169c",
+        "native-ocr.js": "1f818f995cec79dce5231cc5701b3fb5983e72fd98140b64c6fded82eac38fbf",
+        "ocr-worker.js": "9d3a1c5abbbb3c3d581fb78a4ffbf02148495f442ca24891ed2f0ae3e4f6f3f9",
+        "ocr.js": "f9ce30ef6506cdb6d2991bc386adcfd87c22f4ec3ed88f6d7439a992fdb72047",
+        "ontology.js": "2306cfa5a3108c99cd737adccc97ae8f2eee7948beb78312e9ed638188aa3815",
+        "pwa.js": "ccdd680e194df221e7b5d1d64fd5eead9450faf8f7dbac2e9e4b68dc12763f6f",
+        "tesseract.js": "57cc64ab87a75226b1c85ed17dd3f73fd1589b0150cec6a3defc3c69a6945721"
+      },
+      "candidate": {
+        "app.js": "81d2ffbd41c8889af5264807e0f057844cc99081521c35d1346ddc4b78ba0953",
+        "browser.js": "2429ae2f2c03d24cc6981171cf1bc691f6d19507305aa72ed7c5a29726202c13",
+        "camera.js": "6d05a6abe54497a046875d9b03a38ca6c2fa9fb7db280f6f6b1c71b540a8cf1e",
+        "crop.js": "7ef94c9f1f4a4959d167dbf081a7d1681f8f708b5a108578a2efc454751684b4",
+        "dietary.js": "d589f5262208e7f189a56687450f437ce969d2d1dbb4b0b60af6a26ea87a917a",
+        "engine.js": "b161976a2a0e91edd4b15768a3ede17399f4464218c7953fda7b238cef421483",
+        "geometry.js": "76d0e5b90e276787896050cc5c16d9009db30be664b35f2b0178b59bc1ef25ee",
+        "image.js": "90be4d6ec5a6a40c92cebcd25783eec0723bf9e3ecebe48e769cc1350d8bf255",
+        "ingredient-glossary.js": "905ecc9e6b17b74bccf3b276adc18d56eb013c2238344afd99e31732b21974c5",
+        "ingredients.js": "e0b947a96fc37793785c1159413a25c909743df6315d7feb7ebfd401191de070",
+        "label-pattern.js": "8c6b1700ecbf21b1600891d9bcd491a9d7021cce3936842ca20a5f3e1fe9dc6e",
+        "learning.js": "ac374449df44626ae5b1fd3424b350946670f654375b245d6859f6e6445a381d",
+        "menu-image.js": "789aa5eb5d83dea80d6089f557694239f023734ef32e7570a7928fa85efcf465",
+        "menu-ocr.js": "8136536f4f8c1b6673a5bd53c83a72bda1eb179e12a863c73e78630822ce69bb",
+        "menu.js": "d48e97654ece8fa78a4de86f3bef43d49a5f11641f28a2317f2755cf71050c96",
+        "native-ocr.js": "f637ac8ac43b24af8acecd4f324fcaef0f62ec625742e03ddc3018e68e886d8c",
+        "ocr-worker.js": "9d3a1c5abbbb3c3d581fb78a4ffbf02148495f442ca24891ed2f0ae3e4f6f3f9",
+        "ocr.js": "7f195e1b82b9bd89dc89e967692b49501c759311f8ac005bc739e0f2a28c5912",
+        "ontology.js": "2306cfa5a3108c99cd737adccc97ae8f2eee7948beb78312e9ed638188aa3815",
+        "photo-quality.js": "c1d9e9b81bf4f5bf54c88cc2f8a5a20b7c690f4c86492e9572ab3676ac8d0e07",
+        "pwa.js": "ccdd680e194df221e7b5d1d64fd5eead9450faf8f7dbac2e9e4b68dc12763f6f",
+        "tesseract.js": "1e8f1bd7bb376d1a5bd37281235de51c483e3ae55010de173b4deab4f3fb6d8c"
+      }
+    },
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/154.0.8037.57",
+      "revision": "@73c14f6228d7cd537c855007e8f88678969cc0eb",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+      "jsVersion": "15.4.80.11"
+    },
+    "font": "NotoSansCJK-Regular.ttc: \"Noto Sans CJK KR\" \"Regular\"",
+    "models": {
+      "kor": "ec1749377d49ac38fb3d3cd05dd5e2a53359d329f359762bc638a81132109992",
+      "eng": "5dc5d8d640a212c9d6184921ba103b186f50e0fed9ee716c53e6b312b400d747",
+      "fra": "bf83833fa957ff0076f6aa93f69e3bdf7b014dea829ea0c0d6be6b48a3ceef6d"
+    },
+    "latency": "warm reusable local Tesseract worker; includes image preprocessing, OCR passes and parsing; excludes initial worker/model load, camera/UI; not Android ML Kit or phone latency",
+    "ocr_selection": "highest fixed confidence/length heuristic among all upright readings for camera fixtures; partial views scored against full reference; no ground-truth selection",
+    "fixture_variants": [
+      "camera-fineprint"
+    ],
+    "warning_metric": "strict printed title-allergen association; uncertain warnings reported separately from confident warnings",
+    "references": "authored fixture strings fixed before OCR, all derived images correlated; no human-reviewed real package/menu reference or training",
+    "scope": "Actual shared web menu reader + parser; native pixel routing has separate controlled tests, not physical-device recognition validation"
+  },
+  "summary": {
+    "baseline": {
+      "cer": 0.2696629213483146,
+      "wer": 1.088235294117647,
+      "warned_pairs": 4,
+      "confident_warned_pairs": 3,
+      "known_positive_pairs": 8,
+      "missed_pairs": 4,
+      "additional_warning_pairs": 1,
+      "pork_cases_warned": 0,
+      "unsafe_outputs": 0,
+      "latency_median_ms": 8743.54999999702,
+      "latency_p95_ms": 8792.59999999404,
+      "cases": [
+        {
+          "id": "en-camera-fineprint",
+          "character_edits": 5,
+          "reference_characters": 113,
+          "word_edits": 3,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 3,
+          "confident_warned_pairs": 2,
+          "additional_warning_pairs": [],
+          "pork_warning": false,
+          "unsafe_outputs": 0,
+          "latency_ms": 8694.5,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-detail-0-0"
+        },
+        {
+          "id": "ko-camera-fineprint",
+          "character_edits": 43,
+          "reference_characters": 65,
+          "word_edits": 34,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 1,
+          "confident_warned_pairs": 1,
+          "additional_warning_pairs": [
+            "수트:milk"
+          ],
+          "pork_warning": false,
+          "unsafe_outputs": 0,
+          "latency_ms": 8792.59999999404,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-detail-1-0"
+        }
+      ]
+    },
+    "candidate": {
+      "cer": 0.056179775280898875,
+      "wer": 0.29411764705882354,
+      "warned_pairs": 8,
+      "confident_warned_pairs": 8,
+      "known_positive_pairs": 8,
+      "missed_pairs": 0,
+      "additional_warning_pairs": 0,
+      "pork_cases_warned": 2,
+      "unsafe_outputs": 0,
+      "latency_median_ms": 8683.69999999553,
+      "latency_p95_ms": 9038.59999999404,
+      "cases": [
+        {
+          "id": "en-camera-fineprint",
+          "character_edits": 0,
+          "reference_characters": 113,
+          "word_edits": 0,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 4,
+          "confident_warned_pairs": 4,
+          "additional_warning_pairs": [],
+          "pork_warning": true,
+          "unsafe_outputs": 0,
+          "latency_ms": 8328.79999999702,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-detail-0-1"
+        },
+        {
+          "id": "ko-camera-fineprint",
+          "character_edits": 10,
+          "reference_characters": 65,
+          "word_edits": 10,
+          "reference_words": 17,
+          "known_positive_pairs": 4,
+          "warned_pairs": 4,
+          "confident_warned_pairs": 4,
+          "additional_warning_pairs": [],
+          "pork_warning": true,
+          "unsafe_outputs": 0,
+          "latency_ms": 9038.59999999404,
+          "complete": true,
+          "errors": [],
+          "selected_ocr_variant": "menu-detail-1-1"
+        }
+      ]
+    }
+  }
+}

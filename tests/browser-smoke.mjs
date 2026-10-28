@@ -199,6 +199,27 @@ try {
     await evaluate(`document.querySelector('.restorePhoto').click()`);
     assert.equal(await evaluate(`(async()=>{const image=document.querySelector('.photo img');await image.decode();return image.naturalWidth})()`),1400);
     assert.equal(await evaluate(`document.documentElement.scrollWidth<=window.innerWidth`),true);
+    if(!mobileWeb){
+    const cornerColors=await evaluate(`(async()=>{
+      const {rectifyPhoto}=await import('./src/geometry.js?v=1.10.0');const c=document.createElement('canvas');c.width=c.height=40;const ctx=c.getContext('2d');
+      for(let y=0;y<40;y++)for(let x=0;x<40;x++){ctx.fillStyle='rgb('+x*6+','+y*6+',0)';ctx.fillRect(x,y,1,1)}
+      const output=await rectifyPhoto(c,[{x:10,y:5},{x:30,y:10},{x:35,y:30},{x:5,y:35}]);const d=output.getContext('2d').getImageData(0,0,output.width,output.height).data;
+      return [0,(output.width-1)*4,(output.height*output.width-1)*4,((output.height-1)*output.width)*4].map(i=>[d[i],d[i+1],d[i+2]]);
+    })()`);
+    [[60,30,0],[180,60,0],[210,180,0],[30,210,0]].forEach((expected,i)=>expected.forEach((n,c)=>assert.ok(Math.abs(cornerColors[i][c]-n)<=2,'rectified corner pixel must come from the selected source corner')));
+    }
+    // Four-corner correction is explicit, reversible, and retains original pixels.
+    await evaluate(`document.querySelector('.cropPhoto').click()`);
+    await evaluate(`(async()=>{while(!document.querySelector('.cropDialog'))await new Promise(r=>setTimeout(r,10))})()`);
+    await evaluate(`document.querySelector('[data-crop-action=perspective]').click();document.querySelector('.cornerControls button').click()`);
+    await send('Input.dispatchKeyEvent',{type:'keyDown',key:'ArrowRight',code:'ArrowRight'});
+    await send('Input.dispatchKeyEvent',{type:'keyUp',key:'ArrowRight',code:'ArrowRight'});
+    await evaluate(`document.querySelector('[data-crop-action=apply]').click()`);
+    await evaluate(`(async()=>{const end=Date.now()+20000;while(document.querySelector('.cropDialog')){if(Date.now()>end)throw Error('perspective timeout');await new Promise(r=>setTimeout(r,15))}})()`);
+    assert.equal(await evaluate(`!!document.querySelector('.restorePhoto')`),true);
+    await evaluate(`document.querySelector('.restorePhoto').click()`);
+    assert.equal(await evaluate(`(async()=>{const image=document.querySelector('.photo img');await image.decode();return image.naturalWidth})()`),1400);
+    assert.equal(await evaluate(`document.querySelectorAll('.qualityHint').length`),1);
     // Users cannot change the product/profile during inference and accidentally
     // associate old OCR with a new photograph or selection.
     await evaluate(`globalThis.testOcrDelay=30;document.querySelector('#analyze').click()`);
@@ -220,6 +241,42 @@ try {
     assert.equal(await evaluate(`globalThis.testAlerts.length`),1);
     assert.equal(await evaluate(`document.querySelector('#result').classList.contains('show')`),false);
     await evaluate(`delete globalThis.ADPAI_NATIVE;document.querySelector('#lang').value='en';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
+    // A real browser MediaStream with a controlled still-photo provider. This
+    // validates camera UI/lifecycle/resolution routing, not a physical camera.
+    await evaluate(`(async()=>{
+      globalThis.savedCapture=globalThis.ImageCapture;globalThis.savedDevices=Object.getOwnPropertyDescriptor(navigator,'mediaDevices');
+      globalThis.captureStops=0;globalThis.captureStreams=[];
+      const still=document.createElement('canvas');still.width=4032;still.height=3024;const sc=still.getContext('2d');sc.fillStyle='white';sc.fillRect(0,0,4032,3024);sc.fillStyle='black';sc.font='36px sans-serif';sc.fillText('INGREDIENTS: milk, sugar',700,1200);
+      globalThis.fullStill=new File([await new Promise(r=>still.toBlob(r))],'still.png',{type:'image/png'});
+      Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async()=>{
+        const c=document.createElement('canvas');c.width=640;c.height=480;const pc=c.getContext('2d');pc.fillStyle='#eaf0e2';pc.fillRect(0,0,640,480);pc.fillStyle='white';pc.fillRect(65,55,510,365);pc.fillStyle='#25382b';pc.font='28px sans-serif';pc.fillText('Menu',100,110);pc.font='20px sans-serif';pc.fillText('Noodles',100,175);pc.fillText('Ingredients: wheat, egg',100,210);pc.fillText('Tomato soup',100,285);pc.fillText('Ingredients: cream, tomato',100,320);const stream=c.captureStream(2),track=stream.getVideoTracks()[0],stop=track.stop.bind(track);track.stop=()=>{globalThis.captureStops++;stop()};globalThis.captureStreams.push(stream);return stream;
+      }}});
+      globalThis.ImageCapture=class{async takePhoto(){return globalThis.fullStill}};
+      document.querySelector('[data-camera]').click();
+      const end=Date.now()+15000;while(!document.querySelector('[data-camera-action=take]')||document.querySelector('[data-camera-action=take]').disabled){if(Date.now()>end)throw Error('live camera start timeout');await new Promise(r=>setTimeout(r,25))}
+    })()`);
+    if(process.env.CAMERA_SCREENSHOT){const {data}=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});await fs.writeFile(process.env.CAMERA_SCREENSHOT,Buffer.from(data,'base64'))}
+    await evaluate(`document.querySelector('[data-camera-action=take]').click()`);
+    await evaluate(`(async()=>{while(document.querySelector('.cameraDialog'))await new Promise(r=>setTimeout(r,15));const image=[...document.querySelectorAll('.photo img')].at(-1);await image.decode();globalThis.stillWidth=image.naturalWidth})()`);
+    assert.equal(await evaluate(`globalThis.stillWidth`),4032,'still capture must retain resolution beyond video preview');
+    assert.ok(await evaluate(`globalThis.captureStops>=1`));
+    if(!mobileWeb){
+      const route=await evaluate(`(async()=>{
+        const {analyzeProducts}=await import('./src/tesseract.js?v=1.10.0');
+        const r=await analyzeProducts([{photos:[{file:globalThis.fullStill}]}],{allergens:['milk']},{purpose:'menu',nativeReader:null,
+          createWorker:async()=>({reinitialize:async()=>{},setParameters:async()=>{},terminate:async()=>{},recognize:async()=>({data:{words:[{text:'milk',confidence:40,bbox:{x0:20,y0:20,x1:90,y1:40}}]}})})});
+        const p=r.products[0];return {originalRegions:p.sources.filter(s=>s.frame?.from_original&&s.frame.width===4032).length,unchangedScores:p.sources.every(s=>s.items.every(w=>w.score===.4)),status:p.status};
+      })()`);
+      assert.ok(route.originalRegions>0,'shipped analyzeProducts must retain original photo for region OCR');assert.equal(route.unchangedScores,true);assert.equal(route.status,'unverified');
+    }
+    await evaluate(`document.querySelector('.photoWrap:last-child .x').click();document.querySelector('[data-camera]').click()`);
+    await evaluate(`(async()=>{while(!document.querySelector('.cameraDialog'))await new Promise(r=>setTimeout(r,10));document.querySelector('[data-camera-action=cancel]').click();await new Promise(r=>setTimeout(r,50))})()`);
+    assert.equal(await evaluate(`document.querySelectorAll('.photo').length`),1);
+    assert.equal(await evaluate(`globalThis.captureStreams.every(s=>s.getTracks().every(t=>t.readyState==='ended'))`),true);
+    await evaluate(`globalThis.ImageCapture=undefined;globalThis.systemCaptureCalls=0;globalThis.savedInputClick=HTMLInputElement.prototype.click;HTMLInputElement.prototype.click=function(){if(this.hasAttribute('capture'))globalThis.systemCaptureCalls++;else globalThis.savedInputClick.call(this)};document.querySelector('[data-camera]').click()`);
+    assert.equal(await evaluate(`globalThis.systemCaptureCalls`),1);
+    assert.equal(await evaluate(`!!document.querySelector('.cameraDialog')`),false);
+    await evaluate(`HTMLInputElement.prototype.click=globalThis.savedInputClick;globalThis.ImageCapture=globalThis.savedCapture;if(globalThis.savedDevices)Object.defineProperty(navigator,'mediaDevices',globalThis.savedDevices);else delete navigator.mediaDevices`);
   }
   // Mode-scoped photographs/results, menu disclaimer and ingredient-only risk.
   await evaluate(`document.querySelector('#lang').value='en';document.querySelector('#lang').dispatchEvent(new Event('change'));document.querySelector('#restaurantMode').click()`);
@@ -305,7 +362,7 @@ try {
     await evaluate(`(async()=>{await navigator.serviceWorker.ready;const end=Date.now()+15000;while(!navigator.serviceWorker.controller){if(Date.now()>end)throw new Error('service worker did not claim page');await new Promise(r=>setTimeout(r,25))}})()`);
     const cache=await evaluate(`(async()=>({scope:(await navigator.serviceWorker.ready).scope,urls:(await Promise.all((await caches.keys()).map(async key=>(await (await caches.open(key)).keys()).map(r=>r.url)))).flat()}))()`);
     assert.ok(cache.scope.endsWith(prefix));
-    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.9.2')));
+    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.10.0')));
     assert.ok(cache.urls.every(url=>url.startsWith(cache.scope) && !/blob:|api\/|label\.png|profile/iu.test(url)));
     await send('Fetch.disable');
     await send('Network.enable');
@@ -319,7 +376,7 @@ try {
     assert.equal(await evaluate(`document.querySelector('#analyze').disabled`),true);
     assert.equal(await evaluate(`(async()=>(await fetch('./privacy.html')).ok)()`),true);
     // An offline shell is usable even when the CDN runtime is unavailable.
-    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.9.2');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
+    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.10.0');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
     assert.equal(offlineStatus,'unverified');
   }
   assert.deepEqual(errors,[]);

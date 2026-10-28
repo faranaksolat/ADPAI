@@ -2,7 +2,7 @@
   "name": "adpai-safety-first",
   "private": true,
   "type": "module",
-  "version": "1.9.2",
+  "version": "1.10.0",
   "engines": {
     "node": ">=22"
   },
