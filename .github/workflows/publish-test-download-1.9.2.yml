@@ -1,0 +1,61 @@
+name: Publish menu recognition test downloads
+
+# Share the tested APK and anonymous report. No rebuild or store publication.
+on:
+  workflow_dispatch:
+    inputs:
+      artifact_ref:
+        description: Temporary branch containing verified public download files
+        required: true
+        default: download-assets-1.9.2
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: adpai-download-1.9.2
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ inputs.artifact_ref }}
+          path: downloads
+          persist-credentials: false
+      - name: Verify tested APK and anonymous report
+        working-directory: downloads
+        run: |
+          echo '8638ed184d2613894e6a88134e247fbc9407d22b62ca34372795ccd9aed22055  ADPAI-1.9.2-debug.apk' | sha256sum --strict --check
+          sha256sum --strict --check SHA256SUMS.txt
+          unzip -tq ADPAI-1.9.2-debug.apk
+          jq -e '.version == "1.9.2" and .version_code == 11 and .source_commit == "0258564d4bf4e4f8d93e8412a99b0e763c28e337" and .store_publication == false and .physical_device_tested == false' BUILD-INFO.json
+          jq -e '.after.commit == "0258564d4bf4e4f8d93e8412a99b0e763c28e337" and .after.metrics.capture_count == 21 and .after.metrics.matched_titles == 63 and .after.metrics.unsafe_outputs == 0' ADPAI-1.9.2-menu-check.json
+      - name: Create complete draft, then publish test links
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag=v1.9.2-test
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo 'This test release already exists; leave its files unchanged.'
+            exit 1
+          fi
+          cat > "$RUNNER_TEMP/download-notes.md" <<'NOTES'
+          Menu column/price separation, bounded detail OCR views and access to raw menu readings. Android 1.9.2/build 11 uses the shared corrected code and the existing debug certificate.
+
+          On 21 uploaded development images, 63/135 partially referenced titles and 30/71 known dish/risk pairs were recovered (previously 42 and 18). Forty-one referenced risk pairs remain missed. These partial model-visual references are not independent human labels or a holdout accuracy validation. No OCR training or physical-phone recognition test was performed. The anonymous report describes the full-image run and final parser replay separately; original images and OCR transcripts are not distributed.
+
+          Prototype: uncertain results never certify a dish safe. Menus can omit ingredients and cross-contact risks; confirm with restaurant staff. No app-store publication, paid API or domain purchase is included. The APK does not automatically connect to a private PC server.
+          NOTES
+          gh release create "$tag" downloads/ADPAI-1.9.2-debug.apk downloads/ADPAI-1.9.2-menu-check.json downloads/SHA256SUMS.txt downloads/BUILD-INFO.json \
+            --target 0258564d4bf4e4f8d93e8412a99b0e763c28e337 --draft --prerelease \
+            --title 'ADPAI 1.9.2 · Menu test' --notes-file "$RUNNER_TEMP/download-notes.md"
+          gh release view "$tag" --json assets --jq '.assets | length == 4' | grep -qx true
+          gh release edit "$tag" --draft=false --prerelease
