@@ -1,4 +1,4 @@
-import {enhanceCanvas} from './image.js?v=1.10.1';
+import {enhanceCanvas} from './image.js?v=1.10.2';
 // Menu-only alternate readings. Original pixels stay available; preprocessing
 // cannot supply ingredient evidence or raise any word's OCR confidence.
 export function menuContrastPixels(pixels){

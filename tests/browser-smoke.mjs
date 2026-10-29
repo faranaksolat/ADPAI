@@ -27,6 +27,7 @@ const server=http.createServer(async(req,res)=>{
 });
 server.listen(0,'127.0.0.1');await once(server,'listening');
 const profile=await fs.mkdtemp(path.join(os.tmpdir(),'aller-browser-'));
+const downloads=await fs.mkdtemp(path.join(os.tmpdir(),'adpai-downloads-'));
 const proxy=realOcr && process.env.HTTPS_PROXY ? [`--proxy-server=${process.env.HTTPS_PROXY}`] : [];
 const chrome=spawn(process.env.CHROMIUM_PATH||'chromium',['--headless','--no-sandbox','--disable-dev-shm-usage','--disable-gpu',...proxy,'--remote-debugging-port=0',`--user-data-dir=${profile}`,'about:blank'],{stdio:['ignore','ignore','pipe']});
 let stderr='';chrome.stderr.on('data',data=>{stderr+=data;});
@@ -201,7 +202,7 @@ try {
     assert.equal(await evaluate(`document.documentElement.scrollWidth<=window.innerWidth`),true);
     if(!mobileWeb){
     const cornerColors=await evaluate(`(async()=>{
-      const {rectifyPhoto}=await import('./src/geometry.js?v=1.10.1');const c=document.createElement('canvas');c.width=c.height=40;const ctx=c.getContext('2d');
+      const {rectifyPhoto}=await import('./src/geometry.js?v=1.10.2');const c=document.createElement('canvas');c.width=c.height=40;const ctx=c.getContext('2d');
       for(let y=0;y<40;y++)for(let x=0;x<40;x++){ctx.fillStyle='rgb('+x*6+','+y*6+',0)';ctx.fillRect(x,y,1,1)}
       const output=await rectifyPhoto(c,[{x:10,y:5},{x:30,y:10},{x:35,y:30},{x:5,y:35}]);const d=output.getContext('2d').getImageData(0,0,output.width,output.height).data;
       return [0,(output.width-1)*4,(output.height*output.width-1)*4,((output.height-1)*output.width)*4].map(i=>[d[i],d[i+1],d[i+2]]);
@@ -262,7 +263,7 @@ try {
     assert.ok(await evaluate(`globalThis.captureStops>=1`));
     if(!mobileWeb){
       const route=await evaluate(`(async()=>{
-        const {analyzeProducts}=await import('./src/tesseract.js?v=1.10.1');
+        const {analyzeProducts}=await import('./src/tesseract.js?v=1.10.2');
         const r=await analyzeProducts([{photos:[{file:globalThis.fullStill}]}],{allergens:['milk']},{purpose:'menu',nativeReader:null,
           createWorker:async()=>({reinitialize:async()=>{},setParameters:async()=>{},terminate:async()=>{},recognize:async()=>({data:{words:[{text:'milk',confidence:40,bbox:{x0:20,y0:20,x1:90,y1:40}}]}})})});
         const p=r.products[0];return {originalRegions:p.sources.filter(s=>s.frame?.from_original&&s.frame.width===4032).length,unchangedScores:p.sources.every(s=>s.items.every(w=>w.score===.4)),status:p.status};
@@ -361,9 +362,16 @@ try {
   if(!mobileWeb&&!realOcr){
     const labLoaded=new Promise(resolve=>listeners.set('Page.loadEventFired',[resolve]));
     await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}${prefix}device-check.html`});await labLoaded;
-    await evaluate(`(async()=>{const end=Date.now()+10000;while(document.querySelector('#checkVersion').textContent!=='1.10.1'){if(Date.now()>end)throw Error('device page load timeout');await new Promise(r=>setTimeout(r,10))}})()`);
+    await evaluate(`(async()=>{const end=Date.now()+10000;while(document.querySelector('#checkVersion').textContent!=='1.10.2'){if(Date.now()>end)throw Error('device page load timeout');await new Promise(r=>setTimeout(r,10))}})()`);
     assert.equal(await evaluate(`document.querySelector('#takeTestPhoto').disabled`),true);
+    await evaluate(`document.querySelector('#physicalConfirmed').checked=true;document.querySelector('#physicalConfirmed').dispatchEvent(new Event('change'))`);
+    assert.equal(await evaluate(`document.querySelector('#takeTestPhoto').disabled`),true,'capture target must be chosen rather than silently recorded as paper');
     await evaluate(`(async()=>{
+      document.querySelector('#target').value='screen';document.querySelector('#target').dispatchEvent(new Event('change'));
+      globalThis.labShares=[];
+      Object.defineProperty(navigator,'canShare',{configurable:true,value:({files})=>['image/png','text/plain'].includes(files[0].type)});
+      Object.defineProperty(navigator,'share',{configurable:true,value:async data=>{globalThis.labShares.push({name:data.files[0].name,type:data.files[0].type,content:data.files[0].type==='text/plain'?await data.files[0].text():null,size:data.files[0].size});if(globalThis.shareError)throw new DOMException('cancelled or unavailable',globalThis.shareError)}});
+      Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{if(globalThis.clipboardError)throw Error('clipboard unavailable');globalThis.labCopied=text}}});
       const still=document.createElement('canvas');still.width=1600;still.height=1200;still.getContext('2d').fillRect(0,0,1600,1200);globalThis.labStill=new File([await new Promise(r=>still.toBlob(r))],'private-original-name.png',{type:'image/png'});
       Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async()=>{const c=document.createElement('canvas');c.width=640;c.height=480;const ctx=c.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,640,480);globalThis.labStream=c.captureStream(2);return globalThis.labStream}}});
       globalThis.ImageCapture=class{async takePhoto(){return globalThis.labStill}};
@@ -372,15 +380,40 @@ try {
       document.querySelector('[data-camera-action=take]').click();
       const resultEnd=Date.now()+30000;while(document.querySelector('#testResult').hidden){if(Date.now()>resultEnd)throw Error('device report timeout');await new Promise(r=>setTimeout(r,25))}
     })()`);
-    const lab=await evaluate(`JSON.parse(document.querySelector('#reportPreview').textContent)`);
+    const lab=await evaluate(`JSON.parse(document.querySelector('#reportPreview').value)`);
     assert.equal(lab.capture.route,'image_capture');assert.equal(lab.capture.width,1600);assert.equal(lab.capture.preview_width,640);
     assert.equal(lab.physical_capture_confirmed_by_user,true);assert.equal(lab.physical_hardware_verified,false);assert.equal(lab.accuracy_validated,false);
     assert.deepEqual(lab.analysis.direct_allergens,['milk']);assert.deepEqual(lab.analysis.missing_known_allergens,['wheat','egg']);
     assert.equal(lab.privacy.automatic_upload,false);assert.ok(!JSON.stringify(lab).includes('private-original-name'));
-    assert.equal(await evaluate(`document.querySelector('#downloadReport').disabled`),false);
+    assert.equal(lab.capture.target_declared,'screen');
+    assert.equal(await evaluate(`document.querySelector('#downloadReport').hasAttribute('href')`),true);
+    assert.equal(await evaluate(`globalThis.labShares.length`),0,'exports cannot happen automatically');
     assert.equal(await evaluate(`globalThis.labStream.getTracks().every(t=>t.readyState==='ended')`),true);
-    await evaluate(`document.querySelector('#target').value='screen';document.querySelector('#target').dispatchEvent(new Event('change'))`);
-    assert.equal(await evaluate(`document.querySelector('#downloadReport').disabled&&document.querySelector('#testResult').hidden`),true,'changed test conditions must invalidate the previous report');
+    await evaluate(`(async()=>{document.querySelector('#shareReport').click();const end=Date.now()+5000;while(document.querySelector('#shareReport').disabled){if(Date.now()>end)throw Error('share timeout');await new Promise(r=>setTimeout(r,10))}})()`);
+    const reportShare=await evaluate(`globalThis.labShares[0]`);assert.equal(reportShare.name,'adpai-device-report.txt');assert.equal(reportShare.type,'text/plain');assert.deepEqual(JSON.parse(reportShare.content),lab,'JSON-unsupported file sharing must retain the exact report');
+    await evaluate(`(async()=>{globalThis.shareError='AbortError';document.querySelector('#sharePhoto').click();const end=Date.now()+5000;while(document.querySelector('#sharePhoto').disabled){if(Date.now()>end)throw Error('cancelled share timeout');await new Promise(r=>setTimeout(r,10))}})()`);
+    assert.ok((await evaluate(`document.querySelector('#exportStatus').textContent`)).includes('لغو شد'));
+    assert.equal(await evaluate(`globalThis.labShares[1].name`),'adpai-camera-original.png');
+    assert.equal(await evaluate(`globalThis.labShares[1].size===globalThis.labStill.size`),true,'photo sharing must not recompress the original');
+    assert.equal(await evaluate(`document.querySelector('#testResult').hidden||document.querySelector('#photoExport').hidden`),false,'cancelled sharing must retain the result');
+    await evaluate(`(async()=>{globalThis.shareError='NotSupportedError';document.querySelector('#shareReport').click();const end=Date.now()+5000;while(document.querySelector('#shareReport').disabled){if(Date.now()>end)throw Error('failed share timeout');await new Promise(r=>setTimeout(r,10))}})()`);
+    assert.ok((await evaluate(`document.querySelector('#exportStatus').textContent`)).includes('انجام نشد'));
+    await evaluate(`(async()=>{document.querySelector('#copyReport').click();const end=Date.now()+5000;while(!globalThis.labCopied){if(Date.now()>end)throw Error('copy report timeout');await new Promise(r=>setTimeout(r,10))}})()`);
+    assert.deepEqual(await evaluate(`JSON.parse(globalThis.labCopied)`),lab);
+    await evaluate(`(async()=>{globalThis.clipboardError=true;document.querySelector('#copyReport').click();const end=Date.now()+5000;while(!document.querySelector('#exportStatus').textContent.includes('کپی خودکار')){if(Date.now()>end)throw Error('manual copy timeout');await new Promise(r=>setTimeout(r,10))}})()`);
+    assert.equal(await evaluate(`(()=>{const box=document.querySelector('#reportPreview');return document.querySelector('#reportDetails').open&&box.selectionStart===0&&box.selectionEnd===box.value.length})()`),true,'report must remain selectable without clipboard/download/Web Share support');
+    await evaluate(`window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true}));window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true}))`);
+    assert.equal(await evaluate(`document.querySelector('#testResult').hidden`),false,'back navigation or external viewer must not clear completed evidence');
+    await send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:downloads});
+    await tap('#downloadReport');await tap('#downloadPhoto');
+    const downloadEnd=Date.now()+10000;
+    while(true){try{await fs.access(path.join(downloads,'adpai-device-report.json'));await fs.access(path.join(downloads,'adpai-camera-original.png'));break}catch{if(Date.now()>downloadEnd)throw Error('local evidence download timeout');await new Promise(r=>setTimeout(r,20))}}
+    assert.deepEqual(JSON.parse(await fs.readFile(path.join(downloads,'adpai-device-report.json'),'utf8')),lab);
+    const downloadedPhoto=await fs.readFile(path.join(downloads,'adpai-camera-original.png'));
+    const {createHash}=await import('node:crypto');assert.equal(createHash('sha256').update(downloadedPhoto).digest('hex'),lab.capture.image_sha256,'download must contain original photo bytes');
+    await evaluate(`document.querySelector('#target').value='paper';document.querySelector('#target').dispatchEvent(new Event('change'))`);
+    assert.equal(await evaluate(`!document.querySelector('#downloadReport').hasAttribute('href')&&document.querySelector('#testResult').hidden`),true,'changed test conditions must invalidate the previous report');
+    assert.equal(await evaluate(`document.querySelector('#photoExport').hidden&&!document.querySelector('#openPhoto').hasAttribute('href')&&document.querySelector('#copyReport').disabled`),true);
     assert.equal(await evaluate(`document.documentElement.scrollWidth<=window.innerWidth`),true);
     const restored=new Promise(resolve=>listeners.set('Page.loadEventFired',[resolve]));await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}${prefix}`});await restored;
   }
@@ -388,7 +421,7 @@ try {
     await evaluate(`(async()=>{await navigator.serviceWorker.ready;const end=Date.now()+15000;while(!navigator.serviceWorker.controller){if(Date.now()>end)throw new Error('service worker did not claim page');await new Promise(r=>setTimeout(r,25))}})()`);
     const cache=await evaluate(`(async()=>({scope:(await navigator.serviceWorker.ready).scope,urls:(await Promise.all((await caches.keys()).map(async key=>(await (await caches.open(key)).keys()).map(r=>r.url)))).flat()}))()`);
     assert.ok(cache.scope.endsWith(prefix));
-    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.10.1')));
+    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.10.2')));
     assert.ok(cache.urls.every(url=>url.startsWith(cache.scope) && !/blob:|api\/|label\.png|profile/iu.test(url)));
     await send('Fetch.disable');
     await send('Network.enable');
@@ -402,7 +435,7 @@ try {
     assert.equal(await evaluate(`document.querySelector('#analyze').disabled`),true);
     assert.equal(await evaluate(`(async()=>(await fetch('./privacy.html')).ok)()`),true);
     // An offline shell is usable even when the CDN runtime is unavailable.
-    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.10.1');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
+    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.10.2');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
     assert.equal(offlineStatus,'unverified');
   }
   assert.deepEqual(errors,[]);
@@ -413,4 +446,5 @@ try {
   if(chrome.exitCode==null) await once(chrome,'exit');
   server.close();
   await fs.rm(profile,{recursive:true,force:true,maxRetries:3});
+  await fs.rm(downloads,{recursive:true,force:true,maxRetries:3});
 }

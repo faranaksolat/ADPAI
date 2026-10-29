@@ -1,6 +1,6 @@
 // A report from a user-run capture is evidence pending review, never proof of
 // physical hardware, calibrated OCR accuracy, or food safety.
-export const DEVICE_CHECK_VERSION='1.10.1';
+export const DEVICE_CHECK_VERSION='1.10.2';
 export const CARD_REFERENCES=Object.freeze({
  en_positive:Object.freeze({language:'en',expected:Object.freeze(['milk','wheat','egg']),lines:Object.freeze(['INGREDIENTS: MILK, WHEAT FLOUR, EGG.','CONTAINS: MILK, WHEAT AND EGG.'])}),
  ko_positive:Object.freeze({language:'ko',expected:Object.freeze(['milk','wheat','egg']),lines:Object.freeze(['원재료명: 우유, 밀가루, 계란.','우유, 밀, 계란 함유.'])}),
