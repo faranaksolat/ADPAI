@@ -7,6 +7,12 @@ Android 1.7.0 adds a bundled Korean/Latin ML Kit reader through a local native
 bridge; Pages and iOS retain the browser Tesseract path. Native word scores are
 uncalibrated and cannot establish ingredient completeness or food safety.
 
+Version 1.10.1 adds a [user-run phone camera check](device-check.html) with
+fixed EN/KO reference cards and an explicit local JSON download. No physical
+device is attached to this cloud environment; **physical hardware tests have
+not been run here**. Captures remain evidence pending human review, even when
+the reference words are recovered. See [the physical-test procedure](docs/PHYSICAL-CAMERA-TEST-fa.md).
+
 Version 1.10.0 preserves original-camera pixels for bounded region reads,
 adds on-device capture guidance, progressive live still-photo capture and
 reversible four-corner page correction. Unsupported browsers retain system

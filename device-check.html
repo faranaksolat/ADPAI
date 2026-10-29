@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex"><title>ADPAI — تست دوربین گوشی</title><link rel="stylesheet" href="./assets/app.css?v=1.10.1">
+<style>body{padding:22px}.deviceLab{max-width:850px;margin:auto}.deviceLab h1{font-size:27px}.deviceLab p{line-height:1.9}.deviceLab label{display:block;margin:15px 0}.deviceLab select{max-width:100%;font-size:16px}.testCard{direction:ltr;text-align:left;background:#fff;border:2px solid #243c30;padding:24px;margin:20px 0;color:#000;font:20px/2 sans-serif;overflow-wrap:anywhere}.testCard h2{font-size:23px}.testCard:fullscreen{display:flex;flex-direction:column;justify-content:center;padding:8vw;font-size:clamp(22px,3vw,48px);overflow:auto}.testActions{display:flex;flex-wrap:wrap;gap:10px}.deviceLab pre{direction:ltr;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}#photoPreview{display:block;max-width:100%;max-height:280px;margin:15px auto}#testStatus{min-height:3em}#testResult{background:#fffaf0;border:1px solid #e8dab6;border-radius:12px;padding:16px}.deviceLab [hidden]{display:none!important}@media print{body{padding:0}.deviceLab>*:not(.testCard){display:none!important}.testCard{border:1px solid black;font-size:18pt;margin:20mm 10mm}}
+</style><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script></head>
+<body><main class="deviceLab"><h1>تست دوربین واقعی گوشی</h1>
+<p>این صفحه را روی گوشی باز کن. کارت زیر را با همین انتخاب روی رایانه باز یا چاپ کن و با گوشی فقط از خود کارت عکس بگیر. این کارت، برچسب غذای واقعی نیست.</p>
+<p>عکس و گزارش خودکار ارسال نمی‌شوند. بعد از تست می‌توانی گزارش بدون عکس و متن OCR را دانلود و برای بررسی ارسال کنی. این ابزار به‌تنهایی واقعی‌بودن سخت‌افزار یا دقت و ایمنی غذا را تأیید نمی‌کند.</p>
+<label>کارت مرجع <select id="reference"><option value="en_positive">انگلیسی: شیر، گندم، تخم‌مرغ</option><option value="ko_positive">کره‌ای: شیر، گندم، تخم‌مرغ</option><option value="en_negative">کنترل انگلیسی: برنج، نمک، آب</option><option value="ko_negative">کنترل کره‌ای: برنج، نمک، آب</option></select></label>
+<section id="testCard" class="testCard" aria-label="Printed test card"><h2>ADPAI CAMERA TEST</h2><div id="cardText"></div></section>
+<div class="testActions"><button id="printCard" class="btn outline">چاپ کارت</button><button id="fullCard" class="btn outline">نمایش کارت تمام‌صفحه</button></div>
+<label>کارت را روی چه چیزی می‌بینی؟ <select id="target"><option value="paper">کاغذ چاپ‌شده</option><option value="screen">نمایشگر رایانه یا تبلت</option></select></label>
+<label>شرایط این عکس <select id="condition"><option value="clear">روبه‌رو و نور مناسب</option><option value="far">دورتر / نوشتهٔ ریزتر</option><option value="dim">نور کم</option><option value="tilted">کج</option></select></label>
+<label><input id="physicalConfirmed" type="checkbox"> با دوربین واقعی گوشی از کارتِ انتخاب‌شده عکس می‌گیرم.</label>
+<div class="testActions"><button id="takeTestPhoto" class="btn primary" disabled>شروع تست با دوربین</button><button id="cancelAttempt" class="btn outline" hidden>لغو تلاش</button><button id="downloadReport" class="btn outline" disabled>دانلود گزارش</button><button id="downloadPhoto" class="btn outline" disabled>ذخیرهٔ عکس اصلی روی دستگاه</button></div>
+<input id="systemCamera" type="file" accept="image/*" capture="environment" hidden>
+<p id="routeTip"></p><p id="testStatus" role="status" aria-live="polite">برای شروع، تأیید گرفتن عکس واقعی را انتخاب کن.</p>
+<img id="photoPreview" alt="عکس گرفته‌شده برای تست" hidden>
+<section id="testResult" hidden><h2>گزارش تست؛ نیازمند بازبینی</h2><p id="testSummary"></p><p>حتی اگر همهٔ واژه‌های مرجع پیدا شوند، این نتیجه دقت عمومی یا ایمن‌بودن غذا را تأیید نمی‌کند.</p><details><summary>دیدن اطلاعات گزارش پیش از دانلود</summary><pre id="reportPreview"></pre></details></section>
+<p>بار اول ممکن است بارگذاری مدل‌ها زمان ببرد. زمان ثبت‌شده شامل آماده‌سازی عکس و مدل‌هاست؛ زمان فشردن شاتر نیست. عکس صفحه‌نمایش می‌تواند بازتاب و الگوی موآره داشته باشد؛ آن را با عکس کاغذ یکسان حساب نمی‌کنیم.</p>
+<p><a href="./">بازگشت به ADPAI</a> · نسخهٔ تست <span id="checkVersion"></span></p>
+</main><script type="module" src="./src/device-check.js?v=1.10.1"></script></body></html>

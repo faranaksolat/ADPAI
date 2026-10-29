@@ -1,4 +1,4 @@
-import {inspectCanvas,qualityMessage} from './photo-quality.js?v=1.10.0';
+import {inspectCanvas,qualityMessage} from './photo-quality.js?v=1.10.1';
 
 // No video-frame JPEG fallback: a 720p preview must not silently replace a
 // full-resolution system-camera photo. Unsupported browsers keep file capture.
@@ -25,7 +25,7 @@ export function createCameraSession({mediaDevices=globalThis.navigator?.mediaDev
   return blob;
  }};
 }
-export async function capturePhoto({language='en',onSystemCamera=()=>{}}={}){
+export async function capturePhoto({language='en',onSystemCamera=()=>{},onCaptureInfo=()=>{}}={}){
  const ko=language==='ko',dialog=document.createElement('dialog');dialog.className='cameraDialog';
  const title=document.createElement('h2');title.textContent=ko?'글자가 선명하게 보이도록 촬영하세요':'Bring the text into focus';
  const stage=document.createElement('div');stage.className='cameraStage';
@@ -38,7 +38,7 @@ export async function capturePhoto({language='en',onSystemCamera=()=>{}}={}){
  const cancel=button(ko?'취소':'Cancel','cancel'),system=button(ko?'휴대전화 카메라 사용':'Use phone camera','system'),torch=button(ko?'조명':'Light','torch'),take=button(ko?'사진 촬영':'Take photo','take');
  torch.hidden=true;torch.setAttribute('aria-pressed','false');take.className='btn primary';take.disabled=true;
  dialog.append(title,stage,hint,note,actions);document.body.appendChild(dialog);dialog.showModal();
- const session=createCameraSession();let timer,finished=false,busy=false,lastSample;
+ const session=createCameraSession();let timer,finished=false,busy=false,lastSample,captureSettings={};
  let resolveResult;const result=new Promise(resolve=>resolveResult=resolve);
  const done=value=>{if(finished)return;finished=true;clearTimeout(timer);session.close();video.srcObject=null;lastSample=null;sample.width=sample.height=1;document.removeEventListener('visibilitychange',visibility);window.removeEventListener('pagehide',leave);dialog.close();dialog.remove();resolveResult(value)};
  const leave=()=>done(null),visibility=()=>{if(document.hidden)done(null)};
@@ -65,6 +65,8 @@ export async function capturePhoto({language='en',onSystemCamera=()=>{}}={}){
  // A late permission response cannot revive a closed camera or leak its stream.
  session.start().then(async({stream,track,capabilities})=>{
   if(finished)return;video.srcObject=stream;await video.play();if(finished)return;
+  const settings=track.getSettings?.()||{};
+  captureSettings={facing_mode:settings.facingMode||null,focus_mode:settings.focusMode||null};
   if(video.videoWidth&&video.videoHeight){stage.style.aspectRatio=video.videoWidth+'/'+video.videoHeight;stage.style.width=`min(100%, ${55*video.videoWidth/video.videoHeight}dvh)`;stage.style.minHeight='0';stage.style.marginInline='auto';video.style.height='100%';video.style.maxHeight='none'}
   track.addEventListener?.('ended',leave,{once:true});
   take.disabled=false;torch.hidden=!capabilities.torch;let lit=false;
@@ -75,6 +77,8 @@ export async function capturePhoto({language='en',onSystemCamera=()=>{}}={}){
   if(busy||finished)return;busy=true;take.disabled=true;torch.disabled=true;
   try{
    const blob=await session.photo();if(finished)return;
+   // Opt-in, local diagnostics. Do not expose deviceId/groupId or device labels.
+   try{onCaptureInfo({route:'image_capture',preview_width:video.videoWidth,preview_height:video.videoHeight,...captureSettings})}catch{}
    const file=new File([blob],'camera-photo',{type:blob.type||'image/jpeg'});done(file);
   }catch{if(!finished){hint.textContent=ko?'사진을 촬영하지 못했습니다. 휴대전화 카메라를 사용해 주세요.':'Could not take a full-resolution photo. Use phone camera.';take.disabled=false;torch.disabled=false}}
   finally{busy=false}

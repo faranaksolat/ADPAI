@@ -1,4 +1,4 @@
-import {validateQuad,rectifyPhoto} from './geometry.js?v=1.10.0';
+import {validateQuad,rectifyPhoto} from './geometry.js?v=1.10.1';
 // A local, explicit crop. Never infer that a cropped panel covers a package.
 export async function cropPhoto(file,language='en',{purpose='shopping'}={}) {
   const ko=language==='ko';

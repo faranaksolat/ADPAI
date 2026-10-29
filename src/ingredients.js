@@ -1,6 +1,6 @@
-import { GLOSSARY } from './ingredient-glossary.js?v=1.10.0';
-import { NON_DAIRY_PHRASES } from './ontology.js?v=1.10.0';
-import { labelPattern } from './label-pattern.js?v=1.10.0';
+import { GLOSSARY } from './ingredient-glossary.js?v=1.10.1';
+import { NON_DAIRY_PHRASES } from './ontology.js?v=1.10.1';
+import { labelPattern } from './label-pattern.js?v=1.10.1';
 
 // Keep offsets in original OCR text. Folding before slicing would corrupt
 // accented names and provenance. This module is display-only.
