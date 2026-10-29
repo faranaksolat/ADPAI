@@ -10,12 +10,12 @@ await fs.rm(out,{recursive:true,force:true});
 await fs.mkdir(out,{recursive:true});
 let html=await fs.readFile(path.join(root,'index.html'),'utf8');
 html=html.replace('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js','./vendor/tesseract/tesseract.min.js')
-  .replace('./src/browser.js?v=1.11.0','./mobile.js');
+  .replace('./src/browser.js?v=1.11.1','./mobile.js');
 if(html.includes('cdn.jsdelivr.net') || html.includes('./src/browser.js')) throw new Error('Mobile entry point replacement failed');
 await fs.writeFile(path.join(out,'index.html'),html);
 const cosmetics=(await fs.readFile(path.join(root,'cosmetics.html'),'utf8'))
  .replace('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js','./vendor/tesseract/tesseract.min.js')
- .replace('./src/cosmetics-browser.js?v=1.11.0','./cosmetics.js');
+ .replace('./src/cosmetics-browser.js?v=1.11.1','./cosmetics.js');
 if(cosmetics.includes('cdn.jsdelivr.net')||cosmetics.includes('./src/cosmetics-browser.js'))throw Error('Cosmetics mobile entry replacement failed');
 await fs.writeFile(path.join(out,'cosmetics.html'),cosmetics);
 for(const file of ['privacy.html','manifest.webmanifest']) await fs.copyFile(path.join(root,file),path.join(out,file));
@@ -36,6 +36,10 @@ for(const lang of ['kor','eng','fra']) {
   await fs.writeFile(path.join(out,`vendor/tessdata/${lang}.traineddata`),gunzipSync(compressed));
 }
 await fs.mkdir(path.join(out,'licenses'),{recursive:true});
+// Cosmetic Korean can use the classic decoder. Keep its model and cache
+// separate from the compact LSTM-only food/menu model.
+await fs.mkdir(path.join(out,'vendor/tessdata-cosmetic'),{recursive:true});
+await fs.writeFile(path.join(out,'vendor/tessdata-cosmetic/kor.traineddata'),gunzipSync(await fs.readFile(path.join(root,'node_modules/@tesseract.js-data/kor/4.0.0/kor.traineddata.gz'))));
 await fs.copyFile(path.join(root,'mobile/THIRD_PARTY_NOTICES.md'),path.join(out,'licenses/NOTICE.md'));
 await fs.copyFile(path.join(root,'mobile/TESSDATA-LICENSE.txt'),path.join(out,'licenses/TESSDATA-LICENSE.txt'));
 for(const [pkg,file] of [['tesseract.js','LICENSE.md'],['tesseract.js-core','LICENSE'],['@capacitor/core','LICENSE'],['@capacitor/camera','LICENSE']]) {

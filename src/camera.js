@@ -1,4 +1,4 @@
-import {inspectCanvas,qualityMessage} from './photo-quality.js?v=1.11.0';
+import {inspectCanvas,qualityMessage} from './photo-quality.js?v=1.11.1';
 
 // No video-frame JPEG fallback: a 720p preview must not silently replace a
 // full-resolution system-camera photo. Unsupported browsers keep file capture.

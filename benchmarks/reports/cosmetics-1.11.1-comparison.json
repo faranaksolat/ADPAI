@@ -1,0 +1,211 @@
+{
+  "schema": "adpai-cosmetic-development-comparison-v1",
+  "scope": "authored_development_cards_not_real_product_or_independent_holdout_accuracy",
+  "clinical_validation": false,
+  "real_product_images": 0,
+  "physical_device_tests": 0,
+  "global_accuracy_estimate": null,
+  "input_sha256": [
+    "367fd2ddab027fb763c30a2d2a76ec16dec1e32bcfdabe64fefc30988f409d19",
+    "c858c02aa6df84f0bc255ab9cf7832d22093152d55bf75c52d9dde23264e1fb2"
+  ],
+  "capture_count": 10,
+  "identical_fixture_hashes": true,
+  "baseline": {
+    "expected": 56,
+    "names_available_for_explanation": 46,
+    "names_in_verified_ingredient_context": 46,
+    "missing_names": 10,
+    "additional_identity_predictions": 0,
+    "additional_context_verified_predictions": 0,
+    "observed_desktop_median_ms": 8101.5
+  },
+  "current": {
+    "expected": 56,
+    "names_available_for_explanation": 50,
+    "names_in_verified_ingredient_context": 48,
+    "missing_names": 6,
+    "additional_identity_predictions": 0,
+    "additional_context_verified_predictions": 0,
+    "observed_desktop_median_ms": 5766.5
+  },
+  "languages": {
+    "en": {
+      "baseline": {
+        "expected": 28,
+        "names_available_for_explanation": 28,
+        "names_in_verified_ingredient_context": 28,
+        "missing_names": 0,
+        "additional_identity_predictions": 0,
+        "additional_context_verified_predictions": 0,
+        "observed_desktop_median_ms": 8532
+      },
+      "current": {
+        "expected": 28,
+        "names_available_for_explanation": 28,
+        "names_in_verified_ingredient_context": 28,
+        "missing_names": 0,
+        "additional_identity_predictions": 0,
+        "additional_context_verified_predictions": 0,
+        "observed_desktop_median_ms": 6845
+      }
+    },
+    "ko": {
+      "baseline": {
+        "expected": 28,
+        "names_available_for_explanation": 18,
+        "names_in_verified_ingredient_context": 18,
+        "missing_names": 10,
+        "additional_identity_predictions": 0,
+        "additional_context_verified_predictions": 0,
+        "observed_desktop_median_ms": 7671
+      },
+      "current": {
+        "expected": 28,
+        "names_available_for_explanation": 22,
+        "names_in_verified_ingredient_context": 20,
+        "missing_names": 6,
+        "additional_identity_predictions": 0,
+        "additional_context_verified_predictions": 0,
+        "observed_desktop_median_ms": 5539
+      }
+    }
+  },
+  "recognition_gate_passed": false,
+  "notes": [
+    "Names can be explained while their ingredient-panel context remains uncertain; this is not absence-of-allergen testing.",
+    "Deliberately unregistered strings, where present, are negative vocabulary controls, not real ingredients.",
+    "Cache state was not measured; timings are a small desktop development observation, not phone latency.",
+    "The data were used during development; no independent human reference or held-out market benchmark is claimed."
+  ],
+  "cases": [
+    {
+      "card": "en-authored-clear",
+      "language": "en",
+      "fixture_sha256": "449cb9eac7919177e0bf64ca1de3c696ea106e277484f21dbeb72a3fab3b0a79",
+      "expected": 6,
+      "before": 6,
+      "after": 6,
+      "context_verified_before": 6,
+      "context_verified_after": 6,
+      "still_missing": [],
+      "additional": []
+    },
+    {
+      "card": "ko-authored-clear",
+      "language": "ko",
+      "fixture_sha256": "3fd43b4e7086277b6e512fb3dd356ef0aa8cc5234b41f9a7a160a8d61cdacec1",
+      "expected": 6,
+      "before": 3,
+      "after": 6,
+      "context_verified_before": 3,
+      "context_verified_after": 5,
+      "still_missing": [],
+      "additional": []
+    },
+    {
+      "card": "en-moisturizer",
+      "language": "en",
+      "fixture_sha256": "5409cdd6e21d4a701ca52fbcabc500b03ce7e12d9f61750434f599c03d0f56cc",
+      "expected": 8,
+      "before": 8,
+      "after": 8,
+      "context_verified_before": 8,
+      "context_verified_after": 8,
+      "still_missing": [],
+      "additional": []
+    },
+    {
+      "card": "ko-moisturizer",
+      "language": "ko",
+      "fixture_sha256": "ddf33797b63e95e31f46d0e6a91c69f8b6ff8cf80f213126454d3e0bee44907f",
+      "expected": 8,
+      "before": 5,
+      "after": 5,
+      "context_verified_before": 5,
+      "context_verified_after": 5,
+      "still_missing": [
+        "Sodium Hyaluronate",
+        "Disodium EDTA",
+        "Ethylhexylglycerin"
+      ],
+      "additional": []
+    },
+    {
+      "card": "en-cleanser",
+      "language": "en",
+      "fixture_sha256": "077333a6aceb7440cb0b7cb1c2249871304707b58fa7d95140f3f473bb42abe7",
+      "expected": 6,
+      "before": 6,
+      "after": 6,
+      "context_verified_before": 6,
+      "context_verified_after": 6,
+      "still_missing": [],
+      "additional": []
+    },
+    {
+      "card": "ko-cleanser",
+      "language": "ko",
+      "fixture_sha256": "4e8331cc55d63504a39859a53a3e968c5df445d95acff34ecd8351242aebff50",
+      "expected": 6,
+      "before": 3,
+      "after": 3,
+      "context_verified_before": 3,
+      "context_verified_after": 3,
+      "still_missing": [
+        "Sodium Laureth Sulfate",
+        "Sodium Cocoyl Isethionate",
+        "Sodium Benzoate"
+      ],
+      "additional": []
+    },
+    {
+      "card": "en-fragrance",
+      "language": "en",
+      "fixture_sha256": "241be895aaf5902bd5670589c09ac9a1ea27457097c7901c103ea064e5155d21",
+      "expected": 6,
+      "before": 6,
+      "after": 6,
+      "context_verified_before": 6,
+      "context_verified_after": 6,
+      "still_missing": [],
+      "additional": []
+    },
+    {
+      "card": "ko-fragrance",
+      "language": "ko",
+      "fixture_sha256": "4caf2b86d39dfda3a89d52e2d4134032f9dc952319edd8e2e8afffb97d7a2e7b",
+      "expected": 6,
+      "before": 5,
+      "after": 6,
+      "context_verified_before": 5,
+      "context_verified_after": 5,
+      "still_missing": [],
+      "additional": []
+    },
+    {
+      "card": "en-unknown-controls",
+      "language": "en",
+      "fixture_sha256": "eeb1a79820c5dcb0880fef1fc58162c487ca156ff5a7ca2c65162d47bc1fe132",
+      "expected": 2,
+      "before": 2,
+      "after": 2,
+      "context_verified_before": 2,
+      "context_verified_after": 2,
+      "still_missing": [],
+      "additional": []
+    },
+    {
+      "card": "ko-unknown-controls",
+      "language": "ko",
+      "fixture_sha256": "148b873624feb48f06d584d115b2cd3bd96e13553a16c45ff5ee0421d397e11f",
+      "expected": 2,
+      "before": 2,
+      "after": 2,
+      "context_verified_before": 2,
+      "context_verified_after": 2,
+      "still_missing": [],
+      "additional": []
+    }
+  ]
+}

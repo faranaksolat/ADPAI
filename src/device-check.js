@@ -1,8 +1,8 @@
-import {capturePhoto,supportsLivePhoto} from './camera.js?v=1.11.0';
-import {inspectPhoto} from './photo-quality.js?v=1.11.0';
-import {analyzeProducts} from './tesseract.js?v=1.11.0';
-import {CARD_REFERENCES,DEVICE_CHECK_VERSION,buildDeviceReport} from './device-report.js?v=1.11.0';
-import {chooseShareFile,originalPhotoName,shareLocalFile} from './device-export.js?v=1.11.0';
+import {capturePhoto,supportsLivePhoto} from './camera.js?v=1.11.1';
+import {inspectPhoto} from './photo-quality.js?v=1.11.1';
+import {analyzeProducts} from './tesseract.js?v=1.11.1';
+import {CARD_REFERENCES,DEVICE_CHECK_VERSION,buildDeviceReport} from './device-report.js?v=1.11.1';
+import {chooseShareFile,originalPhotoName,shareLocalFile} from './device-export.js?v=1.11.1';
 const $=selector=>document.querySelector(selector),cameraInput=$('#systemCamera');
 let pending=null,running=false,lastReport=null,lastPhoto=null,photoUrl=null,reportUrl=null,reportShare=null,photoShare=null,sharing=false;
 const labels={milk:'شیر',wheat:'گندم',egg:'تخم‌مرغ'},names=ids=>ids.map(id=>labels[id]||id).join('، ')||'هیچ موردی';

@@ -47,7 +47,19 @@ test('warnings, optional colours, fragrance mixtures and weak heading words cann
 });
 test('cosmetic OCR uses the local Korean/English reader, releases its worker and preserves failures',async()=>{
  let terminated=0;
- const read=await readCosmeticPhotos([{}],{prepare:async()=>({width:10,height:10}),createWorker:async langs=>{assert.deepEqual(langs,['kor','eng']);return {recognize:async()=>({data:{words:[{text:'전성분:',confidence:97},{text:'코코넛야자오일',confidence:30}]}}),terminate:async()=>terminated++}}});
- assert.equal(terminated,1);assert.equal(read.sources[0].items[1].score,.3);assert.equal(evaluateCosmetics(read.sources,{coconut:true}).listed.length,0);
+ const languages=[];
+ const read=await readCosmeticPhotos([{}],{prepare:async()=>({width:10,height:10}),createWorker:async langs=>{languages.push(langs);return {recognize:async()=>({data:{words:[{text:'전성분:',confidence:97,line_num:0},{text:'코코넛야자오일',confidence:30,line_num:0}]}}),terminate:async()=>terminated++}}});
+ assert.equal(terminated,2);assert.deepEqual(languages,[['kor'],['eng']]);assert.equal(read.sources[0].items[1].score,.3);assert.equal(evaluateCosmetics(read.sources,{coconut:true}).listed.length,0);
  const bad=await readCosmeticPhotos([{}],{createWorker:async()=>{throw Error('offline')}});assert.ok(bad.errors.length);assert.deepEqual(bad.sources,[]);
+});
+test('a stalled reinitialization has one photo deadline and cannot start a late recognition',async()=>{
+ let resume,recognitions=0,terminated=0;const held=new Promise(resolve=>resume=resolve);
+ const r=await readCosmeticPhotos([{}],{maxPhotoMs:15,prepare:async()=>({width:10,height:10}),createWorker:async()=>({reinitialize:()=>held,setParameters:async()=>{},recognize:async()=>{recognitions++;return {data:{words:[]}}},terminate:async()=>terminated++})});
+ assert.equal(recognitions,0);assert.ok(terminated>=1);assert.ok(r.errors.some(e=>/budget/u.test(e.message)));resume();await new Promise(resolve=>setTimeout(resolve,0));assert.equal(recognitions,0);
+});
+test('a later model failure preserves earlier evidence and leaves the error explicit',async()=>{
+ const r=await readCosmeticPhotos([{}],{prepare:async()=>({width:10,height:10}),createWorker:async langs=>{
+  if(langs.includes('eng'))throw Error('English model offline');return {recognize:async()=>({data:{words:[{text:'Ingredients:',confidence:95,line_num:0},{text:'Cocos Nucifera Oil',confidence:92,line_num:0}]}}),terminate:async()=>{}};
+ }});
+ assert.ok(r.errors.some(e=>e.profile==='cosmetic-english'));assert.ok(r.sources.length);assert.equal(evaluateCosmetics(r.sources,{coconut:true}).status,'listed_avoid');assert.equal(evaluateCosmetics(r.sources,{coconut:true}).safety_certified,false);
 });

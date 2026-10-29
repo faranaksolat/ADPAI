@@ -13,7 +13,11 @@ export function flattenWords(data){
 }
 export async function createManagedWorker(langs,oem=1,options={}){
   const {workerPath=SCRIPT,logger=()=>{},initializationTimeoutMs=45000,recognitionTimeoutMs=30000,
-    WorkerClass=globalThis.Worker,...runtime}=options;
+    WorkerClass=globalThis.Worker,userWords=[],legacyCore=false,...runtime}=options;
+  if(!Array.isArray(userWords)||userWords.length>1000||userWords.some(word=>typeof word!=='string'||!word.trim()||word.length>200||/[\r\n\0]/u.test(word)))throw Error('Invalid OCR vocabulary');
+  const vocabulary=[...new Set(userWords)].join('\n')+'\n';
+  if(new TextEncoder().encode(vocabulary).length>131072)throw Error('OCR vocabulary too large');
+  const config=userWords.length?{user_words_file:'/adpai-user-words'}:{};
   const script=new URL(workerPath,globalThis.location?.href);
   if(!['https:','http:'].includes(script.protocol))throw Error('Unsupported OCR worker URL');
   const bootstrap=URL.createObjectURL(new Blob([`importScripts(${JSON.stringify(script.href)});`],{type:'application/javascript'}));
@@ -42,16 +46,18 @@ export async function createManagedWorker(langs,oem=1,options={}){
   worker.onerror=event=>terminate(new Error(event.message||'OCR worker failed'));
   worker.onmessageerror=()=>terminate(new Error('OCR worker message could not be decoded'));
   try{
-    await job('load',{options:{lstmOnly:true,corePath:runtime.corePath,logging:false}},initializationTimeoutMs);
-    await job('loadLanguage',{langs,options:{...runtime,lstmOnly:true,gzip:runtime.gzip!==false}},initializationTimeoutMs);
-    await job('initialize',{langs,oem,config:{}},initializationTimeoutMs);
+    await job('load',{options:{lstmOnly:!legacyCore,corePath:runtime.corePath,logging:false}},initializationTimeoutMs);
+    await job('loadLanguage',{langs,options:{...runtime,lstmOnly:!legacyCore,gzip:runtime.gzip!==false}},initializationTimeoutMs);
+    if(userWords.length)await job('FS',{method:'writeFile',args:['/adpai-user-words',vocabulary]},initializationTimeoutMs);
+    await job('initialize',{langs,oem,config},initializationTimeoutMs);
   }catch(error){terminate(error);throw error}
   return {
     get closed(){return closed},
     async reinitialize(nextLangs,nextOem=oem){
       const loaded=new Set(typeof langs==='string'?langs.split('+'):langs);
       if(!nextLangs.every(lang=>loaded.has(lang)))throw Error('OCR language was not loaded');
-      return job('initialize',{langs:nextLangs,oem:nextOem,config:{}},initializationTimeoutMs);
+      if(nextOem===0&&!legacyCore)throw Error('Legacy OCR was not enabled');
+      return job('initialize',{langs:nextLangs,oem:nextOem,config},initializationTimeoutMs);
     },
     async recognize(image,{timeoutMs=recognitionTimeoutMs}={}){
       let blob;

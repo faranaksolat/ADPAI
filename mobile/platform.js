@@ -29,6 +29,8 @@ if(Capacitor.isNativePlatform()) {
 globalThis.ADPAI_OCR_OPTIONS=def=>({
   workerPath:new URL('./vendor/tesseract/worker.min.js',document.baseURI).href,
   corePath:new URL('./vendor/tesseract-core/',document.baseURI).href,
-  ...(def.langs.every(lang=>['kor','eng','fra'].includes(lang))
+  ...(def.id==='cosmetic-korean-full'
+    ? {langPath:new URL('./vendor/tessdata-cosmetic/',document.baseURI).href,gzip:false}
+    : def.langs.every(lang=>['kor','eng','fra'].includes(lang))
     ? {langPath:new URL('./vendor/tessdata/',document.baseURI).href,gzip:false}:{}),
 });

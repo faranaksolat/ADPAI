@@ -1,10 +1,10 @@
-import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.11.0';
-import { preprocess, rotateCanvas, resizeForOcr, needsRetake, releasePhotoSource } from './image.js?v=1.11.0';
-import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.11.0';
-import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.11.0';
-import {createManagedWorker} from './ocr-worker.js?v=1.11.0';
-import {readMenuPhoto} from './menu-ocr.js?v=1.11.0';
-import {analyzeNativeProducts} from './native-ocr.js?v=1.11.0';
+import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.11.1';
+import { preprocess, rotateCanvas, resizeForOcr, needsRetake, releasePhotoSource } from './image.js?v=1.11.1';
+import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.11.1';
+import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.11.1';
+import {createManagedWorker} from './ocr-worker.js?v=1.11.1';
+import {readMenuPhoto} from './menu-ocr.js?v=1.11.1';
+import {analyzeNativeProducts} from './native-ocr.js?v=1.11.1';
 
 const PRIMARY = {id: 'korean', langs: ['kor','eng','fra'], label: 'Korean / English / French'};
 const FALLBACKS = [

@@ -7,6 +7,12 @@ The language-package metadata declares MIT; the upstream Tesseract model
 files are also distributed under Apache-2.0. The build includes the license
 texts and package READMEs in `licenses/`.
 
+The cosmetic preview also includes the full Korean `4.0.0` model from the same
+pinned `@tesseract.js-data/kor@1.0.0` package, alongside the compact
+`4.0.0_best_int` model used for food/menu OCR. The full Korean model enables
+classic decoding and uses the same bundled upstream license. No new model
+provider receives cosmetic images or label text.
+
 Sources: https://github.com/naptha/tesseract.js,
 https://github.com/naptha/tesseract.js-core, https://github.com/naptha/tessdata,
 https://github.com/ionic-team/capacitor, https://github.com/ionic-team/capacitor-plugins.

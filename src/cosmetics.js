@@ -1,6 +1,6 @@
-import {COSMETIC_GLOSSARY,COSMETIC_CATALOG_META} from './cosmetic-glossary.js?v=1.11.0';
-import {sourceTranscript} from './ingredients.js?v=1.11.0';
-import {labelPattern} from './label-pattern.js?v=1.11.0';
+import {COSMETIC_GLOSSARY,COSMETIC_CATALOG_META} from './cosmetic-glossary.js?v=1.11.1';
+import {sourceTranscript} from './ingredients.js?v=1.11.1';
+import {labelPattern} from './label-pattern.js?v=1.11.1';
 
 // Exact normalized identities. No edit-distance correction, family inference,
 // substring matches (e.g. SLS vs SLES), or source/safety inference from an acid.
@@ -11,10 +11,11 @@ for(const entry of COSMETIC_GLOSSARY)for(const alias of entry.aliases){
 }
 export const lookupCosmetic=name=>byName.get(normalizeCosmetic(name))||null;
 const headings=['full ingredient list','all ingredients','ingredients','inactive ingredients','active ingredients','전성분','전체성분','유효성분','기타첨가제'].map(x=>labelPattern(x)).join('|');
-const headingPattern=new RegExp(`(?:^|\\n)[ \\t]*(?:${headings})[ \\t]*(?:[:：]|(?=\\r?\\n|$))`,'gimu');
+const headingPattern=new RegExp(`(?:^|\\n)[ \\t]*(?:${headings})[ \\t]*(?:[:：ː﹕]|(?=\\r?\\n|$))`,'gimu');
 const stop=new RegExp(`(?:^|\\n)[ \\t]*(?:directions|how to use|warnings?|cautions?|${['사용방법','사용할 때의 주의사항','사용시 주의사항','주의사항','제조업자','제조번호','화장품책임판매업자'].map(x=>labelPattern(x)).join('|')})(?:[ \\t]*[:：]|[ \\t]*(?=\\r?\\n|$))`,'imu');
 const optional=/(?:may\s+contain\s*(?:\(\s*\+\s*\/\s*-\s*\))?\s*[:：]?|\+\s*\/\s*-\s*[:：]?|±\s*[:：]?|포함될\s*수\s*있음\s*[:：]?)/iu;
 function confidenceAt(spans,start,end){const scores=spans.filter(s=>s.end>start&&s.start<end&&s.end>s.start).map(s=>s.score);return scores.length?Math.min(...scores):0}
+function flaggedAt(source,spans,start,end,flag){return spans.some((s,i)=>s.end>start&&s.start<end&&source.items[i]?.[flag]===true)}
 function pieces(text){
  const out=[];let depth=0,start=0;
  for(let i=0;i<text.length;i++){
@@ -32,7 +33,7 @@ export function evaluateCosmetics(sources,{avoid=[],coconut=false}={}){
   if(text.length>bodyLimit)truncated=true;
   const limited=text.slice(0,bodyLimit),heads=[...limited.matchAll(headingPattern)];
   const sections=heads.length?heads.map((head,i)=>({start:head.index+head[0].length,end:heads[i+1]?.index??limited.length,
-   context:typed||confidenceAt(spans,head.index,head.index+head[0].length)>=.65})):[{start:0,end:limited.length,context:false}];
+   context:typed||(confidenceAt(spans,head.index,head.index+head[0].length)>=.65&&!flaggedAt(source,spans,head.index,head.index+head[0].length,'aggregate_confidence')&&!flaggedAt(source,spans,head.index,head.index+head[0].length,'context_clipped'))})):[{start:0,end:limited.length,context:false}];
   for(const section of sections){
    let body=limited.slice(section.start,section.end);const end=stop.exec(body);if(end)body=body.slice(0,end.index);
    const possible=optional.exec(body),parts=pieces(body);if(parts.length>180)truncated=true;
@@ -40,9 +41,10 @@ export function evaluateCosmetics(sources,{avoid=[],coconut=false}={}){
     const raw=body.slice(part.start,part.end),original=raw.trim().replace(/[.。]+$/u,'').trim();if(!original)continue;
     const lookup=original.replace(optional,'').replace(/\s+\d+(?:\.\d+)?\s*%$/u,'').trim(),entry=lookupCosmetic(lookup);
     const start=section.start+part.start+raw.indexOf(raw.trim()),score=typed?null:confidenceAt(spans,start,section.start+part.end);
-    const uncertain=(!typed&&score<.65)||!section.context||!!(possible&&part.end>possible.index);
+    const aggregate=flaggedAt(source,spans,start,section.start+part.end,'aggregate_confidence'),clipped=flaggedAt(source,spans,start,section.start+part.end,'context_clipped');
+    const readingUncertain=!typed&&(score<.65||aggregate),uncertain=readingUncertain||clipped||!section.context||!!(possible&&part.end>possible.index);
     const key=[source.photoIndex??sourceIndex,normalizeCosmetic(original),uncertain,section.context].join(':');if(seen.has(key))continue;seen.add(key);
-    rows.push({original,entry,confidence:score,uncertain,reading_uncertain:!typed&&score<.65,ingredient_context:section.context,input_origin:typed?'typed':'ocr',
+    rows.push({original,entry,confidence:score,uncertain,reading_uncertain:readingUncertain,aggregate_confidence:aggregate,context_clipped:clipped,ingredient_context:section.context,input_origin:typed?'typed':'ocr',
      photoIndex:source.photoIndex??sourceIndex,familyId:source.familyId,source_index:sourceIndex});
    }
   }

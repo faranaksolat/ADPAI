@@ -202,7 +202,7 @@ try {
     assert.equal(await evaluate(`document.documentElement.scrollWidth<=window.innerWidth`),true);
     if(!mobileWeb){
     const cornerColors=await evaluate(`(async()=>{
-      const {rectifyPhoto}=await import('./src/geometry.js?v=1.11.0');const c=document.createElement('canvas');c.width=c.height=40;const ctx=c.getContext('2d');
+      const {rectifyPhoto}=await import('./src/geometry.js?v=1.11.1');const c=document.createElement('canvas');c.width=c.height=40;const ctx=c.getContext('2d');
       for(let y=0;y<40;y++)for(let x=0;x<40;x++){ctx.fillStyle='rgb('+x*6+','+y*6+',0)';ctx.fillRect(x,y,1,1)}
       const output=await rectifyPhoto(c,[{x:10,y:5},{x:30,y:10},{x:35,y:30},{x:5,y:35}]);const d=output.getContext('2d').getImageData(0,0,output.width,output.height).data;
       return [0,(output.width-1)*4,(output.height*output.width-1)*4,((output.height-1)*output.width)*4].map(i=>[d[i],d[i+1],d[i+2]]);
@@ -263,7 +263,7 @@ try {
     assert.ok(await evaluate(`globalThis.captureStops>=1`));
     if(!mobileWeb){
       const route=await evaluate(`(async()=>{
-        const {analyzeProducts}=await import('./src/tesseract.js?v=1.11.0');
+        const {analyzeProducts}=await import('./src/tesseract.js?v=1.11.1');
         const r=await analyzeProducts([{photos:[{file:globalThis.fullStill}]}],{allergens:['milk']},{purpose:'menu',nativeReader:null,
           createWorker:async()=>({reinitialize:async()=>{},setParameters:async()=>{},terminate:async()=>{},recognize:async()=>({data:{words:[{text:'milk',confidence:40,bbox:{x0:20,y0:20,x1:90,y1:40}}]}})})});
         const p=r.products[0];return {originalRegions:p.sources.filter(s=>s.frame?.from_original&&s.frame.width===4032).length,unchangedScores:p.sources.every(s=>s.items.every(w=>w.score===.4)),status:p.status};
@@ -403,7 +403,7 @@ try {
   if(!mobileWeb&&!realOcr){
     const labLoaded=new Promise(resolve=>listeners.set('Page.loadEventFired',[resolve]));
     await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}${prefix}device-check.html`});await labLoaded;
-    await evaluate(`(async()=>{const end=Date.now()+10000;while(document.querySelector('#checkVersion').textContent!=='1.11.0'){if(Date.now()>end)throw Error('device page load timeout');await new Promise(r=>setTimeout(r,10))}})()`);
+    await evaluate(`(async()=>{const end=Date.now()+10000;while(document.querySelector('#checkVersion').textContent!=='1.11.1'){if(Date.now()>end)throw Error('device page load timeout');await new Promise(r=>setTimeout(r,10))}})()`);
     assert.equal(await evaluate(`document.querySelector('#takeTestPhoto').disabled`),true);
     await evaluate(`document.querySelector('#physicalConfirmed').checked=true;document.querySelector('#physicalConfirmed').dispatchEvent(new Event('change'))`);
     assert.equal(await evaluate(`document.querySelector('#takeTestPhoto').disabled`),true,'capture target must be chosen rather than silently recorded as paper');
@@ -462,7 +462,7 @@ try {
     await evaluate(`(async()=>{await navigator.serviceWorker.ready;const end=Date.now()+15000;while(!navigator.serviceWorker.controller){if(Date.now()>end)throw new Error('service worker did not claim page');await new Promise(r=>setTimeout(r,25))}})()`);
     const cache=await evaluate(`(async()=>({scope:(await navigator.serviceWorker.ready).scope,urls:(await Promise.all((await caches.keys()).map(async key=>(await (await caches.open(key)).keys()).map(r=>r.url)))).flat()}))()`);
     assert.ok(cache.scope.endsWith(prefix));
-    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.11.0')));
+    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.11.1')));
     assert.ok(cache.urls.every(url=>url.startsWith(cache.scope) && !/blob:|api\/|label\.png|profile/iu.test(url)));
     await send('Fetch.disable');
     await send('Network.enable');
@@ -476,7 +476,7 @@ try {
     assert.equal(await evaluate(`document.querySelector('#analyze').disabled`),true);
     assert.equal(await evaluate(`(async()=>(await fetch('./privacy.html')).ok)()`),true);
     // An offline shell is usable even when the CDN runtime is unavailable.
-    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.11.0');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
+    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.11.1');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
     assert.equal(offlineStatus,'unverified');
   }
   assert.deepEqual(errors,[]);
