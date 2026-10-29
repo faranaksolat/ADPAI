@@ -7,6 +7,17 @@ Android 1.7.0 adds a bundled Korean/Latin ML Kit reader through a local native
 bridge; Pages and iOS retain the browser Tesseract path. Native word scores are
 uncalibrated and cannot establish ingredient completeness or food safety.
 
+Version 1.11.0 adds a separate [cosmetics and personal-care preview](cosmetics.html)
+with 332 authored ingredient identities and 726 English/Korean names and aliases.
+The starter vocabulary is incomplete and pending independent terminology review;
+no real cosmetic-label accuracy or clinical safety validation is claimed.
+The explicit real-engine synthetic check currently fails its full-recovery
+gate on the Korean card; this preview is not ready for promotion to the live
+scanner. See the documented results before enabling it for users.
+Explicit coconut names stay separate from feedstock questions. Unknown names,
+uncertain OCR and unnamed fragrance mixtures remain unresolved. See
+[the scope, implementation and validation plan](docs/COSMETICS-1.11.0-fa.md).
+
 Version 1.10.2 adds file-type-aware sharing, selectable/copyable reports and
 original-image export fallbacks to the [user-run phone camera check](device-check.html)
 introduced in 1.10.1. Download and Web Share depend on browser support; no

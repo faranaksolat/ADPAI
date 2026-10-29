@@ -10,9 +10,14 @@ await fs.rm(out,{recursive:true,force:true});
 await fs.mkdir(out,{recursive:true});
 let html=await fs.readFile(path.join(root,'index.html'),'utf8');
 html=html.replace('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js','./vendor/tesseract/tesseract.min.js')
-  .replace('./src/browser.js?v=1.10.2','./mobile.js');
+  .replace('./src/browser.js?v=1.11.0','./mobile.js');
 if(html.includes('cdn.jsdelivr.net') || html.includes('./src/browser.js')) throw new Error('Mobile entry point replacement failed');
 await fs.writeFile(path.join(out,'index.html'),html);
+const cosmetics=(await fs.readFile(path.join(root,'cosmetics.html'),'utf8'))
+ .replace('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js','./vendor/tesseract/tesseract.min.js')
+ .replace('./src/cosmetics-browser.js?v=1.11.0','./cosmetics.js');
+if(cosmetics.includes('cdn.jsdelivr.net')||cosmetics.includes('./src/cosmetics-browser.js'))throw Error('Cosmetics mobile entry replacement failed');
+await fs.writeFile(path.join(out,'cosmetics.html'),cosmetics);
 for(const file of ['privacy.html','manifest.webmanifest']) await fs.copyFile(path.join(root,file),path.join(out,file));
 await fs.cp(path.join(root,'assets'),path.join(out,'assets'),{recursive:true});
 for(const file of ['tesseract.min.js','worker.min.js']) {
@@ -38,4 +43,5 @@ for(const [pkg,file] of [['tesseract.js','LICENSE.md'],['tesseract.js-core','LIC
 }
 for(const lang of ['kor','eng','fra']) await fs.copyFile(path.join(root,`node_modules/@tesseract.js-data/${lang}/README.md`),path.join(out,`licenses/tessdata-${lang}.md`));
 await build({absWorkingDir:root,entryPoints:['mobile/entry.js'],outfile:'dist/mobile.js',bundle:true,format:'esm',target:['es2022'],minify:true,legalComments:'eof'});
+await build({absWorkingDir:root,entryPoints:['mobile/cosmetics-entry.js'],outfile:'dist/cosmetics.js',bundle:true,format:'esm',target:['es2022'],minify:true,legalComments:'eof'});
 console.log('Built dist/: shared allergen rules, native camera bridge, local OCR engine and primary models.');

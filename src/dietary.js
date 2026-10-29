@@ -1,4 +1,4 @@
-import {fold, matchSpans} from './engine.js?v=1.10.2';
+import {fold, matchSpans} from './engine.js?v=1.11.0';
 
 // Restaurant preferences only. These are lexical observations, not recipes,
 // halal certification, a calibrated probability, or a completeness policy.

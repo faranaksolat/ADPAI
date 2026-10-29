@@ -202,7 +202,7 @@ try {
     assert.equal(await evaluate(`document.documentElement.scrollWidth<=window.innerWidth`),true);
     if(!mobileWeb){
     const cornerColors=await evaluate(`(async()=>{
-      const {rectifyPhoto}=await import('./src/geometry.js?v=1.10.2');const c=document.createElement('canvas');c.width=c.height=40;const ctx=c.getContext('2d');
+      const {rectifyPhoto}=await import('./src/geometry.js?v=1.11.0');const c=document.createElement('canvas');c.width=c.height=40;const ctx=c.getContext('2d');
       for(let y=0;y<40;y++)for(let x=0;x<40;x++){ctx.fillStyle='rgb('+x*6+','+y*6+',0)';ctx.fillRect(x,y,1,1)}
       const output=await rectifyPhoto(c,[{x:10,y:5},{x:30,y:10},{x:35,y:30},{x:5,y:35}]);const d=output.getContext('2d').getImageData(0,0,output.width,output.height).data;
       return [0,(output.width-1)*4,(output.height*output.width-1)*4,((output.height-1)*output.width)*4].map(i=>[d[i],d[i+1],d[i+2]]);
@@ -263,7 +263,7 @@ try {
     assert.ok(await evaluate(`globalThis.captureStops>=1`));
     if(!mobileWeb){
       const route=await evaluate(`(async()=>{
-        const {analyzeProducts}=await import('./src/tesseract.js?v=1.10.2');
+        const {analyzeProducts}=await import('./src/tesseract.js?v=1.11.0');
         const r=await analyzeProducts([{photos:[{file:globalThis.fullStill}]}],{allergens:['milk']},{purpose:'menu',nativeReader:null,
           createWorker:async()=>({reinitialize:async()=>{},setParameters:async()=>{},terminate:async()=>{},recognize:async()=>({data:{words:[{text:'milk',confidence:40,bbox:{x0:20,y0:20,x1:90,y1:40}}]}})})});
         const p=r.products[0];return {originalRegions:p.sources.filter(s=>s.frame?.from_original&&s.frame.width===4032).length,unchangedScores:p.sources.every(s=>s.items.every(w=>w.score===.4)),status:p.status};
@@ -359,10 +359,51 @@ try {
   await evaluate(`document.querySelector('#shoppingMode').click();document.querySelector('#lang').value='en';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
   assert.equal(await evaluate(`document.querySelector('#menuWarning').hidden`),true);
   assert.equal(await evaluate(`document.querySelector('#menuDietary').hidden`),true);
+  // Cosmetics uses separate rules. Controlled OCR here does not measure accuracy.
+  if(!realOcr){
+    const foodProfile=await evaluate(`localStorage.getItem('aller_profile')`);
+    assert.ok((await evaluate(`document.querySelector('#cosmeticsMode').getAttribute('href')`)).endsWith('cosmetics.html'));
+    const careLoaded=new Promise(resolve=>listeners.set('Page.loadEventFired',[resolve]));
+    await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}${prefix}cosmetics.html`});await careLoaded;
+    await evaluate(`(async()=>{const end=Date.now()+10000;while(!document.querySelector('#catalogScope').textContent){if(Date.now()>end)throw Error('cosmetic page load timeout');await new Promise(r=>setTimeout(r,10))}})()`);
+    assert.equal(await evaluate(`document.querySelector('#careAnalyze').disabled`),true);
+    assert.equal(await evaluate(`document.documentElement.scrollWidth<=window.innerWidth`),true,'cosmetics phone layout overflow');
+    await evaluate(`(async()=>{
+      document.querySelector('#careInputMode').value='typed';document.querySelector('#careInputMode').dispatchEvent(new Event('change'));
+      document.querySelector('#avoidCoconut').checked=true;document.querySelector('#avoidCoconut').dispatchEvent(new Event('change'));
+      document.querySelector('#careText').value='Ingredients: Water, Cocos Nucifera (Coconut) Oil, Cocamidopropyl Betaine, Unknown Complex 7';document.querySelector('#careText').dispatchEvent(new Event('input'));document.querySelector('#careAnalyze').click();
+      const end=Date.now()+10000;while(document.querySelector('#careResult').hidden){if(Date.now()>end)throw Error('cosmetic manual result timeout');await new Promise(r=>setTimeout(r,10))}
+    })()`);
+    assert.ok((await evaluate(`document.querySelector('#careResultTitle').textContent`)).includes('Selected name listed'));
+    assert.ok((await evaluate(`document.querySelector('#careSummary').textContent`)).includes('entered text, not OCR'));
+    assert.ok((await evaluate(`document.querySelector('#careMatches').textContent`)).includes('not proof of coconut protein'));
+    assert.ok((await evaluate(`document.querySelector('#careRows').textContent`)).includes('Unknown Complex 7'));
+    await evaluate(`document.querySelector('#careLang').value='ko';document.querySelector('#careLang').dispatchEvent(new Event('change'))`);
+    assert.ok((await evaluate(`document.querySelector('#careRows').textContent`)).includes('코코넛 오일'));
+    assert.equal(await evaluate(`document.documentElement.scrollWidth<=window.innerWidth`),true,'Korean cosmetics phone layout overflow');
+    if(process.env.COSMETICS_SCREENSHOT){const {data}=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await fs.writeFile(process.env.COSMETICS_SCREENSHOT,Buffer.from(data,'base64'))}
+    await evaluate(`(async()=>{
+      document.querySelector('#careInputMode').value='photos';document.querySelector('#careInputMode').dispatchEvent(new Event('change'));
+      globalThis.testOcrText='전성분: 정제수, 나이아신아마이드, 코코넛야자오일, 코카미도프로필베타인, 미등록성분999';
+      const c=document.createElement('canvas');c.width=1200;c.height=400;c.getContext('2d').fillRect(0,0,1200,400);const f=new File([await new Promise(r=>c.toBlob(r))],'cosmetic-label.png',{type:'image/png'});
+      const transfer=new DataTransfer();transfer.items.add(f);const input=document.querySelector('#careFiles');input.files=transfer.files;input.dispatchEvent(new Event('change'));document.querySelector('#careAnalyze').click();
+      const end=Date.now()+15000;while(document.querySelector('#careResult').hidden){if(Date.now()>end)throw Error('cosmetic photo result timeout');await new Promise(r=>setTimeout(r,20))}
+    })()`);
+    assert.ok((await evaluate(`document.querySelector('#careResultTitle').textContent`)).includes('성분명이 표시됨'));
+    assert.ok((await evaluate(`document.querySelector('#careSummary').textContent`)).includes('OCR 추정'));
+    assert.ok((await evaluate(`document.querySelector('#careRows').textContent`)).includes('Niacinamide'));
+    assert.ok((await evaluate(`document.querySelector('#careRows').textContent`)).includes('미등록성분999'));
+    assert.equal(await evaluate(`localStorage.getItem('aller_profile')`),foodProfile,'cosmetics must not read or overwrite the food allergy profile');
+    await evaluate(`document.querySelector('#careReset').click()`);
+    assert.equal(await evaluate(`document.querySelector('#careResult').hidden&&document.querySelector('#careAnalyze').disabled`),true);
+    await evaluate(`(async()=>{document.querySelector('#careInputMode').value='typed';document.querySelector('#careInputMode').dispatchEvent(new Event('change'));document.querySelector('#careLang').value='en';document.querySelector('#careLang').dispatchEvent(new Event('change'));document.querySelector('#careText').value='Ingredients: Mystery compound';document.querySelector('#careText').dispatchEvent(new Event('input'));document.querySelector('#careAnalyze').click();await new Promise(r=>setTimeout(r,20))})()`);
+    assert.equal(await evaluate(`document.querySelector('#careResultTitle').textContent`),'Unable to verify suitability');
+    const returnLoaded=new Promise(resolve=>listeners.set('Page.loadEventFired',[resolve]));await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}${prefix}`});await returnLoaded;
+  }
   if(!mobileWeb&&!realOcr){
     const labLoaded=new Promise(resolve=>listeners.set('Page.loadEventFired',[resolve]));
     await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}${prefix}device-check.html`});await labLoaded;
-    await evaluate(`(async()=>{const end=Date.now()+10000;while(document.querySelector('#checkVersion').textContent!=='1.10.2'){if(Date.now()>end)throw Error('device page load timeout');await new Promise(r=>setTimeout(r,10))}})()`);
+    await evaluate(`(async()=>{const end=Date.now()+10000;while(document.querySelector('#checkVersion').textContent!=='1.11.0'){if(Date.now()>end)throw Error('device page load timeout');await new Promise(r=>setTimeout(r,10))}})()`);
     assert.equal(await evaluate(`document.querySelector('#takeTestPhoto').disabled`),true);
     await evaluate(`document.querySelector('#physicalConfirmed').checked=true;document.querySelector('#physicalConfirmed').dispatchEvent(new Event('change'))`);
     assert.equal(await evaluate(`document.querySelector('#takeTestPhoto').disabled`),true,'capture target must be chosen rather than silently recorded as paper');
@@ -421,7 +462,7 @@ try {
     await evaluate(`(async()=>{await navigator.serviceWorker.ready;const end=Date.now()+15000;while(!navigator.serviceWorker.controller){if(Date.now()>end)throw new Error('service worker did not claim page');await new Promise(r=>setTimeout(r,25))}})()`);
     const cache=await evaluate(`(async()=>({scope:(await navigator.serviceWorker.ready).scope,urls:(await Promise.all((await caches.keys()).map(async key=>(await (await caches.open(key)).keys()).map(r=>r.url)))).flat()}))()`);
     assert.ok(cache.scope.endsWith(prefix));
-    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.10.2')));
+    assert.ok(cache.urls.some(url=>url.endsWith('/src/engine.js?v=1.11.0')));
     assert.ok(cache.urls.every(url=>url.startsWith(cache.scope) && !/blob:|api\/|label\.png|profile/iu.test(url)));
     await send('Fetch.disable');
     await send('Network.enable');
@@ -435,7 +476,7 @@ try {
     assert.equal(await evaluate(`document.querySelector('#analyze').disabled`),true);
     assert.equal(await evaluate(`(async()=>(await fetch('./privacy.html')).ok)()`),true);
     // An offline shell is usable even when the CDN runtime is unavailable.
-    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.10.2');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
+    const offlineStatus=await evaluate(`(async()=>{const {analyzeProducts}=await import('./src/tesseract.js?v=1.11.0');globalThis.Tesseract=undefined;const result=await analyzeProducts([{id:1,photos:[{file:{}}]}],{allergens:['milk']});return result.products[0].status})()`);
     assert.equal(offlineStatus,'unverified');
   }
   assert.deepEqual(errors,[]);

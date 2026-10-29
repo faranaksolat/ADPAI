@@ -3,18 +3,18 @@ import {
   evaluateProduct,
   REQUIRED_BASE_FAMILIES,
   customRequiredFamilies,
-} from "./engine.js?v=1.10.2";
-import { deepScan, requiredFamiliesForProfile } from "./ocr.js?v=1.10.2";
+} from "./engine.js?v=1.11.0";
+import { deepScan, requiredFamiliesForProfile } from "./ocr.js?v=1.11.0";
 import {
   dHash,
   findLearnedTexts,
   saveCorrection,
   exportLearningData,
   getLearningCount,
-} from "./learning.js?v=1.10.2";
+} from "./learning.js?v=1.11.0";
 
 const MAX_PRODUCTS = 6;
-const APP_VERSION = "1.10.2-experimental";
+const APP_VERSION = "1.11.0-experimental";
 const MAX_PHOTOS = 3;
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];

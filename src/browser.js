@@ -1,12 +1,12 @@
-import { analyzeProducts } from "./tesseract.js?v=1.10.2";
-import { cropPhoto } from "./crop.js?v=1.10.2";
-import { explainIngredient, sourceTranscript } from "./ingredients.js?v=1.10.2";
-import { initPwa, updateInstallUI } from "./pwa.js?v=1.10.2";
-import { evaluateMenu } from './menu.js?v=1.10.2';
-import {normalizeDietary, dietaryConflict} from './dietary.js?v=1.10.2';
-import {inspectPhoto,qualityMessage} from './photo-quality.js?v=1.10.2';
-import {capturePhoto,supportsLivePhoto} from './camera.js?v=1.10.2';
-const APP_VERSION="1.10.2";
+import { analyzeProducts } from "./tesseract.js?v=1.11.0";
+import { cropPhoto } from "./crop.js?v=1.11.0";
+import { explainIngredient, sourceTranscript } from "./ingredients.js?v=1.11.0";
+import { initPwa, updateInstallUI } from "./pwa.js?v=1.11.0";
+import { evaluateMenu } from './menu.js?v=1.11.0';
+import {normalizeDietary, dietaryConflict} from './dietary.js?v=1.11.0';
+import {inspectPhoto,qualityMessage} from './photo-quality.js?v=1.11.0';
+import {capturePhoto,supportsLivePhoto} from './camera.js?v=1.11.0';
+const APP_VERSION="1.11.0";
 const MAX_PRODUCTS=6,MAX_PHOTOS=3;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const lang=$("#lang"),productsEl=$("#products"),analyze=$("#analyze"),result=$("#result"),loading=$("#loading"),productResults=$("#productResults");
@@ -30,6 +30,8 @@ Object.assign(I.en,{dietaryTitle:'Food preferences',dietaryIntro:'For restaurant
 Object.assign(I.ko,{dietaryTitle:'식이 선호',dietaryIntro:'식당 메뉴에서만 적용됩니다. 적힌 육수·지방 등 파생 원료도 확인합니다.',avoid_pork:'돼지고기 피하기',avoid_beef:'소고기·송아지고기 피하기',vegetarian:'채식',vegetarianDetail:'육류·가금류·생선·해산물과 그 육수·파생 원료 제외. 우유와 달걀은 허용합니다.',dietaryNotice:'메뉴에는 재료가 빠질 수 있습니다. 원료의 출처가 불명확하면 직원에게 확인하세요.',menuSelectedCount:'개 확인 항목 선택됨',menuProfileEmpty:'아직 선택한 성분이나 식이 선호가 없습니다',menuNoProfile:'확인할 성분 또는 식이 선호를 선택하세요.',dietaryConflict:'적힌 재료가 식이 선호와 맞지 않습니다 — 직원에게 확인',dietaryMatches:'식이 선호와 맞지 않는 재료',dietaryUncertain:'출처 또는 판독 불확실 — 직원에게 문의'});
 Object.assign(I.en,{retakeAdvice:'Some text could not be read clearly. Move closer, avoid glare and photograph one label or menu column at a time. Check the original text before choosing.'});
 Object.assign(I.ko,{retakeAdvice:'일부 문구가 선명하게 읽히지 않았습니다. 가까이서 빛 반사를 피하고 라벨이나 메뉴의 한 열씩 촬영해 주세요. 선택하기 전에 원문을 확인하세요.'});
+Object.assign(I.en,{cosmeticsMode:'Cosmetics & care · Preview →'});
+Object.assign(I.ko,{cosmeticsMode:'화장품·생활용품 · 테스트 →'});
 function t(k){return(I[lang.value]||I.en)[k]||I.en[k]||k}
 function updateModeText(){
   const menu=currentMode==='menu';

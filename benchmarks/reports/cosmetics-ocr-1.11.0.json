@@ -1,0 +1,54 @@
+{
+  "schema": "adpai-authored-cosmetic-ocr-gate-v1",
+  "scope": "two_authored_clear_cards_not_a_real_product_benchmark",
+  "physical_device_tests": 0,
+  "real_product_images": 0,
+  "independently_reviewed_labels": 0,
+  "clinical_validation": false,
+  "global_accuracy_estimate": null,
+  "cache_state": "not_measured",
+  "timing_scope": "Browser desktop, label processing and model initialization; excludes initial page load and shutter.",
+  "created_utc": "2026-10-29T11:57:43.982Z",
+  "release_gate_passed": false,
+  "source_sha256": {
+    "cosmetics.html": "7cda11be47e2518dd2a8c134b230b6e64c8465044e78ce89a39ae487082cf829",
+    "src/cosmetic-ocr.js": "e2d7c0925d69923b1e4a91561aeb191370c82e2343d84bee730fb1eef43ab881",
+    "src/cosmetics.js": "80793265ceca86273c2974e1f21d73e415971b7c977b86235a1d8f1823306ed3",
+    "src/cosmetic-glossary.js": "7c17a116bbaaa2ec3e31d8ed0e731c10dd69beab89d3a4c993a2bf290ec70da0",
+    "src/image.js": "90be4d6ec5a6a40c92cebcd25783eec0723bf9e3ecebe48e769cc1350d8bf255",
+    "src/menu-ocr.js": "2845998aaff8e66edb21d9ce99b9013b8861143b5a7e75a62bccddc007212853",
+    "src/menu-image.js": "83c37df076dc30948dca1a13918abe73de18f5a8620a3c1a191633b1cd41f926",
+    "src/tesseract.js": "c55cd44678d344fbaca6e1fd44c5b0dad4ef239d51c673f18b47d4ad75070e14",
+    "src/ocr-worker.js": "9d3a1c5abbbb3c3d581fb78a4ffbf02148495f442ca24891ed2f0ae3e4f6f3f9",
+    "mobile/cosmetics-entry.js": "4b77da34d40db0892aee249b69ee87a2dfff8bc5e8dacbade8ec457679cfb908",
+    "mobile/platform.js": "29d338d71430e1bc56ad23ad547df725c7b657d8cde9b4cc6e7fed6adc0794e1",
+    "tests/real-cosmetic-ocr.mjs": "f50c2483c0cedc98b675e9604b03f4aba4f24f404953353d10e52978d40f9861",
+    "dist/cosmetics.js": "b492c6ac1c4d9133cad8e7a5abe33a5322687d0a387b3754b925649256bcdec9",
+    "dist/vendor/tessdata/kor.traineddata": "ec1749377d49ac38fb3d3cd05dd5e2a53359d329f359762bc638a81132109992",
+    "dist/vendor/tessdata/eng.traineddata": "5dc5d8d640a212c9d6184921ba103b186f50e0fed9ee716c53e6b312b400d747"
+  },
+  "results": [
+    {
+      "card": "en-authored-clear",
+      "scope": "synthetic_clear_integration_only",
+      "expected": 6,
+      "recovered": 6,
+      "missed": [],
+      "elapsed_ms": 7564,
+      "physical_device": false
+    },
+    {
+      "card": "ko-authored-clear",
+      "scope": "synthetic_clear_integration_only",
+      "expected": 6,
+      "recovered": 3,
+      "missed": [
+        "Phenoxyethanol",
+        "Cocamidopropyl Betaine",
+        "Cocos Nucifera Oil"
+      ],
+      "elapsed_ms": 6344,
+      "physical_device": false
+    }
+  ]
+}
