@@ -12,18 +12,26 @@ decoding for the cosmetics preview. On 10 authored development cards, name
 recovery improved from 46/56 to 50/56; only 48/56 have verified ingredient
 context. Six names remain missed and the explicit recognition gate still fails.
 These are synthetic development observations, not real-product or clinical
-accuracy. The live scanner is not promoted. See [results and reproduction](docs/COSMETICS-1.11.1-fa.md).
+accuracy. The hosted interface is an experimental preview, not validated
+recognition or an allergy-suitability assessment. See [results and reproduction](docs/COSMETICS-1.11.1-fa.md)
+and [the web-preview scope and checks](docs/WEB-PREVIEW-1.11.1-fa.md).
 
 Version 1.11.0 adds a separate [cosmetics and personal-care preview](cosmetics.html)
 with 332 authored ingredient identities and 726 English/Korean names and aliases.
 The starter vocabulary is incomplete and pending independent terminology review;
 no real cosmetic-label accuracy or clinical safety validation is claimed.
 The explicit real-engine synthetic check currently fails its full-recovery
-gate on the Korean card; this preview is not ready for promotion to the live
-scanner. See the documented results before enabling it for users.
+gate on the Korean card; the hosted preview must not be presented as a reliable
+scanner. Full ingredient coverage and clinical suitability remain unverified.
 Explicit coconut names stay separate from feedstock questions. Unknown names,
 uncertain OCR and unnamed fragrance mixtures remain unresolved. See
 [the scope, implementation and validation plan](docs/COSMETICS-1.11.0-fa.md).
+
+The [bounded cosmetic-photo crawler](benchmarks/COSMETIC-CRAWLER-fa.md) is a
+separate Python/Windows development tool. It records source provenance,
+duplicate filtering and incomplete runs; it is not part of the browser app.
+Its offline tests do not establish live-source compatibility, a collected
+50-product dataset, or permission to redistribute retailer photographs.
 
 Version 1.10.2 adds file-type-aware sharing, selectable/copyable reports and
 original-image export fallbacks to the [user-run phone camera check](device-check.html)
