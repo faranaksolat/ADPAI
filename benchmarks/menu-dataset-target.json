@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "minimum_real_unique_menu_images": 1000,
+  "previous_500_image_goal_superseded": true,
+  "minimum_count_excludes": [
+    "augmentation",
+    "synthetic images",
+    "text crops from same image",
+    "byte duplicates",
+    "near duplicates"
+  ],
+  "restaurant_diversity_target": 200,
+  "restaurant_diversity_target_is_proposed": true,
+  "split_unit": "restaurant_or_chain_menu_family",
+  "required_metadata": [
+    "source_url",
+    "sha256",
+    "restaurant_id",
+    "usage_rights_status",
+    "annotation_review_status"
+  ],
+  "training_requires_reviewed_annotations": true,
+  "status": {
+    "downloaded_images": 18,
+    "human_annotated_images": 0,
+    "remaining_images_at_least": 982,
+    "minimum_met": false
+  },
+  "candidate_sources": [
+    {
+      "name": "AI-Hub 관광 음식메뉴판 데이터",
+      "url": "https://www.aihub.or.kr/aihubdata/data/view.do?dataSetSn=71553",
+      "reported_build_count": 100113,
+      "download_access_verified": false
+    },
+    {
+      "name": "Naver Maps",
+      "role": "restaurant discovery; image access and permitted use assessed per source",
+      "downloaded_in_this_batch": 0
+    }
+  ]
+}
