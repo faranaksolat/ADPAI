@@ -21,10 +21,14 @@
   ],
   "training_requires_reviewed_annotations": true,
   "status": {
-    "downloaded_images": 18,
-    "human_annotated_images": 0,
-    "remaining_images_at_least": 982,
-    "minimum_met": false
+    "downloaded_images": 1000,
+    "additional_seed_images_not_in_this_count": 18,
+    "source_annotated_images": 1000,
+    "independently_reviewed_images": 0,
+    "distinct_source_store_ids": 1000,
+    "remaining_images_at_least": 0,
+    "minimum_met": true,
+    "training_ready": false
   },
   "candidate_sources": [
     {
@@ -38,5 +42,14 @@
       "role": "restaurant discovery; image access and permitted use assessed per source",
       "downloaded_in_this_batch": 0
     }
-  ]
+  ],
+  "collection": {
+    "source": "https://huggingface.co/datasets/nopanderer/tourist_food_menu_ocr",
+    "revision": "83744ec86ffac9a557993f4a4d40a222b2d3de27",
+    "source_split": "upstream Validation; Seoul",
+    "selection": "one image per store_id, source archive order",
+    "deduplication": "SHA-256 exact and dHash Hamming distance <=4",
+    "rights_status": "mirror declares Apache-2.0; upstream terms not verified",
+    "model_training_performed": false
+  }
 }
