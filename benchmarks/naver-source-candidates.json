@@ -1,0 +1,18 @@
+{
+  "status": "discovery_only_not_training_data",
+  "observed_date": "2026-11-03",
+  "images_downloaded": 0,
+  "human_ocr_labels": 0,
+  "sources": [
+    {
+      "restaurant_id": "naver-1993190099",
+      "restaurant_name": "멘츠루 어린이대공원점",
+      "source_url": "https://map.naver.com/p/search/%EC%84%B8%EC%A2%85%EB%8C%80%ED%95%99%EA%B5%90%20%EC%9D%8C%EC%8B%9D%EC%A0%90/place/1993190099?c=14.00,0,0,0,dh&placePath=%2Fmenu%3Fentry%3Dbmp%26fromPanelNum%3D2%26timestamp%3D202611031532%26locale%3Dko%26svcName%3Dmap_pcv5%26searchText%3D%EC%84%B8%EC%A2%85%EB%8C%80%ED%95%99%EA%B5%90%20%EC%9D%8C%EC%8B%9D%EC%A0%90",
+      "menu_image_count_displayed": 1,
+      "structured_menu_items_observed": 11,
+      "license_status": "not_verified",
+      "training_eligible": false,
+      "note": "Menu text and a menu-image viewer were found by direct browser interaction. Image pixels have not been downloaded or annotated. Structured menu text is not ground truth for the photograph."
+    }
+  ]
+}
