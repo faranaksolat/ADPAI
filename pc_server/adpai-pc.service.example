@@ -1,0 +1,21 @@
+# TEMPLATE ONLY: replace USERNAME and both absolute project paths.
+# First complete the manual CPU smoke test described in UBUNTU-WORKSTATION-fa.md.
+[Unit]
+Description=ADPAI private workstation OCR pilot
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=USERNAME
+WorkingDirectory=/ABSOLUTE/PATH/ADPAI
+EnvironmentFile=/etc/adpai/pc.env
+ExecStart=/ABSOLUTE/PATH/ADPAI/.venv-pc/bin/python -m uvicorn pc_server.main:app --host 127.0.0.1 --port 8765 --workers 1 --limit-concurrency 8 --timeout-keep-alive 5 --no-access-log
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
