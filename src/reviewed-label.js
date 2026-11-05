@@ -1,4 +1,4 @@
-import {evaluateProduct} from './engine.js?v=parent-pilot-20261105-b1';
+import {evaluateProduct} from './engine.js?v=parent-pilot-20261105-b2';
 
 // A locally edited transcript is user-entered evidence, never proof that the
 // entire printed label has been captured or that a food is safe.
