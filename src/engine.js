@@ -212,9 +212,14 @@ function occurrenceKind(text, span, events) {
   if(cautionBefore||cautionAfter||SUFFIX_CAUTION.test(segment))return "caution";
   if(SUFFIX_DIRECT.test(segment))return "direct";
   if(local.some(e=>e.kind==='direct'&&e.start<=span.start))return "direct";
-  // Ingredients with a heading on the same printed line are direct.
-  // Unmarked continuation lines stay unresolved: OCR can omit a warning
-  // suffix and the user must not see a fabricated direct declaration.
+  // An explicitly printed ingredient heading can cover a short wrapped
+  // ingredient list, but a bare direct declaration (e.g. 함유) on a
+  // previous line cannot cover the next independent allergen warning.
+  const prior=events.filter(e=>e.start<span.start).at(-1);
+  const heading=prior&&MARKERS.ingredient_headings.some(term=>
+    matchSpans(text.slice(prior.start,prior.end),term).length);
+  const stopBetween=events.some(e=>e.start>prior?.start&&e.start<span.start&&e.kind!=='direct');
+  if(heading&&!stopBetween&&span.start-prior.start<=2200)return "direct";
   return "mention";
 }
 
