@@ -194,6 +194,13 @@ function addLabelReview(box,p,index) {
   const candidates=(p.sources||[]).filter(x=>x.rotation===0&&x.items?.length);
   const best=candidates.find(x=>x.variant==='original')||candidates.find(x=>x.variant==='enhanced')||candidates[0];
   input.value=best?sourceTranscript(best).text:'';
+  const consentLabel=document.createElement('label');consentLabel.className='labelReviewConfirmation';
+  const consent=document.createElement('input');consent.type='checkbox';
+  const consentText=document.createElement('span');
+  consentText.textContent=lang.value==='ko'
+    ?'입력한 문구를 원본 사진과 직접 비교했습니다. 누락된 부분은 여전히 확인이 필요합니다.'
+    :'I compared the entered text with the printed photo. Missing parts still require verification.';
+  consentLabel.append(consent,consentText);
   const actions=document.createElement('div');actions.className='labelReviewActions';
   const check=document.createElement('button');check.type='button';check.className='btn primary';
   check.textContent=lang.value==='ko'?'수정한 원문 확인':'Check corrected text';
@@ -204,6 +211,9 @@ function addLabelReview(box,p,index) {
     :'No detected match never means the product is allergen-free. Confirm the complete label with the manufacturer when necessary.';
   check.onclick=()=>{
     output.replaceChildren();
+    if(!consent.checked){output.textContent=lang.value==='ko'
+      ?'먼저 원본 사진과 글을 비교한 뒤 확인해 주세요.'
+      :'Please compare the transcript with the original photo and check the confirmation box first.';return}
     const text=input.value.trim();
     if(!text){output.textContent=lang.value==='ko'?'원문을 입력해 주세요.':'Enter the text visible on the package.';return}
     try{
@@ -228,7 +238,7 @@ function addLabelReview(box,p,index) {
     }catch(error){output.textContent=lang.value==='ko'?'입력한 원문을 확인해 주세요.':'Could not analyze the entered text.'}
   };
   actions.appendChild(check);
-  section.append(label,input,actions,output,warning);
+  section.append(label,input,consentLabel,actions,output,warning);
   box.appendChild(section);
 }
 
