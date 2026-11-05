@@ -143,3 +143,34 @@ export function labelReadCanvases(source){
   };
  });
 }
+
+
+// OCR-anchored crops are proposals only. They are made from original photo
+// pixels and do not replace the full read or certify label completeness.
+export function labelFocusCanvases(source,zones){
+ if(!globalThis.document||!source||!Array.isArray(zones))return [];
+ const original=source.ocrOriginal,ow=original?.naturalWidth||source.width,oh=original?.naturalHeight||source.height;
+ const sx=ow/source.width,sy=oh/source.height;
+ return zones.slice(0,2).map(zone=>{
+  let cached;
+  const x=Math.max(0,zone.x*sx),y=Math.max(0,zone.y*sy);
+  const w=Math.min(ow-x,zone.width*sx),h=Math.min(oh-y,zone.height*sy);
+  const originalSource=original||source,scale=Math.min(2,2400/Math.max(w,h));
+  const cw=Math.max(1,Math.round(w*scale)),ch=Math.max(1,Math.round(h*scale));
+  return {variant:zone.variant,frame:{x,y,width:ow,height:oh,cropWidth:w,cropHeight:h,
+   scale:cw/w,scaleY:ch/h,from_original:!!original},
+   get canvas(){
+    if(!cached){
+     cached=document.createElement('canvas');cached.width=cw;cached.height=ch;
+     const ctx=cached.getContext('2d',{willReadFrequently:true});
+     ctx.fillStyle='white';ctx.fillRect(0,0,cw,ch);
+     ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+     ctx.drawImage(originalSource,x,y,w,h,0,0,cw,ch);
+     const d=ctx.getImageData(0,0,cw,ch);
+     d.data.set(sharpenLabelPixels(d.data,cw,ch));ctx.putImageData(d,0,0);
+    }
+    return cached;
+   },release(){if(cached){cached.width=cached.height=1;cached=null}}
+  };
+ });
+}
