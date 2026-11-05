@@ -1,6 +1,6 @@
 // Increment RELEASE with the complete module graph. Installation is atomic;
 // updates wait for open tabs to close, and never interrupt ongoing analysis.
-const RELEASE='parent-pilot-20261105-b1';
+const RELEASE='parent-pilot-20261105-b2';
 const LEGACY='1.11.1';
 const PREFIX=`adpai-shell:${self.registration.scope}:`;
 const CACHE=PREFIX+RELEASE;
