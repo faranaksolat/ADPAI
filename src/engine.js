@@ -219,7 +219,10 @@ function occurrenceKind(text, span, events) {
   const heading=prior&&MARKERS.ingredient_headings.some(term=>
     matchSpans(text.slice(prior.start,prior.end),term).length);
   const stopBetween=events.some(e=>e.start>prior?.start&&e.start<span.start&&e.kind!=='direct');
-  if(heading&&!stopBetween&&span.start-prior.start<=2200)return "direct";
+  const between=prior?text.slice(prior.end,span.start):'';
+  // Punctuation ends a printed declaration; marketing statements elsewhere
+  // must never inherit a previous ingredient heading.
+  if(heading&&!stopBetween&&!/[.;!?。；]/u.test(between)&&span.start-prior.start<=2200)return "direct";
   return "mention";
 }
 
