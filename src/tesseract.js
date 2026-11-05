@@ -1,5 +1,5 @@
 import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.11.1';
-import { preprocess, rotateCanvas, resizeForOcr, needsRetake, releasePhotoSource } from './image.js?v=1.11.1';
+import { preprocess, rotateCanvas, resizeForOcr, needsRetake, releasePhotoSource, labelTopBandView } from './image.js?v=1.11.1';
 import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.11.1';
 import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.11.1';
 import {createManagedWorker} from './ocr-worker.js?v=1.11.1';
@@ -141,7 +141,9 @@ export async function analyzeProducts(products, profile, options = {}) {
                  {langs:['eng'],psm:'11',canvas:resizeForOcr(canvas,1600),variant:'reduced'},
                  ...(!menuMode&&canvas.ocrOriginal&&Math.max(canvas.ocrOriginal.naturalWidth,canvas.ocrOriginal.naturalHeight)>2400
                   ?menuReadCanvases(canvas).filter(v=>v.variant.startsWith('menu-detail-')).map(view=>({langs:['kor','eng'],psm:'11',view,variant:'original-region'})):[]),
-                 {langs:PRIMARY.langs,psm:'3',canvas,variant:'original'}]
+                 {langs:PRIMARY.langs,psm:'3',canvas,variant:'original'},
+                 ...(!menuMode&&canvas.ocrOriginal&&labelTopBandView(canvas)
+                   ?[{langs:['kor','eng'],psm:'11',view:labelTopBandView(canvas),variant:'label-top-band'}]:[])]
               : [{langs:def.langs,psm:menuMode?'11':'3',canvas,variant:'original'}];
             const satisfied=()=>{
               const p=evaluateProduct({sources:state.sources,profile});
