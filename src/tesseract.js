@@ -1,6 +1,6 @@
 import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.11.1';
 import { preprocess, rotateCanvas, resizeForOcr, needsRetake, releasePhotoSource, labelReadCanvases } from './image.js?v=1.11.1';
-import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.11.1';
+import {mapMenuItems} from './menu-image.js?v=1.11.1';
 import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.11.1';
 import {createManagedWorker} from './ocr-worker.js?v=1.11.1';
 import {readMenuPhoto} from './menu-ocr.js?v=1.11.1';
@@ -139,9 +139,9 @@ export async function analyzeProducts(products, profile, options = {}) {
             const passes=def.id===PRIMARY.id&&worker.reinitialize
               ? [{langs:['kor'],psm:'6',canvas:resizeForOcr(canvas,1000),variant:'reduced'},
                  {langs:['eng'],psm:'11',canvas:resizeForOcr(canvas,1600),variant:'reduced'},
+                 {langs:PRIMARY.langs,psm:'3',canvas,variant:'original'},
                  ...(!menuMode&&canvas.ocrOriginal
-                  ?labelReadCanvases(canvas).map(view=>({langs:['kor','eng'],psm:'6',view,variant:view.variant})):[]),
-                 {langs:PRIMARY.langs,psm:'3',canvas,variant:'original'}]
+                  ?labelReadCanvases(canvas).map(view=>({langs:['kor','eng'],psm:'6',view,variant:view.variant})):[])]
               : [{langs:def.langs,psm:menuMode?'11':'3',canvas,variant:'original'}];
             const satisfied=()=>{
               const p=evaluateProduct({sources:state.sources,profile});
