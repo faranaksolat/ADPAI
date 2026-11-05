@@ -136,14 +136,17 @@ export async function analyzeProducts(products, profile, options = {}) {
               state.sources.push(...menu.sources);state.errors.push(...menu.errors);complete=complete&&menu.complete;
               continue;
             }
+            const warningBand=!menuMode&&def.id===PRIMARY.id&&worker.reinitialize&&canvas.ocrOriginal
+              ?labelTopBandView(canvas):null;
+            // Read the warning strip BEFORE costly whole-photo rotations. A
+            // photo deadline must not discard the most important label region.
             const passes=def.id===PRIMARY.id&&worker.reinitialize
-              ? [{langs:['kor'],psm:'6',canvas:resizeForOcr(canvas,1000),variant:'reduced'},
+              ? [...(warningBand?[{langs:['kor','eng'],psm:'11',view:warningBand,variant:'label-top-band'}]:[]),
+                 {langs:['kor'],psm:'6',canvas:resizeForOcr(canvas,1000),variant:'reduced'},
                  {langs:['eng'],psm:'11',canvas:resizeForOcr(canvas,1600),variant:'reduced'},
                  ...(!menuMode&&canvas.ocrOriginal&&Math.max(canvas.ocrOriginal.naturalWidth,canvas.ocrOriginal.naturalHeight)>2400
                   ?menuReadCanvases(canvas).filter(v=>v.variant.startsWith('menu-detail-')).map(view=>({langs:['kor','eng'],psm:'11',view,variant:'original-region'})):[]),
-                 {langs:PRIMARY.langs,psm:'3',canvas,variant:'original'},
-                 ...(!menuMode&&canvas.ocrOriginal&&labelTopBandView(canvas)
-                   ?[{langs:['kor','eng'],psm:'11',view:labelTopBandView(canvas),variant:'label-top-band'}]:[])]
+                 {langs:PRIMARY.langs,psm:'3',canvas,variant:'original'}]
               : [{langs:def.langs,psm:menuMode?'11':'3',canvas,variant:'original'}];
             const satisfied=()=>{
               const p=evaluateProduct({sources:state.sources,profile});
