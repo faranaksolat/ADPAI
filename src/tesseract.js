@@ -1,6 +1,7 @@
 import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.11.1';
-import { preprocess, rotateCanvas, resizeForOcr, needsRetake, releasePhotoSource } from './image.js?v=1.11.1';
-import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.11.1';
+import { preprocess, rotateCanvas, resizeForOcr, needsRetake, releasePhotoSource, labelReadCanvases, labelFocusCanvases } from './image.js?v=1.11.1';
+import {mapMenuItems} from './menu-image.js?v=1.11.1';
+import {labelEvidenceZones} from './label-targets.js';
 import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.11.1';
 import {createManagedWorker} from './ocr-worker.js?v=1.11.1';
 import {readMenuPhoto} from './menu-ocr.js?v=1.11.1';
@@ -139,9 +140,9 @@ export async function analyzeProducts(products, profile, options = {}) {
             const passes=def.id===PRIMARY.id&&worker.reinitialize
               ? [{langs:['kor'],psm:'6',canvas:resizeForOcr(canvas,1000),variant:'reduced'},
                  {langs:['eng'],psm:'11',canvas:resizeForOcr(canvas,1600),variant:'reduced'},
-                 ...(!menuMode&&canvas.ocrOriginal&&Math.max(canvas.ocrOriginal.naturalWidth,canvas.ocrOriginal.naturalHeight)>2400
-                  ?menuReadCanvases(canvas).filter(v=>v.variant.startsWith('menu-detail-')).map(view=>({langs:['kor','eng'],psm:'11',view,variant:'original-region'})):[]),
-                 {langs:PRIMARY.langs,psm:'3',canvas,variant:'original'}]
+                 {langs:PRIMARY.langs,psm:'3',canvas,variant:'original'},
+                 ...(!menuMode&&canvas.ocrOriginal
+                  ?labelReadCanvases(canvas).map(view=>({langs:['kor','eng'],psm:'6',view,variant:view.variant})):[])]
               : [{langs:def.langs,psm:menuMode?'11':'3',canvas,variant:'original'}];
             const satisfied=()=>{
               const p=evaluateProduct({sources:state.sources,profile});
@@ -162,6 +163,15 @@ export async function analyzeProducts(products, profile, options = {}) {
                   const r=await worker.recognize(rotate(pass.view?.canvas||pass.canvas,rotation),{timeoutMs:Math.max(1,maxPhotoMs-(Date.now()-photoStarted))});
                   const candidate={familyId:def.id,photoIndex,rotation,variant:pass.variant,model_languages:pass.langs,segmentation:pass.psm,frame:pass.view?.frame,items:pass.view?mapMenuItems(itemsFrom(r),pass.view.frame,rotation):itemsFrom(r)};
                   candidates.push(candidate);
+                  if(!menuMode&&pass.variant==='original'&&rotation===0&&def.id===PRIMARY.id&&canvas.ocrOriginal&&worker.reinitialize){
+                    // Use the full-image OCR boxes only to propose extra local
+                    // reading areas. No unsupported ingredient is inferred.
+                    const zones=labelEvidenceZones(candidate.items,canvas.width,canvas.height);
+                    const focus=labelFocusCanvases(canvas,zones).map(view=>({
+                      langs:['kor','eng'],psm:'6',view,variant:view.variant
+                    }));
+                    passes.splice(passes.indexOf(pass)+1,0,...focus);
+                  }
                   // A real positive must not be discarded because unrelated
                   // words/rotations have a better average confidence.
                   const evidence=evaluateProduct({sources:[candidate],profile});
