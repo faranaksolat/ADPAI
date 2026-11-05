@@ -82,3 +82,64 @@ export function resizeForOcr(src,limit){
  c.width=Math.max(1,Math.round(src.width*scale));c.height=Math.max(1,Math.round(src.height*scale));
  const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(src,0,0,c.width,c.height);return c;
 }
+
+
+// Development-stage shopping-label regions. Overlapping geometry is not proof
+// that any particular region contains a complete ingredient declaration.
+export function labelRegionGeometry(width,height){
+ if(!Number.isFinite(width)||!Number.isFinite(height)||width<1||height<1||width*height>50000000)throw Error('Invalid label dimensions');
+ const make=(x,y,w,h,id)=>({x,y,width:w,height:h,variant:'label-region-'+id});
+ const split=length=>{const span=Math.max(1,Math.round(length*.68));return [[0,span],[Math.max(0,length-span),span]]};
+ if(height>=width*1.1)return split(height).map(([y,h],i)=>make(0,y,width,h,i?'lower':'upper'));
+ if(width>=height*1.1)return split(width).map(([x,w],i)=>make(x,0,w,height,i?'right':'left'));
+ return split(height).flatMap(([y,h],r)=>split(width).map(([x,w],c)=>make(x,y,w,h,r+'-'+c)));
+}
+
+// Deterministic grayscale/contrast normalization and bounded light sharpening.
+// This cannot reconstruct illegible letters or improve reported confidence.
+export function sharpenLabelPixels(pixels,width,height){
+ if(!Number.isInteger(width)||!Number.isInteger(height)||width<=0||height<=0||width*height>8000000||pixels.length!==width*height*4)throw Error('Invalid label pixel buffer');
+ const normalized=normalizeOcrPixels(pixels).pixels,output=new Uint8ClampedArray(normalized.length);
+ for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+  const i=y*width+x,p=i*4,value=normalized[p];
+  const neighbor=(normalized[(y*width+Math.max(0,x-1))*4]+normalized[(y*width+Math.min(width-1,x+1))*4]
+    +normalized[(Math.max(0,y-1)*width+x)*4]+normalized[(Math.min(height-1,y+1)*width+x)*4])/4;
+  const adjustment=Math.max(-25,Math.min(25,(value-neighbor)*.6));
+  const result=Math.max(0,Math.min(255,value+adjustment));
+  output[p]=output[p+1]=output[p+2]=result;output[p+3]=255;
+ }
+ return output;
+}
+
+// Lazy original-pixel crops. Frame coordinates map each OCR word back to the
+// untouched source image; clipped wording remains uncertain downstream.
+export function labelReadCanvases(source){
+ if(!globalThis.document||!Number.isFinite(source?.width)||!Number.isFinite(source?.height))return [];
+ const original=source.ocrOriginal,ow=original?.naturalWidth||source.width,oh=original?.naturalHeight||source.height;
+ const bx=source.width/ow,by=source.height/oh;
+ return labelRegionGeometry(ow,oh).map(region=>{
+  let cached;
+  const image=original||source;
+  const x=original?region.x:region.x*bx,y=original?region.y:region.y*by;
+  const w=original?region.width:region.width*bx,h=original?region.height:region.height*by;
+  const zoom=Math.min(2,2400/Math.max(w,h));
+  const cw=Math.max(1,Math.round(w*zoom)),ch=Math.max(1,Math.round(h*zoom));
+  return {variant:region.variant,
+   frame:{x:region.x,y:region.y,width:ow,height:oh,cropWidth:region.width,cropHeight:region.height,
+     scale:cw/region.width,scaleY:ch/region.height,from_original:!!original},
+   get canvas(){
+    if(!cached){
+     cached=document.createElement('canvas');cached.width=cw;cached.height=ch;
+     const ctx=cached.getContext('2d',{willReadFrequently:true});
+     ctx.fillStyle='white';ctx.fillRect(0,0,cw,ch);
+     ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+     ctx.drawImage(image,x,y,w,h,0,0,cw,ch);
+     const data=ctx.getImageData(0,0,cw,ch);
+     data.data.set(sharpenLabelPixels(data.data,cw,ch));ctx.putImageData(data,0,0);
+    }
+    return cached;
+   },
+   release(){if(cached){cached.width=cached.height=1;cached=null}}
+  };
+ });
+}
