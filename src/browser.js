@@ -1,11 +1,12 @@
-import { analyzeProducts } from "./tesseract.js?v=1.11.1";
-import { cropPhoto } from "./crop.js?v=1.11.1";
-import { explainIngredient, sourceTranscript } from "./ingredients.js?v=1.11.1";
-import { initPwa, updateInstallUI } from "./pwa.js?v=1.11.1";
-import { evaluateMenu } from './menu.js?v=1.11.1';
-import {normalizeDietary, dietaryConflict} from './dietary.js?v=1.11.1';
-import {inspectPhoto,qualityMessage} from './photo-quality.js?v=1.11.1';
-import {capturePhoto,supportsLivePhoto} from './camera.js?v=1.11.1';
+import { analyzeProducts } from "./tesseract.js?v=parent-pilot-20261105-b2";
+import {reviewEnteredLabel} from './reviewed-label.js?v=parent-pilot-20261105-b2';
+import { cropPhoto } from "./crop.js?v=parent-pilot-20261105-b2";
+import { explainIngredient, sourceTranscript } from "./ingredients.js?v=parent-pilot-20261105-b2";
+import { initPwa, updateInstallUI } from "./pwa.js?v=parent-pilot-20261105-b2";
+import { evaluateMenu } from './menu.js?v=parent-pilot-20261105-b2';
+import {normalizeDietary, dietaryConflict} from './dietary.js?v=parent-pilot-20261105-b2';
+import {inspectPhoto,qualityMessage} from './photo-quality.js?v=parent-pilot-20261105-b2';
+import {capturePhoto,supportsLivePhoto} from './camera.js?v=parent-pilot-20261105-b2';
 const APP_VERSION="1.11.1";
 const MAX_PRODUCTS=6,MAX_PHOTOS=3;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
@@ -165,6 +166,82 @@ function localizedProductMessage(p){const dn=[...new Set((p.direct_matches||[]).
 function localizedReason(p){if(lang.value!=='ko')return p.reason||'';if(p.status==='conflict')return'원재료 또는 직접 알레르기 표시에서 확인되었습니다.';if(p.status==='caution')return'‘혼입 가능’, ‘may contain’과 같은 교차접촉 주의 문구에서 확인되었습니다.';if(p.status==='unverified')return'전체 원재료 라벨을 확인하지 못했습니다. 알레르기 유발물질이 없다는 뜻이 아닙니다.';if(p.status==='unverified_language')return'검증 중인 언어 패널을 확인하지 못했기 때문에 음성 결과를 차단했습니다.';
  if(p.status==='ingredient_not_confirmed'&&(p.required_panels||[]).some(x=>!(p.verified_panels||[]).includes(x)))return'표시된 모든 언어의 원재료 패널이 확인될 때까지 안전한 결과로 분류하지 않습니다.';
  return p.reason||''}
+function addLabelReview(box,p,index) {
+  if(currentMode!=='shopping')return;
+  const photos=products.filter(item=>item.photos.length)[index]?.photos||[];
+  const section=document.createElement('section');
+  section.className='labelReview';
+  const title=document.createElement('h4');
+  title.textContent=lang.value==='ko'?'원문 확인 및 직접 수정':'Review and correct the printed label';
+  const instruction=document.createElement('p');
+  instruction.textContent=lang.value==='ko'
+    ?'자동 판독은 성분을 놓칠 수 있습니다. 원본 사진과 비교하여 함유 및 혼입 가능 문구를 직접 확인하세요. 수정한 글은 사용자가 입력한 정보이며 제품의 안전성을 인증하지 않습니다.'
+    :'OCR can miss allergens. Compare every ingredient and warning with the original photo. Corrected text is user-entered evidence, not verification that the whole label is safe.';
+  section.append(title,instruction);
+  const gallery=document.createElement('div');gallery.className='labelReviewPhotos';
+  for(const photo of photos){
+    const img=document.createElement('img');
+    img.src=photo.url;img.alt=lang.value==='ko'?'원본 제품 사진':'Original product label photo';
+    img.loading='lazy';gallery.appendChild(img);
+  }
+  section.appendChild(gallery);
+  const label=document.createElement('label');label.className='fieldLabel';
+  label.textContent=lang.value==='ko'?'수정한 라벨 원문':'Corrected original-label text';
+  const id='review-label-'+index;
+  label.htmlFor=id;
+  const input=document.createElement('textarea');input.id=id;input.rows=7;input.maxLength=12000;
+  input.spellcheck=false;
+  const candidates=(p.sources||[]).filter(x=>x.rotation===0&&x.items?.length);
+  const best=candidates.find(x=>x.variant==='original')||candidates.find(x=>x.variant==='enhanced')||candidates[0];
+  input.value=best?sourceTranscript(best).text:'';
+  const consentLabel=document.createElement('label');consentLabel.className='labelReviewConfirmation';
+  const consent=document.createElement('input');consent.type='checkbox';
+  const consentText=document.createElement('span');
+  consentText.textContent=lang.value==='ko'
+    ?'입력한 문구를 원본 사진과 직접 비교했습니다. 누락된 부분은 여전히 확인이 필요합니다.'
+    :'I compared the entered text with the printed photo. Missing parts still require verification.';
+  consentLabel.append(consent,consentText);
+  const actions=document.createElement('div');actions.className='labelReviewActions';
+  const check=document.createElement('button');check.type='button';check.className='btn primary';
+  check.textContent=lang.value==='ko'?'수정한 원문 확인':'Check corrected text';
+  const output=document.createElement('div');output.className='labelReviewOutcome';output.setAttribute('role','status');
+  const warning=document.createElement('p');
+  warning.textContent=lang.value==='ko'
+    ?'결과가 나타나지 않더라도 알레르기 유발물질이 없다는 뜻이 아닙니다. 제품 전체 표시를 확인하세요.'
+    :'No detected match never means the product is allergen-free. Confirm the complete label with the manufacturer when necessary.';
+  check.onclick=()=>{
+    output.replaceChildren();
+    if(!consent.checked){output.textContent=lang.value==='ko'
+      ?'먼저 원본 사진과 글을 비교한 뒤 확인해 주세요.'
+      :'Please compare the transcript with the original photo and check the confirmation box first.';return}
+    const text=input.value.trim();
+    if(!text){output.textContent=lang.value==='ko'?'원문을 입력해 주세요.':'Enter the text visible on the package.';return}
+    try{
+      const result=reviewEnteredLabel(text,profile('shopping'));
+      const heading=document.createElement('strong');
+      heading.textContent=result.status==='conflict'
+        ?(lang.value==='ko'?'입력한 문구에서 주의 성분 발견':'Selected ingredient found in entered text')
+        :result.status==='caution'
+          ?(lang.value==='ko'?'입력한 문구에서 혼입 주의 발견':'Cross-contact wording found in entered text')
+          :(lang.value==='ko'?'확인 불가 — 안전 판단 금지':'Unable to verify — do not assume safe');
+      output.appendChild(heading);
+      const hits=[...(result.direct_matches||[]),...(result.caution_matches||[])];
+      if(hits.length){const list=document.createElement('ul');for(const hit of hits){
+        const li=document.createElement('li');li.textContent=allergenLabel(hit)+' — '+hit.term;
+        list.appendChild(li)
+      }output.appendChild(list)}
+      const note=document.createElement('p');
+      note.textContent=lang.value==='ko'
+        ?'이 결과는 입력한 글만 분석했습니다. 사진 전체 또는 식품의 안전성은 검증되지 않았습니다.'
+        :'Only the text in this field was analyzed. Full label coverage and food safety are not verified.';
+      output.appendChild(note);
+    }catch(error){output.textContent=lang.value==='ko'?'입력한 원문을 확인해 주세요.':'Could not analyze the entered text.'}
+  };
+  actions.appendChild(check);
+  section.append(label,input,consentLabel,actions,output,warning);
+  box.appendChild(section);
+}
+
 function showResults(data) {
   if(data.mode==='menu'){showMenuResults(data);return}
   lastResult=data;
@@ -226,6 +303,7 @@ function showResults(data) {
       const pre=document.createElement('pre');pre.textContent=sourceTranscript(source).text;raw.append(heading,pre);
     }
     box.appendChild(raw);
+    addLabelReview(box,p,index);
     productResults.appendChild(box);
   });
   result.scrollIntoView({behavior:'smooth',block:'nearest'});

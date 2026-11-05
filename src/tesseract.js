@@ -1,5 +1,5 @@
-import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.11.1';
-import { preprocess, rotateCanvas, resizeForOcr, needsRetake, releasePhotoSource } from './image.js?v=1.11.1';
+import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=parent-pilot-20261105-b2';
+import { preprocess, rotateCanvas, resizeForOcr, needsRetake, releasePhotoSource, labelTopBandView } from './image.js?v=parent-pilot-20261105-b2';
 import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.11.1';
 import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.11.1';
 import {createManagedWorker} from './ocr-worker.js?v=1.11.1';
@@ -136,8 +136,13 @@ export async function analyzeProducts(products, profile, options = {}) {
               state.sources.push(...menu.sources);state.errors.push(...menu.errors);complete=complete&&menu.complete;
               continue;
             }
+            const warningBand=!menuMode&&def.id===PRIMARY.id&&worker.reinitialize&&canvas.ocrOriginal
+              ?labelTopBandView(canvas):null;
+            // Read the warning strip BEFORE costly whole-photo rotations. A
+            // photo deadline must not discard the most important label region.
             const passes=def.id===PRIMARY.id&&worker.reinitialize
-              ? [{langs:['kor'],psm:'6',canvas:resizeForOcr(canvas,1000),variant:'reduced'},
+              ? [...(warningBand?[{langs:['kor','eng'],psm:'11',view:warningBand,variant:'label-top-band'}]:[]),
+                 {langs:['kor'],psm:'6',canvas:resizeForOcr(canvas,1000),variant:'reduced'},
                  {langs:['eng'],psm:'11',canvas:resizeForOcr(canvas,1600),variant:'reduced'},
                  ...(!menuMode&&canvas.ocrOriginal&&Math.max(canvas.ocrOriginal.naturalWidth,canvas.ocrOriginal.naturalHeight)>2400
                   ?menuReadCanvases(canvas).filter(v=>v.variant.startsWith('menu-detail-')).map(view=>({langs:['kor','eng'],psm:'11',view,variant:'original-region'})):[]),

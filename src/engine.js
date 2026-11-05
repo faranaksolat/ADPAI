@@ -186,21 +186,44 @@ function contextEvents(text) {
 }
 
 function occurrenceKind(text, span, events) {
-  const lineStart = text.lastIndexOf("\n", span.start) + 1;
-  const nextLine = text.indexOf("\n", span.end);
-  const lineEnd = nextLine < 0 ? text.length : nextLine;
-  const line = text.slice(lineStart, lineEnd);
-  // A negative claim is unresolved evidence, never a positive ingredient or a
-  // certificate of absence. Separate later positive occurrences still count.
-  if (/\b(?:no|without|free from|sans|sin)\s+[^,;:.]*$/u.test(text.slice(lineStart, span.start)) || /^(?:[- ]free|[- ]frei|\s+free)\b/u.test(text.slice(span.end))) return "mention";
-  const before = events.filter(e => e.start <= span.start);
-  const current = before.at(-1);
-  let kind = current && !/[.;!?。；]/u.test(text.slice(current.end, span.start)) ? current.kind : "mention";
-  const lineHasDirect = events.some(e => e.kind === "direct" && e.start >= lineStart && e.start <= span.start);
-  // Korean/Japanese declarations often put the marker after an allergen list.
-  if (!lineHasDirect && SUFFIX_CAUTION.test(line)) kind = "caution";
-  else if (kind === "mention" && SUFFIX_DIRECT.test(line) && !SUFFIX_CAUTION.test(line)) kind = "direct";
-  return kind;
+  const lineStart=text.lastIndexOf("\n",span.start)+1;
+  const followingLine=text.indexOf("\n",span.end);
+  const lineEnd=followingLine<0?text.length:followingLine;
+  // A list may have multiple separate declarations on the same physical row.
+  // Never borrow the preceding row's 함유/contains scope for the next row.
+  // OCR commonly drops the last syllables of "혼입가능", which formerly made
+  // precautionary milk/egg/crab words inherit a previous wheat/soy 함유.
+  const preceding=text.slice(lineStart,span.start);
+  const segmentStart=lineStart+Math.max(0,Math.max(...[...preceding.matchAll(/[.;!?。；•ㆍ·]/gu)].map(m=>m.index+m[0].length),0));
+  const trailing=text.slice(span.end,lineEnd);
+  const nextSeparator=/[.;!?。；•ㆍ·]/u.exec(trailing);
+  const segmentEnd=nextSeparator?span.end+nextSeparator.index:lineEnd;
+  const segment=text.slice(segmentStart,segmentEnd);
+  const relativeStart=span.start-segmentStart,relativeEnd=span.end-segmentStart;
+  // Negative/free-from claims are not positives or proof of absence.
+  if (/\b(?:no|without|free from|sans|sin)\s+[^,;:.]*$/u.test(text.slice(segmentStart,span.start)) ||
+      /^(?:[- ]free|[- ]frei|\s+free)\b/u.test(text.slice(span.end,segmentEnd)))return "mention";
+  const local=events.filter(e=>e.start>=segmentStart&&e.start<segmentEnd);
+  const leading=local.filter(e=>e.start<=span.start).at(-1);
+  // Explicit precaution words take precedence over a direct marker
+  // that might occur in another printed clause.
+  const cautionBefore=leading?.kind==='caution';
+  const cautionAfter=local.some(e=>e.kind==='caution'&&e.start>=span.end);
+  if(cautionBefore||cautionAfter||SUFFIX_CAUTION.test(segment))return "caution";
+  if(SUFFIX_DIRECT.test(segment))return "direct";
+  if(local.some(e=>e.kind==='direct'&&e.start<=span.start))return "direct";
+  // An explicitly printed ingredient heading can cover a short wrapped
+  // ingredient list, but a bare direct declaration (e.g. 함유) on a
+  // previous line cannot cover the next independent allergen warning.
+  const prior=events.filter(e=>e.start<span.start).at(-1);
+  const heading=prior&&MARKERS.ingredient_headings.some(term=>
+    matchSpans(text.slice(prior.start,prior.end),term).length);
+  const stopBetween=events.some(e=>e.start>prior?.start&&e.start<span.start&&e.kind!=='direct');
+  const between=prior?text.slice(prior.end,span.start):'';
+  // Punctuation ends a printed declaration; marketing statements elsewhere
+  // must never inherit a previous ingredient heading.
+  if(heading&&!stopBetween&&!/[.;!?。；]/u.test(between)&&span.start-prior.start<=2200)return "direct";
+  return "mention";
 }
 
 function maskNonDairy(text) {

@@ -82,3 +82,37 @@ export function resizeForOcr(src,limit){
  c.width=Math.max(1,Math.round(src.width*scale));c.height=Math.max(1,Math.round(src.height*scale));
  const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(src,0,0,c.width,c.height);return c;
 }
+
+
+// B2C development: one conservative top-edge view for packaging declarations.
+// It preserves the full-image read and never establishes ingredient coverage.
+// On the Korean evaluation photo, the top strip contained "밀, 대두 함유".
+// Other packaging layouts must still be tested with independent reference text.
+export function labelTopBandView(source) {
+ if(!globalThis.document||!Number.isFinite(source?.width)||!Number.isFinite(source?.height))return null;
+ const image=source.ocrOriginal||source;
+ const ow=image.naturalWidth||image.width,oh=image.naturalHeight||image.height;
+ if(ow<200||oh<300)return null;
+ const bandHeight=Math.min(oh,Math.max(100,Math.round(oh*.17)));
+ const zoom=Math.min(2,2400/Math.max(ow,bandHeight));
+ const cw=Math.max(1,Math.round(ow*zoom)),ch=Math.max(1,Math.round(bandHeight*zoom));
+ let canvas;
+ return {variant:'label-top-band',
+  frame:{x:0,y:0,width:ow,height:oh,cropWidth:ow,cropHeight:bandHeight,
+   scale:cw/ow,scaleY:ch/bandHeight,from_original:!!source.ocrOriginal},
+  get canvas(){
+   if(!canvas){
+    canvas=document.createElement('canvas');canvas.width=cw;canvas.height=ch;
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});
+    ctx.fillStyle='white';ctx.fillRect(0,0,cw,ch);
+    ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+    ctx.drawImage(image,0,0,ow,bandHeight,0,0,cw,ch);
+    const data=ctx.getImageData(0,0,cw,ch);
+    data.data.set(normalizeOcrPixels(data.data).pixels);
+    ctx.putImageData(data,0,0);
+   }
+   return canvas;
+  },
+  release(){if(canvas){canvas.width=canvas.height=1;canvas=null}}
+ };
+}

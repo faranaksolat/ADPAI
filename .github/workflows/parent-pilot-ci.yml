@@ -1,0 +1,53 @@
+name: Parent pilot checks
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'index.html'
+      - 'sw.js'
+      - 'assets/app.css'
+      - 'pilot/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/parent-pilot-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  safety-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - run: node --check src/browser.js
+      - run: node --test tests/reviewed-label.test.mjs
+      - run: python3 -m unittest pilot.test_google_vision -v
+      - name: Browser navigation smoke check
+        shell: bash
+        run: |
+          if command -v chromium >/dev/null 2>&1; then
+            echo "CHROMIUM_PATH=$(command -v chromium)" >> "$GITHUB_ENV"
+            export CHROMIUM_PATH="$(command -v chromium)"
+          elif command -v google-chrome >/dev/null 2>&1; then
+            echo "CHROMIUM_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+            export CHROMIUM_PATH="$(command -v google-chrome)"
+          elif command -v chromium-browser >/dev/null 2>&1; then
+            echo "CHROMIUM_PATH=$(command -v chromium-browser)" >> "$GITHUB_ENV"
+            export CHROMIUM_PATH="$(command -v chromium-browser)"
+          else
+            sudo apt-get update -qq
+            sudo apt-get install -y chromium
+            export CHROMIUM_PATH="$(command -v chromium)"
+          fi
+          npm run test:browser
