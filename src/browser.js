@@ -1,5 +1,5 @@
 import { analyzeProducts } from "./tesseract.js?v=parent-pilot-20261105-b1";
-import {reviewEnteredLabel} from './reviewed-label.js';
+import {reviewEnteredLabel} from './reviewed-label.js?v=parent-pilot-20261105-b1';
 import { cropPhoto } from "./crop.js?v=parent-pilot-20261105-b1";
 import { explainIngredient, sourceTranscript } from "./ingredients.js?v=parent-pilot-20261105-b1";
 import { initPwa, updateInstallUI } from "./pwa.js?v=parent-pilot-20261105-b1";
