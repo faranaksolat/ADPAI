@@ -1,5 +1,5 @@
-import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.11.1';
-import { preprocess, rotateCanvas, resizeForOcr, needsRetake, releasePhotoSource, labelTopBandView } from './image.js?v=1.11.1';
+import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=parent-pilot-20261105-b1';
+import { preprocess, rotateCanvas, resizeForOcr, needsRetake, releasePhotoSource, labelTopBandView } from './image.js?v=parent-pilot-20261105-b1';
 import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.11.1';
 import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.11.1';
 import {createManagedWorker} from './ocr-worker.js?v=1.11.1';
