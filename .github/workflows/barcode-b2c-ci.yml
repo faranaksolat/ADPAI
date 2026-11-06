@@ -29,13 +29,13 @@ jobs:
         run: npm ci
       - name: Barcode unit and full Node suite
         run: npm test
-      - name: Browser E2E including barcode route
-        run: npm run test:browser
       - name: Native web bundle
         run: npm run build:mobile
-      - name: Live product catalog audit (informational, fails only on total network outage)
+      - name: Live product catalog audit with real barcodes
         continue-on-error: true
         run: node tests/barcode-live-audit.mjs
+      - name: Browser E2E (Chromium)
+        run: timeout 180s npm run test:browser
       - name: Preserve live API response
         if: always()
         uses: actions/upload-artifact@v4
