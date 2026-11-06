@@ -36,6 +36,8 @@ jobs:
         run: node tests/barcode-live-audit.mjs
       - name: Browser E2E (Chromium)
         run: timeout 180s npm run test:browser
+      - name: Simulated phone camera barcode detection and cleanup
+        run: timeout 180s env BARCODE_CAMERA_SIM=1 node tests/browser-smoke.mjs
       - name: Real Korean barcode through Chromium UI and CORS
         continue-on-error: true
         run: timeout 180s env LIVE_BARCODE=1 node tests/browser-smoke.mjs
