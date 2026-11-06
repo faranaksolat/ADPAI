@@ -28,6 +28,7 @@ export function normalizeOFFResponse(barcode,response){
  sourceUrl:'https://world.openfoodfacts.org/product/'+encodeURIComponent(barcode),
  sourceLicense:OFF_LICENSE,source:'openfoodfacts',
  updated:Number.isFinite(t)&&t>0?new Date(t*1000).toISOString():'',
+ regionalLabelUnverified:!(Boolean(ko)&&marketConfirmed),
  completeness:ingredients?'CROWDSOURCED_UNVERIFIED_LABEL':'INGREDIENTS_MISSING'};
 }
 export function statusFor(result,direct=0,caution=0){return result&&direct>0?'CONFLICT':result&&caution>0?'CAUTION':'UNVERIFIED'}
