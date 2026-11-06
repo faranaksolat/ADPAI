@@ -36,6 +36,9 @@ jobs:
         run: node tests/barcode-live-audit.mjs
       - name: Browser E2E (Chromium)
         run: timeout 180s npm run test:browser
+      - name: Real Korean barcode through Chromium UI and CORS
+        continue-on-error: true
+        run: timeout 180s env LIVE_BARCODE=1 node tests/browser-smoke.mjs
       - name: Preserve live API response
         if: always()
         uses: actions/upload-artifact@v4
