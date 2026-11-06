@@ -26,5 +26,3 @@ body:not([data-mode="shopping"]) .adpaiBarcode{display:none!important}
 .adpaiBarcode .abHistoryList button{padding:5px 8px}
 .adpaiBarcode a{color:#24614e;text-decoration:underline}
 @media(max-width:600px){.adpaiBarcode{padding:13px}.adpaiBarcode .abTools{align-items:stretch}.adpaiBarcode .abTools input{flex-basis:100%;max-width:100%}}
-/* Keep existing menu/cosmetics implementation intact but out of pilot navigation. */
-body .navItem[data-nav-mode="menu"],body #restaurantMode,body #cosmeticsMode{display:none!important}
