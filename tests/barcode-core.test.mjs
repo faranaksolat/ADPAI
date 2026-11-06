@@ -28,3 +28,26 @@ test('recent barcodes deduplicate and invalid JSON fails closed',()=>{
 test('barcode-only API record is not falsely presented as a found product',()=>{
  assert.equal(normalizeOFFResponse(code,{status:1,product:{code}}),null);
 });
+
+test('real export GTIN example cannot claim a Korean-market formula',()=>{
+ const code='8801043150620'; // independently identified Nongshim export package
+ const record=normalizeOFFResponse(code,{status:1,product:{code,product_name:'Shin Ramyun Instant Noedels',ingredients_text:'Tarwebloem, soja',countries_tags:['en:netherlands']}});
+ assert.equal(record.regionalLabelUnverified,true);
+ assert.equal(record.marketConfirmed,false);
+ assert.equal(record.manufactureVerified,false);
+ assert.equal(record.completeness,'CROWDSOURCED_UNVERIFIED_LABEL');
+ assert.equal(statusFor(record), 'UNVERIFIED');
+});
+test('Korean-market listing without a Korean ingredient panel is still regional-unverified',()=>{
+ const code='8801043150620';
+ const record=normalizeOFFResponse(code,{status:1,product:{code,product_name:'Shin Ramyun',ingredients_text:'wheat',countries_tags:['en:south-korea']}});
+ assert.equal(record.marketConfirmed,true);
+ assert.equal(record.regionalLabelUnverified,true);
+});
+test('a Korean OCR-like field is not proof of manufacture or package completeness',()=>{
+ const code='8801043150620';
+ const record=normalizeOFFResponse(code,{status:1,product:{code,product_name_ko:'신라면',ingredients_text_ko:'밀, 대두',countries_tags:['en:south-korea']}});
+ assert.equal(record.regionalLabelUnverified,false);
+ assert.equal(record.manufactureVerified,false);
+ assert.equal(statusFor(record), 'UNVERIFIED');
+});
