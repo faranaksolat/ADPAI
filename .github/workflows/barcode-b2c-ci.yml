@@ -12,6 +12,10 @@ on:
       - '.github/workflows/barcode-b2c-ci.yml'
   workflow_dispatch:
 
+concurrency:
+  group: b2c-validation-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
