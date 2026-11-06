@@ -39,12 +39,24 @@ jobs:
         continue-on-error: true
         run: node tests/barcode-live-audit.mjs
       - name: Browser E2E (Chromium)
-        run: timeout 180s npm run test:browser
+        run: |
+          env -u DBUS_SESSION_BUS_ADDRESS timeout 180s npm run test:browser || {
+            echo 'Retrying transient Chromium startup failure'; sleep 5;
+            env -u DBUS_SESSION_BUS_ADDRESS timeout 180s npm run test:browser;
+          }
       - name: Simulated phone camera barcode detection and cleanup
-        run: timeout 180s env BARCODE_CAMERA_SIM=1 node tests/browser-smoke.mjs
+        run: |
+          env -u DBUS_SESSION_BUS_ADDRESS timeout 180s env BARCODE_CAMERA_SIM=1 node tests/browser-smoke.mjs || {
+            echo 'Retrying transient Chromium startup failure'; sleep 5;
+            env -u DBUS_SESSION_BUS_ADDRESS timeout 180s env BARCODE_CAMERA_SIM=1 node tests/browser-smoke.mjs;
+          }
       - name: Real Korean barcode through Chromium UI and CORS
         continue-on-error: true
-        run: timeout 180s env LIVE_BARCODE=1 node tests/browser-smoke.mjs
+        run: |
+          env -u DBUS_SESSION_BUS_ADDRESS timeout 180s env LIVE_BARCODE=1 node tests/browser-smoke.mjs || {
+            echo 'Retrying transient Chromium startup failure'; sleep 5;
+            env -u DBUS_SESSION_BUS_ADDRESS timeout 180s env LIVE_BARCODE=1 node tests/browser-smoke.mjs;
+          }
       - name: Preserve live API response
         if: always()
         uses: actions/upload-artifact@v4
