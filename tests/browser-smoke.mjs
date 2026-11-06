@@ -99,6 +99,22 @@ try {
   await tap('#shoppingMode');
   assert.equal(await evaluate(`document.querySelector('#workflow').hidden`),false);
   assert.equal(await evaluate(`document.querySelector('#menuDietary').hidden`),true);
+  assert.equal(await evaluate(`Boolean(document.querySelector('.adpaiBarcode'))`),true,'B2C barcode panel is mounted');
+  if(process.env.LIVE_BARCODE==='1'){
+    // Real Open Food Facts request from Chromium, not a mocked HTTP response.
+    // This validates browser CORS + actual UI integration for a sourced Korean GTIN.
+    await evaluate(`document.querySelector('.abBarcode').value='8801043150620';document.querySelector('.abLookup').click()`);
+    let live=null;
+    for(let i=0;i<50;i++){
+      await new Promise(r=>setTimeout(r,350));
+      live=await evaluate(`({status:document.querySelector('.abStatus').textContent,body:document.querySelector('.abResult').textContent.slice(0,700),busy:document.querySelector('.abLookup').disabled})`);
+      if(!live.busy)break;
+    }
+    console.log('REAL KOREAN BARCODE BROWSER:',JSON.stringify(live));
+    assert.equal(live.busy,false,'live barcode request completes');
+    assert.ok(live.body.includes('Shin Ramyun') || live.body.includes('Noedels') || live.status.includes('Looking up')===false && live.body.length>15,'real barcode UX must return a visible result');
+    assert.ok(!/allergen.free|safe to eat|알레르기 없음/i.test(live.body),'missing allergen matches never certify safety');
+  }
   if(!mobileWeb) {
     await evaluate(`document.querySelector('#installHelp').click()`);
     assert.equal(await evaluate(`document.querySelector('#installDialog').open`),true);
