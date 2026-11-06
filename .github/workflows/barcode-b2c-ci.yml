@@ -1,0 +1,45 @@
+name: B2C Barcode PR verification
+on:
+  pull_request:
+    paths:
+      - 'src/barcode-*.js'
+      - 'src/browser.js'
+      - 'assets/barcode.css'
+      - 'index.html'
+      - 'privacy.html'
+      - 'sw.js'
+      - 'tests/barcode-*.mjs'
+      - '.github/workflows/barcode-b2c-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install exact dependencies
+        run: npm ci
+      - name: Barcode unit and full Node suite
+        run: npm test
+      - name: Browser E2E including barcode route
+        run: npm run test:browser
+      - name: Native web bundle
+        run: npm run build:mobile
+      - name: Live product catalog audit (informational, fails only on total network outage)
+        continue-on-error: true
+        run: node tests/barcode-live-audit.mjs
+      - name: Preserve live API response
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: barcode-live-audit
+          path: barcode-live-audit.json
+          if-no-files-found: warn
