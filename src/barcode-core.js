@@ -19,6 +19,8 @@ export function normalizeOFFResponse(barcode,response){
  const marketConfirmed=tags.some(x=>/^(?:en:)?south-korea$|^ko:대한민국$|^ko:한국$/i.test(String(x)));
  const ko=clip(p.ingredients_text_ko),other=clip(p.ingredients_text);
  const ingredients=ko||other,t=Number(p.last_modified_t);
+ // Some OFF responses return status=1 with only the barcode: no usable catalog evidence.
+ if(!clip(p.product_name_ko||p.product_name||p.product_name_en,180)&&!ingredients&&!clip(p.allergens)&&!clip(p.traces))return null;
  return {barcode,name:clip(p.product_name_ko||p.product_name||p.product_name_en,180)||barcode,
  brand:clip(p.brands,180),ingredients,ingredientLanguage:ko?'ko':ingredients?'unspecified':null,
  allergens:clip(p.allergens),traces:clip(p.traces),
