@@ -100,6 +100,31 @@ try {
   assert.equal(await evaluate(`document.querySelector('#workflow').hidden`),false);
   assert.equal(await evaluate(`document.querySelector('#menuDietary').hidden`),true);
   assert.equal(await evaluate(`Boolean(document.querySelector('.adpaiBarcode'))`),true,'B2C barcode panel is mounted');
+  if(process.env.BARCODE_CAMERA_SIM==='1'){
+    // This mocks the camera and optical detector but exercises the shipped UI.
+    const simulated=await evaluate("(async()=>{"+
+      "const media=navigator.mediaDevices;"+
+      "const originalGum=Object.getOwnPropertyDescriptor(media,'getUserMedia');"+
+      "const originalDetector=globalThis.BarcodeDetector;const originalFetch=globalThis.fetch;"+
+      "const canvas=document.createElement('canvas');canvas.width=120;canvas.height=80;"+
+      "canvas.getContext('2d').fillRect(0,0,40,40);const stream=canvas.captureStream(10);"+
+      "const track=stream.getVideoTracks()[0];let detections=0,lookups=0;"+
+      "Object.defineProperty(media,'getUserMedia',{configurable:true,value:async()=>stream});"+
+      "globalThis.BarcodeDetector=class{static async getSupportedFormats(){return ['ean_13']}async detect(){detections++;return [{rawValue:'8801043150620'}]}};"+
+      "globalThis.fetch=(url,opts)=>{if(String(url).includes('/api/v2/product/8801043150620.json')){lookups++;return Promise.resolve(new Response(JSON.stringify({status:1,product:{code:'8801043150620',product_name:'Shin Ramyun camera UI test',ingredients_text:'wheat, soy',countries_tags:['en:netherlands']}}),{status:200,headers:{'Content-Type':'application/json'}}))}return originalFetch(url,opts)};"+
+      "try{document.querySelector('.abStart').click();const until=Date.now()+9000;"+
+      "while(!document.querySelector('.abResult').textContent.includes('Shin Ramyun camera UI test')){if(Date.now()>until)throw Error('Camera UI timeout');await new Promise(r=>setTimeout(r,60))}"+
+      "return {detections,lookups,trackStopped:track.readyState==='ended',scanHidden:document.querySelector('.abScanStage').hidden,regionalWarning:document.querySelector('.abResult').textContent.includes('Regional formula not verified')};"+
+      "}finally{globalThis.BarcodeDetector=originalDetector;globalThis.fetch=originalFetch;"+
+      "if(originalGum)Object.defineProperty(media,'getUserMedia',originalGum);else delete media.getUserMedia;"+
+      "for(const t of stream.getTracks())t.stop()}})()");
+    assert.ok(simulated.detections>=1,'camera path invokes detector');
+    assert.equal(simulated.lookups,1,'one lookup per captured GTIN');
+    assert.equal(simulated.trackStopped,true,'camera track stops after success');
+    assert.equal(simulated.scanHidden,true,'camera preview closes after success');
+    assert.equal(simulated.regionalWarning,true,'regional warning for overseas ingredient data');
+    console.log('PASS SIMULATED CAMERA:',JSON.stringify(simulated));
+  }
   if(process.env.LIVE_BARCODE==='1'){
     // Real Open Food Facts request from Chromium, not a mocked HTTP response.
     // This validates browser CORS + actual UI integration for a sourced Korean GTIN.
