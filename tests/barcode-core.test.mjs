@@ -24,3 +24,7 @@ test('recent barcodes deduplicate and invalid JSON fails closed',()=>{
  const item={barcode:code,name:'테스트'};assert.deepEqual(recentItems([item],item),[item]);
  assert.deepEqual(safeStoredList('not json'),[]);assert.deepEqual(safeStoredList(JSON.stringify([{barcode:'abc',name:'invalid'},item])),[item]);
 });
+
+test('barcode-only API record is not falsely presented as a found product',()=>{
+ assert.equal(normalizeOFFResponse(code,{status:1,product:{code}}),null);
+});
