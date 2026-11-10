@@ -3,6 +3,14 @@ on:
   pull_request:
     paths:
       - 'src/barcode-*.js'
+      - 'src/catalog-core.js'
+      - 'src/pilot-metrics.js'
+      - 'data/catalog-korea-verified.json'
+      - 'scripts/audit-korean-catalog.mjs'
+      - 'scripts/evaluate-b2c-pilot.mjs'
+      - 'scripts/build-mobile.mjs'
+      - 'tests/catalog-core.test.mjs'
+      - 'tests/pilot-metrics.test.mjs'
       - 'src/browser.js'
       - 'assets/barcode.css'
       - 'index.html'
@@ -33,6 +41,8 @@ jobs:
         run: npm ci
       - name: Barcode unit and full Node suite
         run: npm test
+      - name: Validate Korean catalog provenance and unique GTINs
+        run: node scripts/audit-korean-catalog.mjs
       - name: Native web bundle
         run: npm run build:mobile
       - name: Live product catalog audit with real barcodes
