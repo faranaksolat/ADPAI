@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "records": [
+    {
+      "barcode": "8801043014830",
+      "candidateName": "Nongshim Shin Ramyun 5-pack",
+      "status": "NEEDS_PHYSICAL_LABEL",
+      "note": "Live Open Food Facts returned no reliable Korean ingredients; not verified. No safety claim."
+    },
+    {
+      "barcode": "8801043150620",
+      "candidateName": "Nongshim Shin Ramyun 120g",
+      "status": "NEEDS_PHYSICAL_LABEL",
+      "note": "A sourced export version lists Dutch ingredients. Korean product formulation unverified; not a verified ingredient mapping."
+    }
+  ]
+}
