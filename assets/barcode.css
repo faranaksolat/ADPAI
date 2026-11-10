@@ -1,0 +1,28 @@
+/* Barcode pilot is isolated from existing shopping OCR controls. */
+.adpaiBarcode{border:1px solid #ccd8cc;border-radius:18px;padding:18px;margin:0 0 22px;background:#f7faf3;color:#23372d;font:inherit}
+body:not([data-mode="shopping"]) .adpaiBarcode{display:none!important}
+.adpaiBarcode h3{margin:0 0 4px;font-size:1.17rem}
+.adpaiBarcode p{margin:6px 0 12px;line-height:1.5}
+.adpaiBarcode .abNote{font-size:.88rem;color:#4f6356}
+.adpaiBarcode .abTools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0}
+.adpaiBarcode input{min-width:0;max-width:260px;flex:1;padding:11px;border-radius:10px;border:1px solid #a2b5a6;font:inherit;background:#fff;color:#182b1d}
+.adpaiBarcode button{cursor:pointer;border-radius:10px;border:1px solid #8ba794;background:#fff;color:#224332;font:inherit;font-weight:600;padding:10px 13px}
+.adpaiBarcode button.primary{background:#28533d;color:white;border-color:#28533d}
+.adpaiBarcode button:disabled{opacity:.6;cursor:wait}
+.adpaiBarcode button:focus-visible,.adpaiBarcode input:focus-visible{outline:3px solid #39875a;outline-offset:2px}
+.adpaiBarcode .abScanStage{position:relative;overflow:hidden;max-width:510px;background:#16291d;border-radius:12px;margin:12px 0}
+.adpaiBarcode video{display:block;width:100%;min-height:170px;max-height:350px;object-fit:cover}
+.adpaiBarcode .abAim{position:absolute;inset:25% 9%;border:2px solid #b9f6b3;border-radius:10px;pointer-events:none}
+.adpaiBarcode [hidden]{display:none!important}
+.adpaiBarcode .abStatus{min-height:24px;font-weight:600}
+.adpaiBarcode .abResult{padding:14px;border:1px solid #bfcfc0;border-radius:12px;margin-top:12px;background:#fff;overflow-wrap:anywhere}
+.adpaiBarcode .abResult h4{margin:0 0 6px}
+.adpaiBarcode .abResult pre{white-space:pre-wrap;word-break:break-word;background:#f5f6f4;padding:10px;border-radius:6px;font:inherit}
+.adpaiBarcode .abResult .abFlag{font-weight:700;color:#8b3527}
+.adpaiBarcode .abResult .abCaution{font-weight:700;color:#755600}
+.adpaiBarcode .abResult .abUnknown{font-weight:700;color:#515d56}
+.adpaiBarcode .abHistoryList{list-style:none;padding:0;margin:8px 0}
+.adpaiBarcode .abHistoryList li{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid #e4e9df;padding:7px 0;font-size:.9rem}
+.adpaiBarcode .abHistoryList button{padding:5px 8px}
+.adpaiBarcode a{color:#24614e;text-decoration:underline}
+@media(max-width:600px){.adpaiBarcode{padding:13px}.adpaiBarcode .abTools{align-items:stretch}.adpaiBarcode .abTools input{flex-basis:100%;max-width:100%}}

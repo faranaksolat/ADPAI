@@ -19,6 +19,9 @@ const cosmetics=(await fs.readFile(path.join(root,'cosmetics.html'),'utf8'))
 if(cosmetics.includes('cdn.jsdelivr.net')||cosmetics.includes('./src/cosmetics-browser.js'))throw Error('Cosmetics mobile entry replacement failed');
 await fs.writeFile(path.join(out,'cosmetics.html'),cosmetics);
 for(const file of ['privacy.html','manifest.webmanifest']) await fs.copyFile(path.join(root,file),path.join(out,file));
+await fs.mkdir(path.join(out,'data'),{recursive:true});
+// Never ship capture photos, private evidence or review queue in web / native builds.
+await fs.copyFile(path.join(root,'data/catalog-korea-verified.json'),path.join(out,'data/catalog-korea-verified.json'));
 await fs.cp(path.join(root,'assets'),path.join(out,'assets'),{recursive:true});
 for(const file of ['tesseract.min.js','worker.min.js']) {
   await fs.mkdir(path.join(out,'vendor/tesseract'),{recursive:true});
