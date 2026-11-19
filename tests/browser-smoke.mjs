@@ -141,6 +141,12 @@ try {
     assert.ok(!/allergen.free|safe to eat|알레르기 없음/i.test(live.body),'missing allergen matches never certify safety');
   }
   if(!mobileWeb) {
+    assert.equal(await evaluate(`document.querySelector('#installPanel').hidden`),false,'download menu always visible on the website');
+    await evaluate(`document.querySelector('#downloadToggle').click()`);
+    assert.equal(await evaluate(`document.querySelector('#downloadMenu').hidden`),false,'download menu expands');
+    assert.equal(await evaluate(`document.querySelector('#downloadToggle').getAttribute('aria-expanded')`),'true');
+    assert.ok((await evaluate(`document.querySelector('#downloadMenu').textContent`)).includes('Android'));
+    assert.ok((await evaluate(`document.querySelector('#downloadMenu').textContent`)).includes('iOS'));
     await evaluate(`document.querySelector('#installHelp').click()`);
     assert.equal(await evaluate(`document.querySelector('#installDialog').open`),true);
     assert.ok((await evaluate(`document.querySelector('#installBody').textContent`)).includes('Add to Home Screen'));
