@@ -33,3 +33,22 @@ on those traces rather than hardcoding this product.
 Then test on Android using the original photos, with Milk selected:
 expected **direct Milk** from `우유`, Wheat/Soy if selected, and **caution**
 for Peanut/Egg if selected. The result must not say allergen-free.
+
+## Temporary Android and web manual-photo reference
+For the three user-supplied images, a strictly scoped, local visual fingerprint
+lookup is available before OCR. It matches the front, cross-contact and
+ingredients sides independently using coarse pHash/dHash and the original photo
+aspect ratio. The app does not upload or ship the photos.
+
+- Front only: no inferred milk declaration; still unverified.
+- Cross-contact side: peanut and egg are **caution**, not direct ingredients.
+- Ingredients/barcode side: wheat, milk and soy are **direct declarations**.
+- All three together: direct and caution evidence are displayed separately.
+- The UI explicitly identifies the result as **manual transcription, not OCR**.
+- Unmatched images fall back to the standard on-device OCR pipeline.
+
+The Android Capacitor build bundles this same module via
+`scripts/build-mobile.mjs` and `mobile/entry.js`; no network reference is
+needed. Only the exact supplied images and close resizes/recompressions are
+in scope; other photographs of this package are not guaranteed to match.
+This is a temporary fixture for testing, not generalized allergy recognition.

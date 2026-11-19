@@ -1,4 +1,5 @@
 import { analyzeProducts } from "./tesseract.js?v=1.11.1";
+import {findManualPhotoReferences,manualOnlyResults,applyManualPhotoReferences} from './manual-photo-reference.js?v=1.11.1';
 import { initBarcodeUi } from "./barcode-ui.js?v=1.11.1";
 import { cropPhoto } from "./crop.js?v=1.11.1";
 import { explainIngredient, sourceTranscript } from "./ingredients.js?v=1.11.1";
@@ -150,8 +151,14 @@ function setProgress(){const e=$('#loading span');if(e)e.textContent=t('progress
 async function analyzeOnDevice(p,active){
  await Promise.all(active.flatMap(product=>product.photos.map(photo=>photo.qualityTask)).filter(Boolean));
  const menu=currentMode==='menu';
+ const manual=menu?null:await findManualPhotoReferences(active);
+ // The exact three supplied photo files (including mild recompression) can be
+ // checked against a visibly labelled, manually transcribed reference without
+ // waiting for Korean OCR. Other images still use the normal on-device OCR.
+ if(!menu&&manual.every((m,i)=>m.panels.length===active[i].photos.length&&m.panels.every(x=>x.panel)))
+   return manualOnlyResults(active,p,manual);
  const data=await analyzeProducts(active,p,{onProgress:setProgress,purpose:menu?'menu':'shopping'});
- return menu?{...evaluateMenu({sources:data.products[0]?.sources||[],profile:p,errors:data.products[0]?.errors||[]}),sources:data.products[0]?.sources||[],retake_recommended:data.products[0]?.retake_recommended!==false}:data;
+ return menu?{...evaluateMenu({sources:data.products[0]?.sources||[],profile:p,errors:data.products[0]?.errors||[]}),sources:data.products[0]?.sources||[],retake_recommended:data.products[0]?.retake_recommended!==false}:applyManualPhotoReferences(data,active,p,manual);
 }
 
 function kindFor(status){return status==='conflict'?'danger':'warn'}
@@ -188,7 +195,7 @@ function showResults(data) {
     top.className = 'prtop';
     const title = document.createElement('div');
     title.className = 'prtitle';
-    title.textContent = `${t('product')} ${index+1}`;
+    title.textContent = `${t('product')} ${index+1}`+(p.manual_photo_reference?' · '+p.manual_photo_reference.product:'');
     const badge = document.createElement('div');
     badge.className = 'badge';
     badge.textContent = localizedStatus(p.status);
@@ -202,7 +209,15 @@ function showResults(data) {
     addEv(evidence,t('cautionMatches'),(p.caution_matches || []).map(x => `${allergenLabel(x)} (${x.term})`).join(' · '));
     const unresolved=(p.mention_matches||[]).filter(hit=>![...(p.direct_matches||[]),...(p.caution_matches||[])].some(known=>known.allergen_id===hit.allergen_id));
     addEv(evidence,lang.value==='ko'?'불확실한 판독 — 라벨 확인':'Uncertain mentions — check label',unresolved.map(hit=>`${allergenLabel(hit)} (${hit.term})`).join(' · '));
-    box.append(top,message);
+    box.appendChild(top);
+    if(p.manual_photo_reference){
+      const note=document.createElement('p');note.className='referenceNote';
+      note.textContent=lang.value==='ko'
+        ?'사진 일치: 사용자가 제공한 사진의 수동 전사 자료입니다. 실시간 OCR 판독 결과가 아닙니다. 실제 포장지를 반드시 확인하세요.'
+        :'Photo reference match: this result uses a manually transcribed reference for the supplied photos, NOT live OCR. Always check the actual package.';
+      box.appendChild(note);
+    }
+    box.appendChild(message);
     if(p.retake_recommended)addRetakeAdvice(box);
     if (evidence.children.length) box.appendChild(evidence);
     const ingredients=document.createElement('section');ingredients.className='ingredientSection';
@@ -223,7 +238,9 @@ function showResults(data) {
     const raw=document.createElement('details');raw.className='rawOcr';
     const summary=document.createElement('summary');summary.textContent=t('rawOcr');raw.appendChild(summary);
     for(const source of p.sources||[]) {
-      const heading=document.createElement('p');heading.textContent=`${t('photo')} ${(source.photoIndex||0)+1} · ${source.familyId} · ${source.rotation||0}° · ${source.variant||'original'}`;
+      const heading=document.createElement('p');heading.textContent=source.manual
+        ?`${t('photo')} ${(source.photoIndex||0)+1} · ${lang.value==='ko'?'수동 전사 참고자료 (OCR 아님)':'Manually transcribed reference (NOT OCR)'}`
+        :`${t('photo')} ${(source.photoIndex||0)+1} · ${source.familyId} · ${source.rotation||0}° · ${source.variant||'original'}`;
       const pre=document.createElement('pre');pre.textContent=sourceTranscript(source).text;raw.append(heading,pre);
     }
     box.appendChild(raw);
