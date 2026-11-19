@@ -97,3 +97,21 @@ test('only an unread native product falls back; a preceding native positive keep
  assert.deepEqual([...new Set(result.products[1].direct_matches.map(m=>m.allergen_id))],['soy']);
  assert.equal(result.products[0].errors.length,0);assert.equal(result.products[1].errors.length,2);
 });
+
+test('native Korean 2K photo scans a detail region when full image misses milk',async()=>{
+ const orig={naturalWidth:2048,naturalHeight:946,src:'local'};
+ const large={width:2048,height:946,ocrOriginal:orig,toDataURL:()=> 'data:image/png;base64,OVERVIEW'};
+ const enhanced={width:2048,height:946,toDataURL:()=> 'data:image/png;base64,ENHANCED'};
+ const makeView=variant=>({variant,canvas:{toDataURL:()=> 'data:image/png;base64,'+variant},frame:{x:0,y:0,scale:1,width:2048,height:946,cropWidth:2048,cropHeight:946},release(){}});
+ let calls=[];
+ const p=(await analyzeNativeProducts(products,{allergens:['milk']},{
+  prepare:async(_,extra)=>extra?enhanced:large,rotate,
+  makeMenuViews:()=>[makeView('menu-original'),makeView('menu-detail-0-0')],
+  nativeReader:async({base64,script})=>{
+   calls.push([base64,script]);
+   return {items:base64==='menu-detail-0-0'?[{text:'밀, 우유, 대두 함유',score:.92,lineId:0}]:[{text:'빅파이 딸기',score:.9,lineId:0}]};
+  }
+ })).products[0];
+ assert.equal(p.status,'conflict');assert.ok(p.direct_matches.some(h=>h.allergen_id==='milk'));
+ assert.ok(calls.some(([b,script])=>b==='menu-detail-0-0'&&script==='ko'));
+});

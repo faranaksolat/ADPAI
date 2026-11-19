@@ -190,16 +190,27 @@ function occurrenceKind(text, span, events) {
   const nextLine = text.indexOf("\n", span.end);
   const lineEnd = nextLine < 0 ? text.length : nextLine;
   const line = text.slice(lineStart, lineEnd);
+  // OCR often puts a Korean declaration's trailing marker on its own row:
+  //   "밀, 우유, 대두" / "함유", or "땅콩, 계란" / "혼입 가능".
+  // Only an immediately following row that BEGINS with the suffix is eligible.
+  // Do not borrow "함유" from unrelated nutrition or packaging text.
+  const nextStart=lineEnd<text.length?lineEnd+1:text.length;
+  const nextEnd=text.indexOf("\n",nextStart);
+  const continuationLine=text.slice(nextStart,nextEnd<0?text.length:nextEnd);
+  const suffixContinuation=/^\s*(?:혼입\s*가능|함유\s*가능|함유)(?:\s|$|[,.;。])/u.test(continuationLine)
+    ? continuationLine : "";
+  const scopedLine=suffixContinuation?line+" "+suffixContinuation:line;
+  // Negative declarations do not establish an allergen-positive finding.
+  const negatedKorean=/(?:함유\s*하지\s*않|미함유|불포함|포함\s*하지\s*않|무첨가)/u.test(scopedLine);
   // A negative claim is unresolved evidence, never a positive ingredient or a
   // certificate of absence. Separate later positive occurrences still count.
-  if (/\b(?:no|without|free from|sans|sin)\s+[^,;:.]*$/u.test(text.slice(lineStart, span.start)) || /^(?:[- ]free|[- ]frei|\s+free)\b/u.test(text.slice(span.end))) return "mention";
+  if (negatedKorean || /\b(?:no|without|free from|sans|sin)\s+[^,;:.]*$/u.test(text.slice(lineStart, span.start)) || /^(?:[- ]free|[- ]frei|\s+free)\b/u.test(text.slice(span.end))) return "mention";
   const before = events.filter(e => e.start <= span.start);
   const current = before.at(-1);
   let kind = current && !/[.;!?。；]/u.test(text.slice(current.end, span.start)) ? current.kind : "mention";
-  const lineHasDirect = events.some(e => e.kind === "direct" && e.start >= lineStart && e.start <= span.start);
   // Korean/Japanese declarations often put the marker after an allergen list.
-  if (!lineHasDirect && SUFFIX_CAUTION.test(line)) kind = "caution";
-  else if (kind === "mention" && SUFFIX_DIRECT.test(line) && !SUFFIX_CAUTION.test(line)) kind = "direct";
+  if (SUFFIX_CAUTION.test(scopedLine)) kind = "caution";
+  else if (SUFFIX_DIRECT.test(scopedLine)) kind = "direct";
   return kind;
 }
 

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {menuContrastPixels,mapMenuItems,menuDetailRegions,menuReadCanvases} from '../src/menu-image.js';
+import {menuContrastPixels,mapMenuItems,menuDetailRegions,menuReadCanvases,packageLabelDetailViews} from '../src/menu-image.js';
 import {readMenuPhoto} from '../src/menu-ocr.js';
 import {evaluateProduct} from '../src/engine.js';
 import {dietaryEvidence} from '../src/dietary.js';
@@ -63,4 +63,17 @@ test('detail regions overlap in both directions, stay bounded and map back witho
  const mapped=mapMenuItems([{text:'돼지고기',score:.25,box:{x0:40,x1:80,y0:60,y1:100}}],{x:300,y:500,scale:4,scaleY:2});
  assert.deepEqual(mapped[0].box,{x0:310,x1:320,y0:530,y1:550});assert.equal(mapped[0].score,.25);
  assert.throws(()=>menuDetailRegions(0,200));
+});
+
+test('2K Korean package label gets original-pixel detail views without image guessing',()=>{
+ const saved=globalThis.document;
+ globalThis.document={createElement:()=>({width:0,height:0,getContext:()=>({fillRect(){},drawImage(){},getImageData:()=>({data:new Uint8ClampedArray(4)}),putImageData(){}})})};
+ try{
+  const original={naturalWidth:2048,naturalHeight:946};
+  const views=packageLabelDetailViews({width:2048,height:946,ocrOriginal:original});
+  assert.equal(views.length,4);
+  assert.ok(views.every(v=>v.frame.from_original===true&&v.frame.width===2048));
+  assert.deepEqual(packageLabelDetailViews({width:1000,height:800}),[]);
+  views.forEach(v=>v.release());
+ }finally{globalThis.document=saved}
 });

@@ -3,10 +3,11 @@ name: Mobile test builds
 # Deliberate test builds only. No store upload, release signing or deployment.
 on:
   push:
-    branches: [main]
+    branches: [main, fix/korean-packaged-allergen-label-20261119]
     paths:
       - 'index.html'
       - 'src/**'
+      - 'tests/**'
       - 'assets/**'
       - 'scripts/build-mobile.mjs'
       - 'sw.js'

@@ -191,3 +191,20 @@ function fullStatus() {
 }
 
 console.log("ADPAI deterministic safety regressions: PASS");
+
+// Crown strawberry Victory Pie, photographed Korean package (2026-11-19).
+// These are human-transcribed label strings, NOT a successful OCR benchmark.
+{
+ const declared=source('korean',['원재료명 밀가루, 설탕, 코코아분말','밀, 우유, 대두 함유']);
+ for(const [id,term] of [['milk','우유'],['wheat','밀'],['soy','대두']]){
+  const result=evaluateProduct({sources:[declared],profile:{allergens:[id]},familyStatus:fullStatus()});
+  assert.equal(result.status,'conflict',id);
+  assert.ok(result.direct_matches.some(h=>h.allergen_id===id&&h.term===term),id);
+ }
+ const warning=source('korean',['땅콩, 계란, 돼지고기, 쇠고기 혼입 가능']);
+ for(const id of ['peanut','egg']){
+  const result=evaluateProduct({sources:[warning],profile:{allergens:[id]},familyStatus:fullStatus()});
+  assert.equal(result.status,'caution',id);
+  assert.ok(result.caution_matches.some(h=>h.allergen_id===id),id);
+ }
+}

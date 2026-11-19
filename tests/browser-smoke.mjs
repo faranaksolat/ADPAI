@@ -216,8 +216,10 @@ try {
     await evaluate(`(async()=>{const end=Date.now()+20000;while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw Error('native enhance timeout');await new Promise(r=>setTimeout(r,25))}})()`);
     assert.equal(await evaluate(`document.querySelector('#rtitle').textContent`),'Conflict detected');
     assert.equal(await evaluate(`globalThis.testNativeSizes[0]`),1400);
-    assert.equal(await evaluate(`globalThis.testNativeSizes.some(w=>w===2800)&&globalThis.testNativeSizes.every(w=>w<=3000)`),true);
-    assert.ok((await evaluate(`document.querySelector('.rawOcr').textContent`)).includes('native-enhanced'));
+    assert.equal(await evaluate(`globalThis.testNativeSizes.some(w=>w>1400)&&globalThis.testNativeSizes.every(w=>w<=3000)`),true);
+    // Focused original-pixel label regions can now find the warning before a
+    // redundant full-image enhancement; both routes preserve native scores.
+    assert.match(await evaluate(`document.querySelector('.rawOcr').textContent`),/menu-detail-|native-enhanced/);
     await evaluate(`delete globalThis.ADPAI_NATIVE_OCR;document.querySelector('#lang').value='ko';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
     // Explicit crop works on touch-sized UI; cancellation preserves a result,
     // applying/restoring invalidates it and restores the original pixels.
