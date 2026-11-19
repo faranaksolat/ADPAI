@@ -196,9 +196,9 @@ function occurrenceKind(text, span, events) {
   // Do not borrow "함유" from unrelated nutrition or packaging text.
   const nextStart=lineEnd<text.length?lineEnd+1:text.length;
   const nextEnd=text.indexOf("\n",nextStart);
-  const nextLine=text.slice(nextStart,nextEnd<0?text.length:nextEnd);
-  const suffixContinuation=/^\s*(?:혼입\s*가능|함유\s*가능|함유)(?:\s|$|[,.;。])/u.test(nextLine)
-    ? nextLine : "";
+  const continuationLine=text.slice(nextStart,nextEnd<0?text.length:nextEnd);
+  const suffixContinuation=/^\s*(?:혼입\s*가능|함유\s*가능|함유)(?:\s|$|[,.;。])/u.test(continuationLine)
+    ? continuationLine : "";
   const scopedLine=suffixContinuation?line+" "+suffixContinuation:line;
   // Negative declarations do not establish an allergen-positive finding.
   const negatedKorean=/(?:함유\s*하지\s*않|미함유|불포함|포함\s*하지\s*않|무첨가)/u.test(scopedLine);
@@ -208,7 +208,6 @@ function occurrenceKind(text, span, events) {
   const before = events.filter(e => e.start <= span.start);
   const current = before.at(-1);
   let kind = current && !/[.;!?。；]/u.test(text.slice(current.end, span.start)) ? current.kind : "mention";
-  const lineHasDirect = events.some(e => e.kind === "direct" && e.start >= lineStart && e.start <= span.start);
   // Korean/Japanese declarations often put the marker after an allergen list.
   if (SUFFIX_CAUTION.test(scopedLine)) kind = "caution";
   else if (SUFFIX_DIRECT.test(scopedLine)) kind = "direct";
