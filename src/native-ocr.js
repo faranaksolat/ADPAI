@@ -1,7 +1,7 @@
 import {evaluateProduct,containsAny,MARKERS} from './engine.js?v=1.11.1';
 import {extractIngredients} from './ingredients.js?v=1.11.1';
 import {preprocess,rotateCanvas,needsRetake,releasePhotoSource} from './image.js?v=1.11.1';
-import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.11.1';
+import {menuReadCanvases,mapMenuItems,packageLabelDetailViews} from './menu-image.js?v=1.11.1';
 
 // Native word scores are uncalibrated model outputs, not probabilities of food
 // safety. Both script recognizers and rotations remain one OCR family.
@@ -53,16 +53,30 @@ export async function analyzeNativeProducts(products,profile,{nativeReader,prepa
       const panel=photoSources().some(s=>containsAny(s.items.map(w=>w.text).join(' '),[...MARKERS.ingredient_headings,...MARKERS.direct_markers,...MARKERS.caution_markers]));
       // A working recognizer gets real alternate pixels, not a confidence bonus.
       // Missing models/zero word scores use the existing Tesseract fallback.
-      if(!exhausted&&letters.some(w=>w.score>0)&&(purpose==='menu'||(!satisfied&&(letters.length<10||mean<.75||!panel)))){
+      if(!exhausted&&letters.some(w=>w.score>0)&&(purpose==='menu'||(!satisfied&&(Math.max(ow,oh)>=1400||letters.length<10||mean<.75||!panel)))){
         try{
           let views;
           if(purpose==='menu')views=makeMenuViews(canvas).slice(1);
           else{
             const enhanced=await prepare(photo.file,true);
-            views=enhanced===canvas?[]:[{canvas:enhanced,variant:'native-enhanced',frame:{x:0,y:0,scale:enhanced.width/ow,scaleY:enhanced.height/oh,width:ow,height:oh,cropWidth:ow,cropHeight:oh}}];
-            if(canvas.ocrOriginal&&Math.max(ow,oh)>2400)views.push(...makeMenuViews(canvas).filter(v=>v.variant.startsWith('menu-detail-')));
+            // Focus on overlapping original-pixel label regions first; the
+            // full-image enhancement alone can shrink tiny Korean declarations.
+            views=packageLabelDetailViews(canvas);
+            if(enhanced!==canvas)views.push({canvas:enhanced,variant:'native-enhanced',frame:{x:0,y:0,scale:enhanced.width/ow,scaleY:enhanced.height/oh,width:ow,height:oh,cropWidth:ow,cropHeight:oh}});
           }
-          for(const view of views){for(const script of ['ko','en'])if(!await read(view,0,script))break;view.release?.();if(exhausted)break}
+          for(const view of views){
+            for(const script of purpose==='menu'?['ko','en']:['ko'])if(!await read(view,0,script))break;
+            view.release?.();
+            if(exhausted)break;
+            // One well-scoped, high-confidence positive is enough to warn.
+            // Multiple weak views from the same photo never count as independent.
+            if(purpose!=='menu'){
+              const ev=evaluateProduct({sources:photoSources(),profile});
+              const positive=[...ev.direct_matches,...ev.caution_matches];
+              if(selected>0&&(profile.allergens||[]).every(id=>positive.some(h=>h.allergen_id===id))
+                &&(profile.custom_avoid||[]).every(term=>positive.some(h=>h.allergen_id==='custom'&&h.term.toLowerCase()===term.toLowerCase())))break;
+            }
+          }
         }catch(error){errors.push({family:'korean',photoIndex,phase:'enhancement',message:String(error?.message||error)})}
       }
       // An upright sidebar can be readable while a different panel is rotated;

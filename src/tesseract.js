@@ -1,6 +1,6 @@
 import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.11.1';
 import { preprocess, rotateCanvas, resizeForOcr, needsRetake, releasePhotoSource } from './image.js?v=1.11.1';
-import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.11.1';
+import {menuReadCanvases,mapMenuItems,packageLabelDetailViews} from './menu-image.js?v=1.11.1';
 import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.11.1';
 import {createManagedWorker} from './ocr-worker.js?v=1.11.1';
 import {readMenuPhoto} from './menu-ocr.js?v=1.11.1';
@@ -137,10 +137,9 @@ export async function analyzeProducts(products, profile, options = {}) {
               continue;
             }
             const passes=def.id===PRIMARY.id&&worker.reinitialize
-              ? [{langs:['kor'],psm:'6',canvas:resizeForOcr(canvas,1000),variant:'reduced'},
+              ? [{langs:['kor'],psm:'6',canvas:resizeForOcr(canvas,1400),variant:'reduced'},
+                 ...(!menuMode?packageLabelDetailViews(canvas).map(view=>({langs:['kor'],psm:'11',view,variant:'original-region'})):[]),
                  {langs:['eng'],psm:'11',canvas:resizeForOcr(canvas,1600),variant:'reduced'},
-                 ...(!menuMode&&canvas.ocrOriginal&&Math.max(canvas.ocrOriginal.naturalWidth,canvas.ocrOriginal.naturalHeight)>2400
-                  ?menuReadCanvases(canvas).filter(v=>v.variant.startsWith('menu-detail-')).map(view=>({langs:['kor','eng'],psm:'11',view,variant:'original-region'})):[]),
                  {langs:PRIMARY.langs,psm:'3',canvas,variant:'original'}]
               : [{langs:def.langs,psm:menuMode?'11':'3',canvas,variant:'original'}];
             const satisfied=()=>{

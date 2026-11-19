@@ -77,3 +77,13 @@ export function markClippedRows(items,frame){
  }
  return items.map(item=>clipped.has(item)?{...item,context_clipped:true}:item);
 }
+
+// Package labels often occupy a small strip of a 2K phone photo. The
+// original-pixel, overlapping crops preserve word scores and clipped-context
+// flags; they do not infer or manufacture missing allergen declarations.
+export function packageLabelDetailViews(src,{minSide=1400}={}){
+ const original=src?.ocrOriginal;
+ const w=original?.naturalWidth||src?.width,h=original?.naturalHeight||src?.height;
+ if(!Number.isFinite(w)||!Number.isFinite(h)||Math.max(w,h)<minSide)return [];
+ return menuReadCanvases(src).filter(v=>v.variant.startsWith('menu-detail-'));
+}
