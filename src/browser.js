@@ -1,4 +1,5 @@
 import { analyzeProducts } from "./tesseract.js?v=1.11.1";
+import { initBarcodeUi } from "./barcode-ui.js?v=1.11.1";
 import { cropPhoto } from "./crop.js?v=1.11.1";
 import { explainIngredient, sourceTranscript } from "./ingredients.js?v=1.11.1";
 import { initPwa, updateInstallUI } from "./pwa.js?v=1.11.1";
@@ -272,3 +273,4 @@ analyze.onclick=async()=>{if(analyzing||selectingPhoto)return;const p=profile();
 renderCustom();setLang(lang.value);renderProducts();update();
 
 initPwa();
+initBarcodeUi();

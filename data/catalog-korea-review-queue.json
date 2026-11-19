@@ -1,0 +1,289 @@
+{
+  "schemaVersion": 1,
+  "market": "KR",
+  "collectedAt": "2026-11-10",
+  "purpose": "Online source leads only, NOT independent ground truth",
+  "records": [
+    {
+      "barcode": "8801043014830",
+      "candidateName": "농심 신라면 5개입",
+      "brand": "농심",
+      "packageVariant": "120g × 5 (600g)",
+      "status": "NEEDS_PHYSICAL_LABEL",
+      "reportedAllergens": [
+        "밀",
+        "대두",
+        "돼지고기",
+        "계란",
+        "쇠고기"
+      ],
+      "reportedAllergensStatus": "UNREVIEWED_RETAILER_LISTING",
+      "sourceLinks": [
+        {
+          "type": "retailer-barcode",
+          "url": "https://lottemartzetta.com/products/OS8801043014830/details",
+          "description": "Exact 5-pack barcode and variant"
+        },
+        {
+          "type": "retailer-barcode",
+          "url": "https://retaildb.or.kr/",
+          "description": "RetailDB also lists five-pack barcode"
+        },
+        {
+          "type": "retailer-label",
+          "url": "https://m.ssg.com/item/itemView.ssg?itemId=0000008333648",
+          "description": "Korean ingredients, allergen declaration and precautionary text"
+        },
+        {
+          "type": "manufacturer-label-photo",
+          "url": "https://m.nongshimmall.com/product/%EC%8B%A0%EB%9D%BC%EB%A9%B4120g20/2458/",
+          "description": "Manufacturer-shop public back-label illustration; no download"
+        }
+      ],
+      "photoSaved": false,
+      "independentReviewers": 0,
+      "note": "Do not mix with single packet barcode; real physical package and two-person label review still missing."
+    },
+    {
+      "barcode": "8801043014809",
+      "candidateName": "농심 신라면 단품",
+      "brand": "농심",
+      "packageVariant": "120g single packet (promotional edition photo)",
+      "status": "NEEDS_PHYSICAL_LABEL",
+      "reportedAllergens": [],
+      "reportedAllergensStatus": "NOT_TRANSCRIBED",
+      "sourceLinks": [
+        {
+          "type": "barcode-visible-photo",
+          "url": "https://www.ebay.com/itm/187547365600",
+          "description": "Photo shows GTIN on promotional-edition single packet"
+        },
+        {
+          "type": "third-party-ingredients",
+          "url": "https://gapjigi.com/scan/p/8801043014809",
+          "description": "Secondary ingredient record, not package-verified"
+        }
+      ],
+      "photoSaved": false,
+      "independentReviewers": 0,
+      "note": "Packaging/region differs; never borrow 5-pack label automatically."
+    },
+    {
+      "barcode": "8801043035989",
+      "candidateName": "농심 새우깡",
+      "brand": "농심",
+      "packageVariant": "90g single",
+      "status": "NEEDS_PHYSICAL_LABEL",
+      "reportedAllergens": [
+        "밀",
+        "새우",
+        "대두",
+        "우유"
+      ],
+      "reportedAllergensStatus": "UNREVIEWED_RETAILER_LISTING",
+      "sourceLinks": [
+        {
+          "type": "retailer-barcode",
+          "url": "https://lottemartzetta.com/products/OS8801043035989/details",
+          "description": "Exact 90g barcode"
+        },
+        {
+          "type": "retailer-label",
+          "url": "https://m.ssg.com/item/itemView.ssg?itemId=1000018629199",
+          "description": "Korean ingredients and allergen statement"
+        }
+      ],
+      "photoSaved": false,
+      "independentReviewers": 0,
+      "note": "SSG lists allergens, but label revision and full physical panel not verified."
+    },
+    {
+      "barcode": "8801045522234",
+      "candidateName": "오뚜기 진라면 순한맛",
+      "brand": "오뚜기",
+      "packageVariant": "120g × 5",
+      "status": "NEEDS_PHYSICAL_LABEL",
+      "reportedAllergens": [],
+      "reportedAllergensStatus": "NOT_TRANSCRIBED",
+      "sourceLinks": [
+        {
+          "type": "retailer-barcode",
+          "url": "https://lottemartzetta.com/products/OS8801045522234/details",
+          "description": "Exact 5-pack barcode, ingredient details as images"
+        }
+      ],
+      "photoSaved": false,
+      "independentReviewers": 0,
+      "note": "Needs complete label transcription."
+    },
+    {
+      "barcode": "8801045522265",
+      "candidateName": "오뚜기 진라면 매운맛",
+      "brand": "오뚜기",
+      "packageVariant": "120g × 5",
+      "status": "NEEDS_PHYSICAL_LABEL",
+      "reportedAllergens": [
+        "밀",
+        "대두",
+        "계란",
+        "쇠고기",
+        "돼지고기",
+        "닭고기",
+        "조개류"
+      ],
+      "reportedAllergensStatus": "UNREVIEWED_RETAILER_LISTING",
+      "sourceLinks": [
+        {
+          "type": "retailer-barcode",
+          "url": "https://lottemartzetta.com/products/OS8801045522265/details",
+          "description": "Exact 5-pack barcode"
+        },
+        {
+          "type": "retailer-label",
+          "url": "https://m.ssg.com/item/itemView.ssg?itemId=1000016397446",
+          "description": "Full Korean retailer ingredient/allergen text for matching named 5-pack"
+        }
+      ],
+      "photoSaved": false,
+      "independentReviewers": 0,
+      "note": "Retailer label may be different production revision; verify original package."
+    },
+    {
+      "barcode": "8801073140578",
+      "candidateName": "삼양 불닭볶음면",
+      "brand": "삼양식품",
+      "packageVariant": "140g × 5",
+      "status": "NEEDS_PHYSICAL_LABEL",
+      "reportedAllergens": [],
+      "reportedAllergensStatus": "NOT_TRANSCRIBED",
+      "sourceLinks": [
+        {
+          "type": "retailer-barcode",
+          "url": "https://lottemartzetta.com/products/OS8801073140578/details",
+          "description": "Exact five-pack GTIN"
+        },
+        {
+          "type": "retailer-label",
+          "url": "https://m.ssg.com/item/itemView.ssg?itemId=0000008549264",
+          "description": "Korean ingredient label text"
+        }
+      ],
+      "photoSaved": false,
+      "independentReviewers": 0,
+      "note": "Allergen statement not fully checked from printed pack."
+    },
+    {
+      "barcode": "8801117534912",
+      "candidateName": "오리온 초코파이",
+      "brand": "오리온",
+      "packageVariant": "39g × 12; conflicting retailer total weight",
+      "status": "NEEDS_PHYSICAL_LABEL",
+      "reportedAllergens": [],
+      "reportedAllergensStatus": "NOT_TRANSCRIBED",
+      "sourceLinks": [
+        {
+          "type": "retailer-barcode",
+          "url": "https://lottemartzetta.com/products/OS8801117534912/details",
+          "description": "Barcode present, but 468g headline vs 420g product information"
+        }
+      ],
+      "photoSaved": false,
+      "independentReviewers": 0,
+      "note": "BLOCKED: retailer internally inconsistent on package weight; do not treat as confirmed formula."
+    },
+    {
+      "barcode": "8801115114154",
+      "candidateName": "서울우유 흰우유",
+      "brand": "서울우유",
+      "packageVariant": "1,000mL refrigerated",
+      "status": "NEEDS_PHYSICAL_LABEL",
+      "reportedAllergens": [
+        "우유"
+      ],
+      "reportedAllergensStatus": "UNREVIEWED_RETAILER_LISTING",
+      "sourceLinks": [
+        {
+          "type": "retailer-barcode",
+          "url": "https://lottemartzetta.com/products/OS8801115114154/details",
+          "description": "Exact 1L refrigerated GTIN"
+        },
+        {
+          "type": "retailer-label",
+          "url": "https://m.ssg.com/item/itemView.ssg?itemId=0000007050044",
+          "description": "Fresh Seoul Milk ingredient label, barcode not shown there"
+        }
+      ],
+      "photoSaved": false,
+      "independentReviewers": 0,
+      "note": "Do not merge with UHT product. Physical GTIN-to-current-label check needed."
+    },
+    {
+      "barcode": "8801115115151",
+      "candidateName": "서울우유 멸균 흰우유",
+      "brand": "서울우유",
+      "packageVariant": "1,000mL UHT",
+      "status": "NEEDS_PHYSICAL_LABEL",
+      "reportedAllergens": [
+        "우유"
+      ],
+      "reportedAllergensStatus": "UNREVIEWED_RETAILER_LISTING",
+      "sourceLinks": [
+        {
+          "type": "retailer-barcode",
+          "url": "https://lottemartzetta.com/products/OS8801115115151/details",
+          "description": "Exact UHT GTIN"
+        },
+        {
+          "type": "retailer-label",
+          "url": "https://m.ssg.com/item/itemView.ssg?itemId=0000006614551",
+          "description": "UHT Seoul Milk ingredient label, barcode not shown there"
+        }
+      ],
+      "photoSaved": false,
+      "independentReviewers": 0,
+      "note": "Separate SKU from refrigerated milk; physical label review needed."
+    },
+    {
+      "barcode": "8801104220453",
+      "candidateName": "빙그레 바나나맛우유",
+      "brand": "빙그레",
+      "packageVariant": "240mL × 4 (standard formula)",
+      "status": "NEEDS_PHYSICAL_LABEL",
+      "reportedAllergens": [],
+      "reportedAllergensStatus": "NOT_TRANSCRIBED",
+      "sourceLinks": [
+        {
+          "type": "retailer-barcode",
+          "url": "https://lottemartzetta.com/products/OS8801104220453/details",
+          "description": "Exact 4-pack GTIN"
+        }
+      ],
+      "photoSaved": false,
+      "independentReviewers": 0,
+      "note": "Do not substitute unsweetened version; verify current complete Korean label."
+    }
+  ],
+  "quarantined": [
+    {
+      "barcode": "8801043150620",
+      "candidateName": "Nongshim Shin Ramyun possible export variant",
+      "brand": "농심",
+      "packageVariant": "120g single export variant",
+      "status": "NEEDS_PHYSICAL_LABEL",
+      "reportedAllergens": [],
+      "reportedAllergensStatus": "NOT_TRANSCRIBED",
+      "sourceLinks": [
+        {
+          "type": "export-ingredients",
+          "url": "https://ko.ehalal.io/mushbooh/food/halal/shin-ramyun-instant-noodles-2/",
+          "description": "International source; not the Korean retail label"
+        }
+      ],
+      "photoSaved": false,
+      "independentReviewers": 0,
+      "note": "EXPORT FORMULA RISK. Exclude from Korean barcode catalogue until domestic package identity confirmed."
+    }
+  ],
+  "photoPolicy": "External references only. No remote image copied, owned, licensed or independently reviewed.",
+  "promoteToVerified": "Never automatically. Require complete current physical Korean package, two independent reviewers and private photo hash."
+}

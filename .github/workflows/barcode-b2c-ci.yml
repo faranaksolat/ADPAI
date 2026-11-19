@@ -1,0 +1,78 @@
+name: Main-integrated B2C barcode verification
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - 'src/barcode-*.js'
+      - 'src/catalog-core.js'
+      - 'src/pilot-metrics.js'
+      - 'data/catalog-korea-verified.json'
+      - 'scripts/audit-korean-catalog.mjs'
+      - 'scripts/evaluate-b2c-pilot.mjs'
+      - 'scripts/build-mobile.mjs'
+      - 'tests/catalog-core.test.mjs'
+      - 'tests/pilot-metrics.test.mjs'
+      - 'src/browser.js'
+      - 'assets/barcode.css'
+      - 'index.html'
+      - 'privacy.html'
+      - 'sw.js'
+      - 'tests/barcode-*.mjs'
+      - '.github/workflows/barcode-b2c-ci.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: b2c-validation-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install exact dependencies
+        run: npm ci
+      - name: Barcode unit and full Node suite
+        run: npm test
+      - name: Validate Korean catalog provenance and unique GTINs
+        run: node scripts/audit-korean-catalog.mjs
+      - name: Native web bundle
+        run: npm run build:mobile
+      - name: Live product catalog audit with real barcodes
+        continue-on-error: true
+        run: node tests/barcode-live-audit.mjs
+      - name: Browser E2E (Chromium)
+        run: |
+          env -u DBUS_SESSION_BUS_ADDRESS timeout 180s npm run test:browser || {
+            echo 'Retrying transient Chromium startup failure'; sleep 5;
+            env -u DBUS_SESSION_BUS_ADDRESS timeout 180s npm run test:browser;
+          }
+      - name: Simulated phone camera barcode detection and cleanup
+        run: |
+          env -u DBUS_SESSION_BUS_ADDRESS timeout 180s env BARCODE_CAMERA_SIM=1 node tests/browser-smoke.mjs || {
+            echo 'Retrying transient Chromium startup failure'; sleep 5;
+            env -u DBUS_SESSION_BUS_ADDRESS timeout 180s env BARCODE_CAMERA_SIM=1 node tests/browser-smoke.mjs;
+          }
+      - name: Real Korean barcode through Chromium UI and CORS
+        continue-on-error: true
+        run: |
+          env -u DBUS_SESSION_BUS_ADDRESS timeout 180s env LIVE_BARCODE=1 node tests/browser-smoke.mjs || {
+            echo 'Retrying transient Chromium startup failure'; sleep 5;
+            env -u DBUS_SESSION_BUS_ADDRESS timeout 180s env LIVE_BARCODE=1 node tests/browser-smoke.mjs;
+          }
+      - name: Preserve live API response
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: barcode-live-audit
+          path: barcode-live-audit.json
+          if-no-files-found: warn
