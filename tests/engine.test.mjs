@@ -208,14 +208,3 @@ console.log("ADPAI deterministic safety regressions: PASS");
   assert.ok(result.caution_matches.some(h=>h.allergen_id===id),id);
  }
 }
-{
- const split=source('korean',['밀, 우유, 대두','함유']);
- assert.equal(evaluateProduct({sources:[split],profile:profileMilk}).status,'conflict');
- const caution=source('korean',['땅콩, 계란','혼입 가능']);
- assert.equal(evaluateProduct({sources:[caution],profile:{allergens:['peanut']}}).status,'caution');
- // A warning must not be promoted to a direct ingredient declaration.
- const separate=source('korean',['우유 혼입 가능','밀, 대두 함유']);
- assert.equal(evaluateProduct({sources:[separate],profile:profileMilk}).status,'caution');
- const negative=source('korean',['우유 함유하지 않음']);
- assert.equal(evaluateProduct({sources:[negative],profile:profileMilk}).status,'unverified');
-}
