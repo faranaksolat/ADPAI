@@ -1,6 +1,6 @@
 // Increment RELEASE with the complete module graph. Installation is atomic;
 // updates wait for open tabs to close, and never interrupt ongoing analysis.
-const RELEASE='1.11.1-b2c-integrated-20261119';
+const RELEASE='1.11.1-kr-label-fix-20261119';
 const ASSET_VERSION='1.11.1';
 const PREFIX=`adpai-shell:${self.registration.scope}:`;
 const CACHE=PREFIX+RELEASE;
