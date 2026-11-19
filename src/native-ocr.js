@@ -1,7 +1,7 @@
 import {evaluateProduct,containsAny,MARKERS} from './engine.js?v=1.11.1';
 import {extractIngredients} from './ingredients.js?v=1.11.1';
 import {preprocess,rotateCanvas,needsRetake,releasePhotoSource} from './image.js?v=1.11.1';
-import {menuReadCanvases,mapMenuItems,packageLabelDetailViews} from './menu-image.js?v=1.11.1';
+import {menuReadCanvases,mapMenuItems} from './menu-image.js?v=1.11.1';
 
 // Native word scores are uncalibrated model outputs, not probabilities of food
 // safety. Both script recognizers and rotations remain one OCR family.
@@ -61,7 +61,8 @@ export async function analyzeNativeProducts(products,profile,{nativeReader,prepa
             const enhanced=await prepare(photo.file,true);
             // Focus on overlapping original-pixel label regions first; the
             // full-image enhancement alone can shrink tiny Korean declarations.
-            views=packageLabelDetailViews(canvas);
+            views=canvas.ocrOriginal&&Math.max(ow,oh)>=1400
+              ?makeMenuViews(canvas).filter(v=>v.variant.startsWith('menu-detail-')):[];
             if(enhanced!==canvas)views.push({canvas:enhanced,variant:'native-enhanced',frame:{x:0,y:0,scale:enhanced.width/ow,scaleY:enhanced.height/oh,width:ow,height:oh,cropWidth:ow,cropHeight:oh}});
           }
           for(const view of views){
