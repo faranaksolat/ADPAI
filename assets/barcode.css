@@ -26,3 +26,7 @@ body:not([data-mode="shopping"]) .adpaiBarcode{display:none!important}
 .adpaiBarcode .abHistoryList button{padding:5px 8px}
 .adpaiBarcode a{color:#24614e;text-decoration:underline}
 @media(max-width:600px){.adpaiBarcode{padding:13px}.adpaiBarcode .abTools{align-items:stretch}.adpaiBarcode .abTools input{flex-basis:100%;max-width:100%}}
+
+.adpaiBarcode .abDietary{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0;padding:10px;border:1px solid #ceddcd;border-radius:10px}
+.adpaiBarcode .abDietary legend{font-weight:600;font-size:.88rem;padding:0 4px}
+.adpaiBarcode .abDietary label{display:flex;gap:5px;align-items:center;font-size:.9rem}

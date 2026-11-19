@@ -39,3 +39,9 @@ test('shipped catalog starts empty: no invented physically verified products',as
  const catalog=JSON.parse(await readFile('data/catalog-korea-verified.json','utf8'));
  assert.deepEqual(catalog.records,[]);
 });
+
+test('invalid calendar dates do not pass physical evidence validation',()=>{
+ for(const date of ['2026-02-31','2026-13-01','2026-00-01']){
+  assert.equal(verifiedKoreanRecord({...record,evidence:{...record.evidence,capturedAt:date}}),null,date);
+ }
+});

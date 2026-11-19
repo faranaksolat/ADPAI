@@ -1,5 +1,7 @@
-name: B2C Barcode PR verification
+name: Main-integrated B2C barcode verification
 on:
+  push:
+    branches: [main]
   pull_request:
     paths:
       - 'src/barcode-*.js'

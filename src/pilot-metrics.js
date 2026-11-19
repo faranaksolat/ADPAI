@@ -15,7 +15,7 @@ export function evaluateB2CPilot(input){
   const ref=entry?.reference,obs=entry?.observed;
   const reviewed=ref?.adjudicated===true&&typeof ref?.photoSha256==='string'&&
     /^[a-f0-9]{64}$/i.test(ref.photoSha256)&&Array.isArray(ref.reviewers)&&
-    ref.reviewers.length>=2&&new Set(ref.reviewers).size===ref.reviewers.length;
+    ref.reviewers.length>=2&&ref.reviewers.every(x=>typeof x==='string'&&x.trim().length>0)&&new Set(ref.reviewers.map(x=>x.trim())).size===ref.reviewers.length;
   if(!reviewed||!expected.has(ref?.risk)){report.unreviewed++;continue}
   report.eligible++;
   if(obs?.barcodeRead===true)report.barcodeRead++;

@@ -5,7 +5,7 @@ import {normalizeBarcode, validGTIN} from './barcode-core.js?v=1.11.1';
 const HEX_SHA256=/^[a-f0-9]{64}$/i;
 const ISO_DAY=/^\d{4}-\d{2}-\d{2}$/;
 const present=x=>typeof x==='string'&&x.trim().length>0;
-const day=x=>present(x)&&ISO_DAY.test(x)&&Number.isFinite(Date.parse(x+'T00:00:00Z'));
+const day=x=>{if(!present(x)||!ISO_DAY.test(x))return false;const d=new Date(x+'T00:00:00Z');return Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===x;};
 
 export function verifiedKoreanRecord(raw){
  if(!raw||typeof raw!=='object'||!validGTIN(raw.barcode)||raw.market!=='KR')return null;
