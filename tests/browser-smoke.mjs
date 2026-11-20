@@ -179,11 +179,15 @@ try {
   assert.equal(await evaluate(`document.querySelector('#continuePhotos').disabled`),false);
   await evaluate(`document.querySelector('#continuePhotos').click()`);
   assert.equal(await evaluate(`document.activeElement.id`),'scanHeading');
-  const cases=[['INGREDIENTS: milk, sugar, citric acid (E330)','Conflict detected'],['INGREDIENTS: sugar and cocoa','Unable to verify'],['Nutrition facts: per 100 g 500 kcal','Unable to verify']];
+  const cases=[['INGREDIENTS: milk, sugar, citric acid (E330)','Conflict detected'],['INGREDIENTS: sugar and cocoa','Unable to verify'],['INGREDIENTS: sugar, cocoa powder, cocoa butter, vanilla extract, salt','No detected allergen'],['Nutrition facts: per 100 g 500 kcal','Unable to verify']];
   for(const [text,expected] of realOcr ? cases.slice(0,1) : cases) {
-    const result=await evaluate(`(async()=>{globalThis.testOcrText=${JSON.stringify(text)};document.querySelector('#analyze').click();const end=Date.now()+${realOcr?180000:20000};while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw new Error('analysis timeout');await new Promise(r=>setTimeout(r,25));}const visible=document.body.cloneNode(true);visible.querySelectorAll('.rawOcr').forEach(el=>el.remove());return {title:document.querySelector('#rtitle').textContent,icon:document.querySelector('#ricon').textContent,badge:document.querySelector('.presult .badge').textContent,body:visible.textContent,hasCalorieElements:!!document.querySelector('#calTotal,.kcal')};})()`);
+    const result=await evaluate(`(async()=>{globalThis.testOcrText=${JSON.stringify(text)};document.querySelector('#analyze').click();const end=Date.now()+${realOcr?180000:20000};while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw new Error('analysis timeout');await new Promise(r=>setTimeout(r,25));}const visible=document.body.cloneNode(true);visible.querySelectorAll('.rawOcr').forEach(el=>el.remove());return {title:document.querySelector('#rtitle').textContent,icon:document.querySelector('#ricon').textContent,badge:document.querySelector('.presult .badge').textContent,message:document.querySelector('.presult .prmsg').textContent,body:visible.textContent,hasCalorieElements:!!document.querySelector('#calTotal,.kcal')};})()`);
     assert.equal(result.title,expected);
     assert.equal(result.badge,expected);
+    if(expected==='No detected allergen') {
+      assert.match(result.message,/full ingredients and allergen warnings were NOT verified/i);
+      assert.match(result.message,/does NOT mean the product is safe/i);
+    }
     await tap(navigation+' [data-nav-mode=shopping]');
     assert.equal(await evaluate(`document.querySelector('#result').classList.contains('show')`),true,'returning to the active tab must preserve the current result');
     assert.equal(result.icon,'!');
