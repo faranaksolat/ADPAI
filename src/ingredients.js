@@ -17,7 +17,7 @@ export function sourceTranscript(source) {
 }
 const koreanHead=['원재료명 및 함량','원재료 및 함량','원재료명','원재료','원료명'].map(x=>labelPattern(x)).join('|');
 const HEADING=new RegExp(`(?:^|\\n)[ \\t]*(?:ingredients|ingrédients|${koreanHead})[ \\t]*[:：]?[ \\t]*(?:\\n[ \\t]*)?|(?<![\\p{L}\\p{N}])(?:ingredients?|ingrédients?|${koreanHead})[ \\t]*[:：][ \\t]*`,'giu');
-const STOP=new RegExp(`(?:\\b(?:allergen(?:\\s+statement)?|contains?|may\\s+contain|nutrition(?:al)?|storage|store\\s+in|best\\s+before|manufactured|distributed|contient|peut\\s+contenir|conservation)\\b|${['알레르기','영양정보','보관방법','소비기한','유통기한','제조원'].map(x=>labelPattern(x)).join('|')})`,'iu');
+const STOP=new RegExp(`(?:\\b(?:allergen(?:\\s+statement)?|contains?|may\\s+contain|nutrition(?:al)?|storage|store\\s+in|best\\s+before|manufactured|distributed|contient|peut\\s+contenir|conservation)\\b|${['알레르기','영양정보','보관방법','소비기한','유통기한','제조원','제조사','원산지','용기(포장)재질'].map(x=>labelPattern(x)).join('|')})`,'iu');
 function scoreIn(spans,start,end) {
   const scores=spans.filter(s=>s.end>start && s.start<end).map(s=>s.score);
   return scores.length?Math.min(...scores):0;
@@ -32,6 +32,18 @@ function splitIngredients(text) {
   }
   parts.push({start,end:text.length});
   return parts;
+}
+const TABLE_ROW_PREFIX=new RegExp(`\\n[ \\t]*(?:[.|｜ㅣ][ \\t]*)?${labelPattern('및 함량')}[ \\t|｜ㅣ.:：]*`,'u');
+const TABLE_CELL_END=/[|｜ㅣ]|\n/u;
+function ingredientParts(body) {
+  const continuation=TABLE_ROW_PREFIX.exec(body);
+  if(!continuation)return splitIngredients(body);
+  const start=continuation.index+continuation[0].length;
+  const nextCell=body.slice(start).split(TABLE_CELL_END,1)[0];
+  return [
+    ...splitIngredients(body.slice(0,continuation.index)),
+    ...splitIngredients(nextCell).map(part=>({start:start+part.start,end:start+part.end})),
+  ];
 }
 const nonDairyPattern=new RegExp(`(?<![\\p{L}\\p{N}])(?:${NON_DAIRY_PHRASES.map(x=>labelPattern(x)).join('|')})(?![\\p{L}\\p{N}])`,'giu');
 const aliases=GLOSSARY.flatMap(entry=>entry.aliases.map(alias=>({entry,alias,
@@ -72,12 +84,12 @@ export function extractIngredients(sources) {
       if(warning) body=body.slice(0,warning.index);
       const declaration=new RegExp(`\\n[^\\n]*${labelPattern('함유')}[^\\n]*`,'u').exec(body);
       if(declaration)body=body.slice(0,declaration.index);
-      for(const part of splitIngredients(body).slice(0,80)) {
+      for(const part of ingredientParts(body).slice(0,80)) {
         const raw=body.slice(part.start,part.end);
-        const original=raw.trim().replace(/[.。]+$/u,'').trim();
+        const original=raw.trim().replace(/^[|｜ㅣ][ \t]*/u,'').replace(/[.。|｜ㅣ]+$/u,'').trim();
         if(!original || !/\p{L}/u.test(original)) continue;
-        const offset=part.start+raw.indexOf(raw.trim());
-        const confidence=scoreIn(spans,start+offset,start+part.end);
+        const offset=part.start+raw.indexOf(original);
+        const confidence=scoreIn(spans,start+offset,start+offset+original.length);
         const key=original.normalize('NFKC').toLowerCase().replace(/\s+/gu,' ');
         const row={original,confidence,uncertain:confidence<.65,
           photoIndex:source.photoIndex,familyId:source.familyId,rotation:source.rotation,variant:source.variant||'original'};

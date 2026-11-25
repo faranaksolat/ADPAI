@@ -1,7 +1,7 @@
 import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.11.1';
 import { preprocess, rotateCanvas, resizeForOcr, needsRetake, releasePhotoSource } from './image.js?v=1.11.1';
 import {menuReadCanvases,mapMenuItems,packageLabelDetailViews} from './menu-image.js?v=1.11.1';
-import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.11.1';
+import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.11.1-table-label';
 import {createManagedWorker} from './ocr-worker.js?v=1.11.1';
 import {readMenuPhoto} from './menu-ocr.js?v=1.11.1';
 import {analyzeNativeProducts} from './native-ocr.js?v=1.11.1';
@@ -91,6 +91,69 @@ function selectCandidates(candidates) {
   return [...new Set([...panels,...nutrition,sorted[0]])].filter(Boolean);
 }
 
+// On small flat labels, long grid rules can split the ingredient cell into
+// unreadable regions. Make a second view, keeping the original read as evidence.
+export function compactLabelTableView(canvas) {
+  const {width,height}=canvas||{};
+  if(!globalThis.document||!Number.isInteger(width)||!Number.isInteger(height)||
+     Math.min(width,height)<160||Math.max(width,height)>850)return null;
+  const ctx=canvas.getContext('2d');
+  const pixels=ctx.getImageData(0,0,width,height);
+  const dark=new Uint8Array(width*height);
+  let lightPixels=0;
+  for(let i=0;i<dark.length;i++){
+    const p=i*4;
+    const gray=(pixels.data[p]*.299+pixels.data[p+1]*.587+pixels.data[p+2]*.114);
+    dark[i]=gray<150;
+    if(gray>=190)lightPixels++;
+  }
+  if(lightPixels<dark.length*.5)return null;
+  const mask=new Uint8Array(dark.length);
+  const countRules=(vertical)=>{
+    const lines=vertical?width:height,length=vertical?height:width;
+    const stride=vertical?width:1,step=vertical?1:width;
+    const minimum=length*(vertical?.25:.37);
+    let bands=0,previous=-2;
+    for(let line=0;line<lines;line++){
+      const offset=line*step;
+      let start=-1,last=-1,count=0,found=false;
+      for(let pos=0;pos<=length;pos++){
+        if(pos<length&&dark[offset+pos*stride]){
+          if(start<0)start=pos;
+          last=pos;count++;
+        }else if(start>=0&&(pos-last>=3||pos===length)){
+          const span=last-start+1;
+          if(span>=minimum&&count>=span*.8){
+            for(let x=start;x<=last;x++)mask[offset+x*stride]=1;
+            found=true;
+          }
+          start=-1;count=0;
+        }
+      }
+      if(found){
+        if(line>previous+1)bands++;
+        previous=line;
+      }
+    }
+    return bands;
+  };
+  if(countRules(false)<3||countRules(true)<1)return null;
+  for(let i=0;i<mask.length;i++)if(mask[i]){
+    const p=i*4;
+    pixels.data[p]=pixels.data[p+1]=pixels.data[p+2]=255;
+  }
+  const copy=document.createElement('canvas');
+  copy.width=width;copy.height=height;
+  copy.getContext('2d').putImageData(pixels,0,0);
+  const scale=Math.min(4,1600/Math.max(width,height));
+  const enlarged=document.createElement('canvas');
+  enlarged.width=Math.round(width*scale);enlarged.height=Math.round(height*scale);
+  const enlargedCtx=enlarged.getContext('2d');
+  enlargedCtx.imageSmoothingQuality='high';
+  enlargedCtx.drawImage(copy,0,0,enlarged.width,enlarged.height);
+  return enlarged;
+}
+
 export async function analyzeProducts(products, profile, options = {}) {
   const nativeReader=options.nativeReader===undefined?globalThis.ADPAI_NATIVE_OCR:options.nativeReader;
   if(nativeReader){
@@ -136,8 +199,11 @@ export async function analyzeProducts(products, profile, options = {}) {
               state.sources.push(...menu.sources);state.errors.push(...menu.errors);complete=complete&&menu.complete;
               continue;
             }
-            const passes=def.id===PRIMARY.id&&worker.reinitialize
+            const primary=def.id===PRIMARY.id&&worker.reinitialize;
+            const table=primary&&!menuMode?compactLabelTableView(canvas):null;
+            const passes=primary
               ? [{langs:['kor'],psm:'6',canvas:resizeForOcr(canvas,1400),variant:'reduced'},
+                 ...(table?[{langs:['kor'],psm:'6',canvas:table,variant:'table-without-rules',uprightOnly:true}]:[]),
                  ...(!menuMode?packageLabelDetailViews(canvas).map(view=>({langs:['kor'],psm:'11',view,variant:'original-region'})):[]),
                  {langs:['eng'],psm:'11',canvas:resizeForOcr(canvas,1600),variant:'reduced'},
                  {langs:PRIMARY.langs,psm:'3',canvas,variant:'original'}]
@@ -155,7 +221,7 @@ export async function analyzeProducts(products, profile, options = {}) {
               if(worker.reinitialize)await worker.reinitialize(pass.langs,1);
               if(worker.setParameters)await worker.setParameters({tessedit_pageseg_mode:pass.psm});
               const candidates=[];
-              for(const rotation of pass.view?[0]:[0,90,270,180]){
+              for(const rotation of pass.view||pass.uprightOnly?[0]:[0,90,270,180]){
                 if(Date.now()-photoStarted>=maxPhotoMs){complete=false;state.errors.push({family:def.id,photoIndex,message:'OCR photo time budget reached'});break}
                 try{
                   const r=await worker.recognize(rotate(pass.view?.canvas||pass.canvas,rotation),{timeoutMs:Math.max(1,maxPhotoMs-(Date.now()-photoStarted))});
@@ -169,7 +235,7 @@ export async function analyzeProducts(products, profile, options = {}) {
                   // Waiting for all rotations used to exhaust the budget before
                   // a damaged label with no recognised heading could be helped.
                   const languageKey=pass.langs.join('+');
-                  if(!menuMode&&!pass.view&&rotation===0&&def.id===PRIMARY.id&&pass.langs.length===1&&worker.reinitialize
+                  if(!menuMode&&!pass.view&&!pass.uprightOnly&&rotation===0&&def.id===PRIMARY.id&&pass.langs.length===1&&worker.reinitialize
                     &&!satisfied()&&sourceQuality(candidate)<.7&&!enhancedLanguages.has(languageKey)&&Date.now()-photoStarted<maxPhotoMs-1000){
                     enhancedLanguages.add(languageKey);
                     try{

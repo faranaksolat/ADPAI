@@ -54,3 +54,10 @@ test('Korean OCR spaces preserve original names, explanations and declaration bo
   assert.equal(explainIngredient(rows[1].original)[0].id,'cocoa-butter');
   assert.equal(explainIngredient(rows[2].original)[0].id,'milk-powder');
 });
+
+test('wrapped Korean table headings and adjacent manufacturer cells stay out of ingredient rows',()=>{
+  const sources=[source('원재료명 | 감자 62.04%, 식물성유지(해바라기유, 옥수수유, 카놀라유),\n및 함량 | 정제소금 | 제조사 프리토레이\n원산지 미국')];
+  const rows=extractIngredients(sources);
+  assert.deepEqual(rows.map(x=>x.original),['감자 62.04%','식물성유지(해바라기유, 옥수수유, 카놀라유)','정제소금']);
+  assert.ok(rows.every(x=>!x.uncertain));
+});

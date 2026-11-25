@@ -1,8 +1,8 @@
-import { analyzeProducts } from "./tesseract.js?v=1.11.1";
+import { analyzeProducts } from "./tesseract.js?v=1.11.1-table-label";
 import {findManualPhotoReferences,manualOnlyResults,applyManualPhotoReferences} from './manual-photo-reference.js?v=1.11.1';
 import { initBarcodeUi } from "./barcode-ui.js?v=1.11.1";
 import { cropPhoto } from "./crop.js?v=1.11.1";
-import { explainIngredient, sourceTranscript } from "./ingredients.js?v=1.11.1";
+import { explainIngredient, sourceTranscript } from "./ingredients.js?v=1.11.1-table-label";
 import { initPwa, updateInstallUI } from "./pwa.js?v=1.11.1";
 import { evaluateMenu } from './menu.js?v=1.11.1';
 import {normalizeDietary, dietaryConflict} from './dietary.js?v=1.11.1';
