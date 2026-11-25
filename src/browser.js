@@ -173,12 +173,24 @@ function hasNoDetectedInReadText(p, hasSelection){
     (p.ingredients||[]).some(row=>row.uncertain===false);
 }
 function noDetectedLabel(){
-  return lang.value==='ko'?'읽은 원재료에서 선택 성분 미검출':'No match in the ingredient text read';
+  return lang.value==='ko'?'읽은 원재료에서 선택 성분 미검출':'No caution was found';
 }
 function noDetectedWarning(){
   return lang.value==='ko'
     ?'판독한 원재료 문구에서 선택한 성분을 찾지 못했습니다. 전체 원재료와 알레르기 주의 문구는 실제 포장지에서 확인해 주세요.'
     :'None of your selected ingredients were found in the ingredient text ADPAI could read. Check the full ingredient list and allergen warnings on the package.';
+}
+function labelReviewTitle(){
+  return lang.value==='ko'?'포장지 확인 필요':'Check the package label';
+}
+function needsLabelPhoto(p){
+  return p.status==='unverified' && !p.manual_photo_reference &&
+    !(p.mention_matches||[]).length && !(p.ingredients||[]).some(row=>row.uncertain===false);
+}
+function retakeLabelMessage(){
+  return lang.value==='ko'
+    ?'원재료를 선명하게 읽지 못했습니다. 원재료 목록과 알레르기 주의 문구 전체가 보이도록 가까이에서 다시 촬영해 주세요.'
+    :'The ingredient list could not be read clearly. Take a closer, sharper photo of the full ingredient list and allergen warnings.';
 }
 function localizedStatus(status){if(lang.value!=='ko'){if(status==='unverified')return t('unableVerify');if(status==='conflict')return t('conflict');if(status==='caution')return t('caution');if(status==='unverified_language')return t('unableVerify');if(status==='no_listed_conflict')return t('unableVerify');if(status==='ingredient_not_confirmed')return'Ingredient list not confirmed';if(status==='nutrition_panel')return'Nutrition panel detected';if(status==='unreadable')return'Please retake the label photo';return String(status||'').replaceAll('_',' ')}const map={unverified:'확인 불가',conflict:'주의 성분 확인',caution:'교차접촉 주의',unverified_language:'확인 불가',no_listed_conflict:'확인 불가',ingredient_not_confirmed:'원재료 목록 확인 필요',nutrition_panel:'영양정보 확인됨',unreadable:'라벨 재촬영 필요'};return map[status]||String(status||'').replaceAll('_',' ')}
 function localizedProductMessage(p){const dn=[...new Set((p.direct_matches||[]).map(allergenLabel))].filter(Boolean),cn=[...new Set((p.caution_matches||[]).map(allergenLabel))].filter(Boolean);if(lang.value!=='ko')return p.message||'';if(p.status==='conflict')return`선택한 주의 성분이 원재료 또는 직접 알레르기 표시에서 확인되었습니다: ${dn.join(', ')}.`;if(p.status==='caution')return`교차접촉 가능성에 대한 주의 표시가 확인되었습니다: ${cn.join(', ')}.`;if(p.status==='unverified')return'전체 원재료 라벨을 확인하지 못했습니다. 알레르기 유발물질이 없다는 뜻이 아닙니다.';if(p.status==='unverified_language')return'현재 검증 중인 언어의 라벨 패널을 감지했지만 충분히 확인하지 못했습니다. 이 결과를 음성 결과로 해석하지 마세요.';if(p.status==='no_listed_conflict')return'전체 라벨을 확인하지 못했습니다. 알레르기 유발물질 부재를 보장하지 않습니다.';if(p.status==='ingredient_not_confirmed'){
@@ -202,14 +214,17 @@ function showResults(data) {
   const cautions = ps.filter(p => p.status === 'caution').length;
   const noMatches = observations.filter(Boolean).length;
   const unverified = ps.length - conflicts - cautions - noMatches;
+  const allNeedPhotos = unverified>0 && ps.every(needsLabelPhoto);
   $('#ricon').textContent = '!';
   $('#rtitle').textContent = conflicts ? localizedStatus('conflict') : cautions ? localizedStatus('caution')
-    : noMatches ? (unverified ? t('mixed') : noDetectedLabel()) : t('unableVerify');
+    : noMatches ? (unverified ? t('mixed') : noDetectedLabel())
+    : allNeedPhotos ? localizedStatus('unreadable') : labelReviewTitle();
   $('#rbody').textContent = lang.value === 'ko'
-    ? `제품 ${ps.length}개 · 주의 성분 ${conflicts}건 · 교차접촉 주의 ${cautions}건 · 읽은 범위에서 미검출 ${noMatches}건 · 확인 불가 ${unverified}건`
-    : `${ps.length} ${ps.length === 1 ? 'Product' : 'Products'} · ${conflicts} ${t('conflict')} · ${cautions} ${t('caution')} · ${noMatches} with no match in text read · ${unverified} ${t('unableVerify')}`;
+    ? `제품 ${ps.length}개 · 주의 성분 ${conflicts}건 · 교차접촉 주의 ${cautions}건 · 읽은 범위에서 미검출 ${noMatches}건 · 포장지 확인 필요 ${unverified}건`
+    : `${ps.length} ${ps.length === 1 ? 'Product' : 'Products'} · ${conflicts} ${t('conflict')} · ${cautions} ${t('caution')} · ${noMatches} with no caution found in the text read · ${unverified} need label review`;
   ps.forEach((p,index) => {
     const noMatch=observations[index];
+    const retake=needsLabelPhoto(p);
     const box = document.createElement('div');
     box.className = noMatch ? 'presult' : `presult ${kindFor(p.status)}`;
     const top = document.createElement('div');
@@ -219,11 +234,12 @@ function showResults(data) {
     title.textContent = `${t('product')} ${index+1}`+(p.manual_photo_reference?' · '+p.manual_photo_reference.product:'');
     const badge = document.createElement('div');
     badge.className = 'badge';
-    badge.textContent = noMatch ? noDetectedLabel() : localizedStatus(p.status);
+    badge.textContent = noMatch ? noDetectedLabel() : retake ? localizedStatus('unreadable')
+      : p.status==='unverified' ? labelReviewTitle() : localizedStatus(p.status);
     top.append(title,badge);
     const message = document.createElement('div');
     message.className = 'prmsg';
-    message.textContent = noMatch ? noDetectedWarning() : localizedProductMessage(p);
+    message.textContent = noMatch ? noDetectedWarning() : retake ? retakeLabelMessage() : localizedProductMessage(p);
     const evidence = document.createElement('div');
     evidence.className = 'evidence';
     addEv(evidence,t('directMatches'),(p.direct_matches || []).map(x => `${allergenLabel(x)} (${x.term})`).join(' · '));
@@ -239,7 +255,7 @@ function showResults(data) {
       box.appendChild(note);
     }
     box.appendChild(message);
-    if(p.retake_recommended&&!noMatch)addRetakeAdvice(box);
+    if(p.retake_recommended&&!noMatch&&!retake)addRetakeAdvice(box);
     if (evidence.children.length) box.appendChild(evidence);
     const ingredients=document.createElement('section');ingredients.className='ingredientSection';
     const ih=document.createElement('h4');ih.textContent=t('ingredientsTitle');

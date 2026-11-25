@@ -179,16 +179,17 @@ try {
   assert.equal(await evaluate(`document.querySelector('#continuePhotos').disabled`),false);
   await evaluate(`document.querySelector('#continuePhotos').click()`);
   assert.equal(await evaluate(`document.activeElement.id`),'scanHeading');
-  const noMatch='No match in the ingredient text read';
+  const noMatch='No caution was found';
+  const retake='Please retake the label photo';
   const cases=[
     ['INGREDIENTS: milk, sugar, citric acid (E330)','Conflict detected'],
     ['INGREDIENTS: sugar\nMay contain milk','Caution'],
     ['INGREDIENTS: sugar and cocoa',noMatch],
     ['원재료명: 정제수, 설탕',noMatch],
     ['INGREDIENTS: sugar, cocoa powder, cocoa butter, vanilla extract, salt',noMatch],
-    ['Milk drink\nINGREDIENTS: sugar','Unable to verify'],
-    ['INGREDIENTS: sugar, cocoa powder','Unable to verify',40],
-    ['Nutrition facts: per 100 g 500 kcal','Unable to verify'],
+    ['Milk drink\nINGREDIENTS: sugar','Check the package label'],
+    ['INGREDIENTS: sugar, cocoa powder',retake,40],
+    ['Nutrition facts: per 100 g 500 kcal',retake],
   ];
   for(const [text,expected,confidence] of realOcr ? cases.slice(0,1) : cases) {
     const result=await evaluate(`(async()=>{globalThis.testOcrText=${JSON.stringify(text)};globalThis.testOcrConfidence=${confidence??95};document.querySelector('#analyze').click();const end=Date.now()+${realOcr?180000:20000};while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw new Error('analysis timeout');await new Promise(r=>setTimeout(r,25));}const visible=document.body.cloneNode(true);visible.querySelectorAll('.rawOcr').forEach(el=>el.remove());return {title:document.querySelector('#rtitle').textContent,summary:document.querySelector('#rbody').textContent,icon:document.querySelector('#ricon').textContent,badge:document.querySelector('.presult .badge').textContent,message:document.querySelector('.presult .prmsg').textContent,hasRetake:!!document.querySelector('.presult .retakeAdvice'),body:visible.textContent,hasCalorieElements:!!document.querySelector('#calTotal,.kcal')};})()`);
@@ -196,13 +197,14 @@ try {
     assert.equal(result.badge,expected,text);
     if(expected===noMatch) {
       assert.match(result.message,/check the full ingredient list and allergen warnings on the package/i);
-      assert.match(result.summary,/1 with no match in text read · 0 Unable to verify/);
+      assert.match(result.summary,/1 with no caution found in the text read · 0 need label review/);
       assert.equal(result.hasRetake,false);
     }
+    if(expected===retake)assert.match(result.message,/take a closer, sharper photo/i);
     if(text.startsWith('원재료명')) {
       await evaluate(`document.querySelector('#lang').value='ko';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
       assert.equal(await evaluate(`document.querySelector('.presult .badge').textContent`),'읽은 원재료에서 선택 성분 미검출');
-      assert.match(await evaluate(`document.querySelector('#rbody').textContent`),/읽은 범위에서 미검출 1건 · 확인 불가 0건/);
+      assert.match(await evaluate(`document.querySelector('#rbody').textContent`),/읽은 범위에서 미검출 1건 · 포장지 확인 필요 0건/);
       await evaluate(`document.querySelector('#lang').value='en';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
     }
     await tap(navigation+' [data-nav-mode=shopping]');
@@ -224,7 +226,7 @@ try {
     }
   }
   await evaluate(`document.querySelector('#lang').value='ko';document.querySelector('#lang').dispatchEvent(new Event('change'));`);
-  assert.equal(await evaluate(`document.querySelector('#rtitle').textContent`),realOcr?'주의 성분 확인':'확인 불가');
+  assert.equal(await evaluate(`document.querySelector('#rtitle').textContent`),realOcr?'주의 성분 확인':'라벨 재촬영 필요');
   assert.ok(!/calorie|kcal|열량|칼로리/iu.test(await evaluate(`(()=>{const body=document.body.cloneNode(true);body.querySelectorAll('.rawOcr').forEach(el=>el.remove());return body.textContent})()`)));
   if(process.env.BROWSER_SCREENSHOT && realOcr) {
     const {data}=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});
@@ -236,9 +238,9 @@ try {
     // preprocessing and native bridge routing with controlled word outputs;
     // this verifies pixels/coordinates and UI, not ML Kit accuracy on a phone.
     await evaluate(`(async()=>{globalThis.testOcrText='...';document.querySelector('#analyze').click();const end=Date.now()+20000;while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw Error('retake timeout');await new Promise(r=>setTimeout(r,25))}})()`);
-    assert.ok((await evaluate(`document.querySelector('.retakeAdvice').textContent`)).includes('가까이서'));
+    assert.match(await evaluate(`document.querySelector('.presult .prmsg').textContent`),/가까이에서 다시 촬영/);
     await evaluate(`document.querySelector('#lang').value='en';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
-    assert.ok((await evaluate(`document.querySelector('.retakeAdvice').textContent`)).includes('Move closer'));
+    assert.match(await evaluate(`document.querySelector('.presult .prmsg').textContent`),/take a closer, sharper photo/i);
     await evaluate(`globalThis.testNativeSizes=[];globalThis.ADPAI_NATIVE_OCR=async({base64})=>{const image=new Image();image.src='data:image/png;base64,'+base64;await image.decode();globalThis.testNativeSizes.push(image.naturalWidth);const enhanced=image.naturalWidth>1400;return {items:(enhanced?['INGREDIENTS:','milk,','sugar,','cocoa,','salt,','water']:['unclear']).map((text,i)=>({text,score:enhanced?.9:.2,lineId:0,box:{x0:i*80,x1:i*80+75,y0:0,y1:20}}))}};document.querySelector('#analyze').click()`);
     await evaluate(`(async()=>{const end=Date.now()+20000;while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw Error('native enhance timeout');await new Promise(r=>setTimeout(r,25))}})()`);
     assert.equal(await evaluate(`document.querySelector('#rtitle').textContent`),'Conflict detected');

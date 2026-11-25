@@ -1,14 +1,15 @@
 // Increment RELEASE with the complete module graph. Installation is atomic;
 // updates wait for open tabs to close, and never interrupt ongoing analysis.
-const RELEASE='1.11.1-20261125-table-label';
+const RELEASE='1.11.1-20261125-result-copy';
 const ASSET_VERSION='1.11.1';
 const STYLE_VERSION='1.11.1-install-menu';
 const PREFIX=`adpai-shell:${self.registration.scope}:`;
 const CACHE=PREFIX+RELEASE;
+const BROWSER_VERSION='1.11.1-result-copy';
 const TABLE_LABEL_VERSION='1.11.1-table-label';
 const FILES=['./','./index.html','./cosmetics.html','./manifest.webmanifest','./privacy.html','./data/catalog-korea-verified.json',
   `./assets/app.css?v=${STYLE_VERSION}`,`./assets/barcode.css?v=${ASSET_VERSION}`,`./assets/cosmetics.css?v=${ASSET_VERSION}`,'./assets/icons/icon-192.png','./assets/icons/icon-512.png','./assets/icons/apple-touch-icon.png',
-  ...['browser','barcode-ui','barcode-core','barcode-dietary','catalog-core','tesseract','engine','ontology','image','pwa','crop','ingredients','ingredient-glossary','label-pattern','menu','dietary','ocr-worker','menu-image','menu-ocr','native-ocr','manual-photo-reference','photo-quality','camera','geometry','cosmetics-browser','cosmetics','cosmetic-glossary','cosmetic-ocr','cosmetic-items'].map(name=>`./src/${name}.js?v=${name==='browser'?TABLE_LABEL_VERSION:ASSET_VERSION}`),
+  ...['browser','barcode-ui','barcode-core','barcode-dietary','catalog-core','tesseract','engine','ontology','image','pwa','crop','ingredients','ingredient-glossary','label-pattern','menu','dietary','ocr-worker','menu-image','menu-ocr','native-ocr','manual-photo-reference','photo-quality','camera','geometry','cosmetics-browser','cosmetics','cosmetic-glossary','cosmetic-ocr','cosmetic-items'].map(name=>`./src/${name}.js?v=${name==='browser'?BROWSER_VERSION:ASSET_VERSION}`),
   ...['tesseract','ingredients'].map(name=>`./src/${name}.js?v=${TABLE_LABEL_VERSION}`)];
 const urls=FILES.map(file=>new URL(file,self.registration.scope).href);
 self.addEventListener('install',event=>event.waitUntil((async()=>{
