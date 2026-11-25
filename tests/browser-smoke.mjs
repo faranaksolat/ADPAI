@@ -52,7 +52,7 @@ try {
   });
   const errors=[];
   listeners.set('Runtime.exceptionThrown',[event=>errors.push(event.exceptionDetails.text+': '+(event.exceptionDetails.exception?.description||''))]);
-  const stub=`globalThis.Tesseract={createWorker:async()=>({recognize:async()=>{if(globalThis.testOcrDelay)await new Promise(r=>setTimeout(r,globalThis.testOcrDelay));return {data:{words:(globalThis.testOcrText||'INGREDIENTS: milk, sugar').split('\\n').flatMap((line,line_num)=>line.split(' ').map((text,i)=>({text,confidence:95,block_num:0,par_num:0,line_num,bbox:{x0:i*40,y0:line_num*40,x1:i*40+38,y1:line_num*40+24}})))}}},terminate:async()=>{}})};globalThis.ADPAI_CREATE_OCR_WORKER=(...args)=>globalThis.Tesseract.createWorker(...args);`;
+  const stub=`globalThis.Tesseract={createWorker:async()=>({recognize:async()=>{if(globalThis.testOcrDelay)await new Promise(r=>setTimeout(r,globalThis.testOcrDelay));return {data:{words:(globalThis.testOcrText||'INGREDIENTS: milk, sugar').split('\\n').flatMap((line,line_num)=>line.split(' ').map((text,i)=>({text,confidence:globalThis.testOcrConfidence??95,block_num:0,par_num:0,line_num,bbox:{x0:i*40,y0:line_num*40,x1:i*40+38,y1:line_num*40+24}})))}}},terminate:async()=>{}})};globalThis.ADPAI_CREATE_OCR_WORKER=(...args)=>globalThis.Tesseract.createWorker(...args);`;
 
   listeners.set('Fetch.requestPaused',[event=>{
     (realOcr ? send('Fetch.failRequest',{requestId:event.requestId,errorReason:'InternetDisconnected'})
@@ -179,14 +179,31 @@ try {
   assert.equal(await evaluate(`document.querySelector('#continuePhotos').disabled`),false);
   await evaluate(`document.querySelector('#continuePhotos').click()`);
   assert.equal(await evaluate(`document.activeElement.id`),'scanHeading');
-  const cases=[['INGREDIENTS: milk, sugar, citric acid (E330)','Conflict detected'],['INGREDIENTS: sugar and cocoa','Unable to verify'],['INGREDIENTS: sugar, cocoa powder, cocoa butter, vanilla extract, salt','No detected allergen'],['Nutrition facts: per 100 g 500 kcal','Unable to verify']];
-  for(const [text,expected] of realOcr ? cases.slice(0,1) : cases) {
-    const result=await evaluate(`(async()=>{globalThis.testOcrText=${JSON.stringify(text)};document.querySelector('#analyze').click();const end=Date.now()+${realOcr?180000:20000};while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw new Error('analysis timeout');await new Promise(r=>setTimeout(r,25));}const visible=document.body.cloneNode(true);visible.querySelectorAll('.rawOcr').forEach(el=>el.remove());return {title:document.querySelector('#rtitle').textContent,icon:document.querySelector('#ricon').textContent,badge:document.querySelector('.presult .badge').textContent,message:document.querySelector('.presult .prmsg').textContent,body:visible.textContent,hasCalorieElements:!!document.querySelector('#calTotal,.kcal')};})()`);
-    assert.equal(result.title,expected);
-    assert.equal(result.badge,expected);
-    if(expected==='No detected allergen') {
-      assert.match(result.message,/full ingredients and allergen warnings were NOT verified/i);
-      assert.match(result.message,/does NOT mean the product is safe/i);
+  const noMatch='No match in the ingredient text read';
+  const cases=[
+    ['INGREDIENTS: milk, sugar, citric acid (E330)','Conflict detected'],
+    ['INGREDIENTS: sugar\nMay contain milk','Caution'],
+    ['INGREDIENTS: sugar and cocoa',noMatch],
+    ['원재료명: 정제수, 설탕',noMatch],
+    ['INGREDIENTS: sugar, cocoa powder, cocoa butter, vanilla extract, salt',noMatch],
+    ['Milk drink\nINGREDIENTS: sugar','Unable to verify'],
+    ['INGREDIENTS: sugar, cocoa powder','Unable to verify',40],
+    ['Nutrition facts: per 100 g 500 kcal','Unable to verify'],
+  ];
+  for(const [text,expected,confidence] of realOcr ? cases.slice(0,1) : cases) {
+    const result=await evaluate(`(async()=>{globalThis.testOcrText=${JSON.stringify(text)};globalThis.testOcrConfidence=${confidence??95};document.querySelector('#analyze').click();const end=Date.now()+${realOcr?180000:20000};while(!document.querySelector('#result').classList.contains('show')){if(Date.now()>end)throw new Error('analysis timeout');await new Promise(r=>setTimeout(r,25));}const visible=document.body.cloneNode(true);visible.querySelectorAll('.rawOcr').forEach(el=>el.remove());return {title:document.querySelector('#rtitle').textContent,summary:document.querySelector('#rbody').textContent,icon:document.querySelector('#ricon').textContent,badge:document.querySelector('.presult .badge').textContent,message:document.querySelector('.presult .prmsg').textContent,hasRetake:!!document.querySelector('.presult .retakeAdvice'),body:visible.textContent,hasCalorieElements:!!document.querySelector('#calTotal,.kcal')};})()`);
+    assert.equal(result.title,expected,text);
+    assert.equal(result.badge,expected,text);
+    if(expected===noMatch) {
+      assert.match(result.message,/check the full ingredient list and allergen warnings on the package/i);
+      assert.match(result.summary,/1 with no match in text read · 0 Unable to verify/);
+      assert.equal(result.hasRetake,false);
+    }
+    if(text.startsWith('원재료명')) {
+      await evaluate(`document.querySelector('#lang').value='ko';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
+      assert.equal(await evaluate(`document.querySelector('.presult .badge').textContent`),'읽은 원재료에서 선택 성분 미검출');
+      assert.match(await evaluate(`document.querySelector('#rbody').textContent`),/읽은 범위에서 미검출 1건 · 확인 불가 0건/);
+      await evaluate(`document.querySelector('#lang').value='en';document.querySelector('#lang').dispatchEvent(new Event('change'))`);
     }
     await tap(navigation+' [data-nav-mode=shopping]');
     assert.equal(await evaluate(`document.querySelector('#result').classList.contains('show')`),true,'returning to the active tab must preserve the current result');
