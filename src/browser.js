@@ -1,5 +1,5 @@
 import { analyzeProducts } from "./tesseract.js?v=1.11.1-table-label";
-import {findManualPhotoReferences,manualOnlyResults,applyManualPhotoReferences} from './manual-photo-reference.js?v=1.11.1';
+import {findManualPhotoReferences,manualOnlyResults,applyManualPhotoReferences} from './manual-photo-reference.js?v=1.11.1-chik-chok-label';
 import { initBarcodeUi } from "./barcode-ui.js?v=1.11.1";
 import { cropPhoto } from "./crop.js?v=1.11.1";
 import { explainIngredient, sourceTranscript } from "./ingredients.js?v=1.11.1-table-label";
@@ -152,9 +152,7 @@ async function analyzeOnDevice(p,active){
  await Promise.all(active.flatMap(product=>product.photos.map(photo=>photo.qualityTask)).filter(Boolean));
  const menu=currentMode==='menu';
  const manual=menu?null:await findManualPhotoReferences(active);
- // The exact three supplied photo files (including mild recompression) can be
- // checked against a visibly labelled, manually transcribed reference without
- // waiting for Korean OCR. Other images still use the normal on-device OCR.
+ // Run OCR for any photo that has no transcribed reference.
  if(!menu&&manual.every((m,i)=>m.panels.length===active[i].photos.length&&m.panels.every(x=>x.panel)))
    return manualOnlyResults(active,p,manual);
  const data=await analyzeProducts(active,p,{onProgress:setProgress,purpose:menu?'menu':'shopping'});
@@ -252,6 +250,12 @@ function showResults(data) {
       note.textContent=lang.value==='ko'
         ?'사진 일치: 사용자가 제공한 사진의 수동 전사 자료입니다. 실시간 OCR 판독 결과가 아닙니다. 실제 포장지를 반드시 확인하세요.'
         :'Photo reference match: this result uses a manually transcribed reference for the supplied photos, NOT live OCR. Always check the actual package.';
+      if(p.manual_photo_reference.packageSizes?.length){
+        const sizes=p.manual_photo_reference.packageSizes.map(size=>`${size} g`).join(' / ');
+        note.textContent=lang.value==='ko'
+          ?`업로드한 ${sizes} 포장지의 알레르기 표시를 직접 옮긴 결과입니다. 가지고 있는 제품의 포장지를 확인해 주세요.`
+          :`Manually transcribed allergen declaration from the uploaded ${sizes} labels. Check the label on the package you have.`;
+      }
       box.appendChild(note);
     }
     box.appendChild(message);

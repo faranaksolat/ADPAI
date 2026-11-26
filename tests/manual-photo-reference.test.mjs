@@ -40,6 +40,17 @@ test('manual evidence cannot erase a stronger OCR warning',()=>{
  const out=applyManualPhotoReferences(existing,products,{allergens:['milk']},matches);
  assert.equal(out.products[0].status,'conflict');assert.equal(out.products[0].direct_matches[0].allergen_id,'milk');
 });
+test('the supplied Chik Chok label declares egg and the other listed allergens for both pictured sizes',()=>{
+ const products=[{id:1,photos:[{},{}]}];
+ const matches=[{product_id:1,panels:[{photoIndex:1,panel:'chik-chok-original-label'}]}];
+ const result=manualOnlyResults(products,{allergens:['egg','milk','wheat','soy','peanut']},matches).products[0];
+ assert.equal(result.status,'conflict');
+ assert.deepEqual(new Set(result.direct_matches.map(x=>x.allergen_id)),new Set(['egg','milk','wheat','soy','peanut']));
+ assert.ok(result.direct_matches.some(x=>x.term==='달걀'&&x.photoIndex===1));
+ assert.deepEqual(result.manual_photo_reference.packageSizes,[120,180]);
+ assert.equal(result.sources[0].items[0].text,'밀, 우유, 대두, 달걀, 땅콩 함유');
+ assert.equal(manualOnlyResults(products,{allergens:['fish']},matches).products[0].status,'unverified');
+});
 test('fingerprint pixel samples are deterministic, no photo storage',()=>{
  const p32=new Uint8ClampedArray(32*32*4).fill(128),p9=new Uint8ClampedArray(9*8*4).fill(128);
  const a=fingerprintFromPixels(p32,p9),b=fingerprintFromPixels(p32,p9);

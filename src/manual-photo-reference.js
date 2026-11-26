@@ -1,7 +1,5 @@
-// Explicit, narrow manual reference for three user-supplied Crown Victory Pie
-// photos. This is NOT OCR, a product catalog, or a food-safety certification.
-// The photos are not stored or uploaded; only two coarse visual fingerprints
-// are shipped. An uncertain match must fall back to OCR/unverified.
+// Narrow references for specific supplied photos. Only fingerprints and
+// transcribed declarations ship with the app.
 import {evaluateProduct} from './engine.js?v=1.11.1';
 
 const REFERENCE={
@@ -12,6 +10,14 @@ const REFERENCE={
     precaution: {phash:'b3ccc1333e346559',dhash:'0f0fc8d0f0f0e0e0'},
     ingredients:{phash:'b5ce98306f69a493',dhash:'0f0f90f0f0e0e0e0'},
   },
+};
+const CHIK_CHOK_LABEL={
+  panel:'chik-chok-original-label',
+  product:'Lotte Chik Chok Original (롯데 칙촉 오리지널)',
+  packageSizes:[120,180],
+  size:322934,
+  sha256:'07b8b23ee2867618e28272e637cfaf065ce0fc1ac6932bef43cb9d9c74f880f1',
+  declaration:'밀, 우유, 대두, 달걀, 땅콩 함유',
 };
 
 function hexBits(bits){
@@ -64,6 +70,15 @@ export function matchReferenceFingerprint(fingerprint,ratio){
 
 export async function matchManualPhoto(file){
   if(!file||typeof file.type==='string'&&!file.type.startsWith('image/'))return null;
+  if(file.size===CHIK_CHOK_LABEL.size&&globalThis.crypto?.subtle){
+    try{
+      const hash=await crypto.subtle.digest('SHA-256',await file.arrayBuffer());
+      const hex=Array.from(new Uint8Array(hash),byte=>byte.toString(16).padStart(2,'0')).join('');
+      if(hex===CHIK_CHOK_LABEL.sha256)return CHIK_CHOK_LABEL.panel;
+    }catch{
+      // Continue with existing visual references if exact matching is unavailable.
+    }
+  }
   const url=URL.createObjectURL(file),image=new Image();
   try{
     image.src=url;await image.decode();
@@ -92,7 +107,12 @@ export async function findManualPhotoReferences(products){
 }
 
 function manualSource(panel,photoIndex){
-  const text=panel==='ingredients'?'밀, 우유, 대두 함유':panel==='precaution'?'땅콩, 계란, 돼지고기, 쇠고기 혼입 가능':null;
+  const declarations={
+    ingredients:'밀, 우유, 대두 함유',
+    precaution:'땅콩, 계란, 돼지고기, 쇠고기 혼입 가능',
+    [CHIK_CHOK_LABEL.panel]:CHIK_CHOK_LABEL.declaration,
+  };
+  const text=declarations[panel];
   return text?{
     familyId:'manual-reference',photoIndex,rotation:0,variant:'human-transcribed-photo-reference',
     manual:true,confidence_scope:'human_transcription_not_ocr',
@@ -107,6 +127,7 @@ export function applyManualPhotoReferences(data,products,profile,matches){
     if(!matched.length)return result;
     const manualSources=matched.map(x=>manualSource(x.panel,x.photoIndex)).filter(Boolean);
     const sources=[...(result.sources||[]),...manualSources];
+    const isChikChok=matched.some(x=>x.panel===CHIK_CHOK_LABEL.panel);
     // An exact image reference can add a positive warning, but can never
     // suppress a separate OCR risk or establish absence of an allergen.
     const reference=evaluateProduct({sources,profile,requiredFamilies:['manual-reference'],
@@ -118,7 +139,9 @@ export function applyManualPhotoReferences(data,products,profile,matches){
       // A reference is not a full ingredient transcription.
       ingredients:result.ingredients||[],
       product_id:result.product_id??products[index]?.id,
-      manual_photo_reference:{product:REFERENCE.product,barcode:REFERENCE.barcode,
+      manual_photo_reference:{...(isChikChok
+        ? {product:CHIK_CHOK_LABEL.product,packageSizes:CHIK_CHOK_LABEL.packageSizes}
+        : {product:REFERENCE.product,barcode:REFERENCE.barcode}),
         panels:matched.map(x=>({photoIndex:x.photoIndex,panel:x.panel})),
         disclosure:'Manually transcribed reference for these supplied photos, not OCR.'},
       message:severity[winner.status]?'Selected risk found in a matched manually transcribed photo reference.':'Only a partial manually transcribed photo reference matched. No absence of allergens has been verified.',
