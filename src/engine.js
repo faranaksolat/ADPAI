@@ -169,6 +169,11 @@ export function matchSpans(text,term){
 const STOP_HEADINGS = [...MARKERS.nutrition_headings, "storage", "best before", "customer service", "barcode", "보관방법", "고객상담실", "保存方法", "保管方法"];
 const SUFFIX_CAUTION = new RegExp(["혼입가능", "혼입 가능", "함유가능", "함유 가능", "같은 제조시설", "동일 제조시설", "含む可能性", "同一工場", "可能含有"].map(x=>labelPattern(fold(x).normalize('NFC'),fold)).join('|'), 'u');
 const SUFFIX_DIRECT = new RegExp(["함유", "含有", "含む"].map(x=>labelPattern(fold(x).normalize('NFC'),fold)).join('|'), 'u');
+const KOREAN_BULLET = /^\s*[•ㆍ·▪■※*"‧]\s*/u;
+const KOREAN_CONTAINS = /^함\s*유$/u;
+// Low-resolution Korean OCR can read 혼입 as 혼임 or 흔임. Accept those
+// only at the end of an explicit, comma-delimited precautionary bullet.
+const KOREAN_PRECAUTION_OCR = /(?:혼\s*임|흔\s*임)\s*가\s*능[\s.,;。_]*$/u;
 
 function contextEvents(text) {
   const groups = [["direct", MARKERS.ingredient_headings], ["direct", MARKERS.direct_markers], ["caution", MARKERS.caution_markers], ["mention", STOP_HEADINGS]];
@@ -208,6 +213,19 @@ function occurrenceKind(text, span, events) {
   const before = events.filter(e => e.start <= span.start);
   const current = before.at(-1);
   let kind = current && !/[.;!?。；]/u.test(text.slice(current.end, span.start)) ? current.kind : "mention";
+  if(current?.kind==="direct" && current.end<lineStart
+      && KOREAN_CONTAINS.test(text.slice(current.start,current.end).normalize('NFC'))
+      && !/^\s*[:：]/u.test(text.slice(current.end,lineStart)))kind="mention";
+  const koreanBullet=KOREAN_BULLET.test(line)&&/\p{Script=Hangul}/u.test(line);
+  if(koreanBullet&&current?.kind==="direct"&&current.end<lineStart)kind="mention";
+  if(koreanBullet&&/[,，、]\s*$/u.test(line)&&!SUFFIX_DIRECT.test(line)){
+    const following=text.slice(nextStart).split('\n').slice(0,4);
+    for(const continuation of following){
+      if(KOREAN_BULLET.test(continuation)||containsAny(continuation,STOP_HEADINGS))break;
+      if(SUFFIX_CAUTION.test(continuation)||KOREAN_PRECAUTION_OCR.test(continuation.normalize('NFC')))return "caution";
+      if(SUFFIX_DIRECT.test(continuation))break;
+    }
+  }
   // Korean/Japanese declarations often put the marker after an allergen list.
   if (SUFFIX_CAUTION.test(scopedLine)) kind = "caution";
   else if (SUFFIX_DIRECT.test(scopedLine)) kind = "direct";

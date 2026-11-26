@@ -1,4 +1,4 @@
-import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.11.1';
+import { evaluateProduct, containsAny, MARKERS, customRequiredFamilies } from './engine.js?v=1.11.1-korean-precautions';
 import { preprocess, rotateCanvas, resizeForOcr, needsRetake, releasePhotoSource } from './image.js?v=1.11.1';
 import {menuReadCanvases,mapMenuItems,packageLabelDetailViews} from './menu-image.js?v=1.11.1';
 import { extractIngredients, sourceTranscript } from './ingredients.js?v=1.11.1-table-label';

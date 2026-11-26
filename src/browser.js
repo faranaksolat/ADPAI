@@ -1,4 +1,4 @@
-import { analyzeProducts } from "./tesseract.js?v=1.11.1-table-label";
+import { analyzeProducts } from "./tesseract.js?v=1.11.1-korean-precautions";
 import {findManualPhotoReferences,manualOnlyResults,applyManualPhotoReferences} from './manual-photo-reference.js?v=1.11.1-chik-chok-label';
 import { initBarcodeUi } from "./barcode-ui.js?v=1.11.1";
 import { cropPhoto } from "./crop.js?v=1.11.1";

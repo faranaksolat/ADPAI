@@ -192,6 +192,24 @@ function fullStatus() {
 
 console.log("ADPAI deterministic safety regressions: PASS");
 
+// A Korean "contains" line ends before the adjacent wrapped warning.
+{
+ const declared='밀, 달걀, 우유, 대두, 돼지고기, 쇠고기 함유';
+ for(const suffix of ['혼입가능','흔 임 가능']){
+  const lines=[declared,'19870415003114',
+    '* 땅콩, 호두, 복숭아, 토마토, 닭고기, 오징어,',
+    '새우, 게, 조개류(굴, 홍합 포함) '+suffix];
+  const peanut=evaluateProduct({sources:[source('korean',lines)],profile:{allergens:['peanut']}});
+  assert.equal(peanut.status,'caution',suffix);
+  assert.equal(peanut.direct_matches.length,0);
+  assert.equal(peanut.caution_matches[0].term,'땅콩');
+  const milk=evaluateProduct({sources:[source('korean',lines)],profile:profileMilk});
+  assert.equal(milk.status,'conflict');
+ }
+ const broken=evaluateProduct({sources:[source('korean',[declared,'19870415003114','* 땅콩, 호두,'])],profile:{allergens:['peanut']}});
+ assert.equal(broken.status,'unverified');
+}
+
 // Crown strawberry Victory Pie, photographed Korean package (2026-11-19).
 // These are human-transcribed label strings, NOT a successful OCR benchmark.
 {
