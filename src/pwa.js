@@ -1,3 +1,5 @@
+import { initPwaMetrics } from './pwa-metrics.js?v=1.11.1-pwa-metrics';
+
 // PWA installation links deliberately remain visible on both Android and iOS.
 // Native Android/iOS store packages are not presented as the current web release.
 const COPY = {
@@ -53,6 +55,7 @@ export function updateInstallUI() {
 }
 export function initPwa() {
   if(native()){updateInstallUI();return;}
+  initPwaMetrics();
   window.addEventListener('beforeinstallprompt',event=>{
     event.preventDefault();promptEvent=event;updateInstallUI();
   });

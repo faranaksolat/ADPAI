@@ -59,3 +59,39 @@ test('a partial shell install is discarded; activation only removes this app old
   assert.ok(w.stores.has('adpai-shell:https://example.test/another-app/:old'));
   assert.equal(w.stores.size,2);
 });
+
+test('web analytics counts the first standalone launch and leaves ordinary visits separate',async()=>{
+  const source=await fs.readFile(new URL('../src/pwa-metrics.js',import.meta.url),'utf8');
+  const storage=new Map();
+  function launch({id='G-TEST123',standalone=false,ios=false,blocked=false,dnt=false}={}) {
+    const window={matchMedia:()=>({matches:standalone})};
+    let script;
+    const navigator={standalone:ios,doNotTrack:dnt?'1':null};
+    const document={
+      querySelector:()=>({content:id}),
+      createElement:()=>{
+        script={addEventListener:(_event,listener)=>{script.load=listener;}};
+        return script;
+      },
+      head:{append:element=>{if(!blocked)element.load();}},
+    };
+    const localStorage={getItem:key=>storage.get(key),setItem:(key,value)=>storage.set(key,value)};
+    const location={origin:'https://example.test',pathname:'/ADPAI/',search:'?private=example'};
+    vm.runInNewContext(source.replace('export function','function')+'\ninitPwaMetrics();',
+      {window,navigator,document,localStorage,location});
+    const events=Array.from(window.dataLayer??[]).filter(item=>item[0]==='event').map(item=>item[1]);
+    return {events,script,config:window.dataLayer?.[1]?.[2]};
+  }
+  assert.equal(launch({id:''}).script,undefined);
+  assert.equal(launch({dnt:true}).script,undefined);
+  assert.deepEqual(launch({blocked:true,standalone:true}).events,[]);
+  const browser=launch();
+  assert.deepEqual(browser.events,['page_view']);
+  assert.equal(browser.config.page_location,'https://example.test/ADPAI/');
+  assert.deepEqual(launch({standalone:true}).events,['page_view','pwa_first_open']);
+  assert.deepEqual(launch({standalone:true}).events,['page_view']);
+
+  storage.clear();
+  assert.deepEqual(launch({ios:true}).events,['page_view','pwa_first_open']);
+  assert.deepEqual(launch({ios:true}).events,['page_view']);
+});
