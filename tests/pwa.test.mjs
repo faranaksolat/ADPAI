@@ -42,7 +42,12 @@ test('PWA atomically caches the shipped module graph and works offline under a p
   }
   assert.equal(await w.fetch(w.scope,'GET','navigate'),'cached shell');
   assert.equal(await w.fetch(w.scope+'src/engine.js?v=1.11.1'),'cached shell');
-  assert.equal(await w.fetch(w.scope+'assets/app.css?v=1.11.1-install-menu'),'cached shell');
+  const index=await fs.readFile(new URL('../index.html',import.meta.url),'utf8');
+  for(const path of ['assets/app.css','src/browser.js']) {
+    const entry=index.match(new RegExp(`["'](\\./${path}\\?v=[^"']+)["']`,'u'))?.[1];
+    assert.ok(entry,`missing versioned entry point: ${path}`);
+    assert.equal(await w.fetch(new URL(entry,w.scope).href),'cached shell',`missing offline entry point: ${entry}`);
+  }
   assert.equal(await w.fetch(w.scope+'assets/app.css?v=1.7.0'),undefined,'a fresh page must not receive styles from the previous release');
   for(const url of [w.scope+'api/analyze',w.scope+'label.png','https://cdn.jsdelivr.net/model.gz',w.scope+'src/engine.js?v=next']) assert.equal(await w.fetch(url),undefined);
   assert.equal(await w.fetch(w.scope,'POST'),undefined);
